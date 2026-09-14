@@ -65,7 +65,7 @@ jobs:
           # Each pinned version travels with its asset sha256: download, verify,
           # then extract. A yanked/retagged/tampered upstream asset fails loudly
           # instead of silently executing in CI.
-          ec_ver=3.7.0
+          ec_ver=3.11.3
           ec_sha=9a0c3a5170bffa24f9e5f0def53d285777b6c5284a95367f40d399d0b76af552
           ec_url="https://github.com/editorconfig-checker/editorconfig-checker"
           curl -fsSL -o ec.tar.gz \
