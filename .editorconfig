@@ -19,3 +19,29 @@ indent_style = tab
 
 [*.{toml,yml,yaml,json,jsonc,sh,zsh,bash}]
 indent_size = 2
+
+# Preserve imported files byte-for-byte. See THIRD_PARTY.md and upstream/lock.json.
+
+[skills/impeccable/SCREENSHOT-LICENSE]
+insert_final_newline = false
+
+[skills/impeccable/UPSTREAM.md]
+insert_final_newline = false
+
+[skills/impeccable/agents/openai.yaml]
+insert_final_newline = false
+
+[skills/impeccable/reference/degraded/asset-producer.md]
+insert_final_newline = false
+
+[skills/impeccable/reference/degraded/documenter.md]
+insert_final_newline = false
+
+[skills/impeccable/reference/degraded/finish-reviewer.md]
+insert_final_newline = false
+
+[skills/impeccable/reference/degraded/manual-edit-applier.md]
+insert_final_newline = false
+
+[skills/impeccable/scripts/data/font-index-failures.json]
+insert_final_newline = false

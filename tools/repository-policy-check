@@ -42,10 +42,33 @@ elif ! grep -Fq -- '--require-hashes' .github/workflows/ci.yml \
   || ! grep -Fq 'uv pip compile' .github/ci-requirements.txt; then
   fail "CI Python tools must install from the generated SHA-256 lock"
 fi
-if grep -REq '^[[:space:]]*permissions:[[:space:]]*write-all|^[[:space:]]+[a-z-]+:[[:space:]]+write([[:space:]]|$)' \
-  .github/workflows; then
-  fail "workflow permissions must not grant write access"
+# The sole write exception is JSON (valid YAML), so jq can verify its complete
+# permission structure without a permissive text match or another YAML runtime.
+bot=.github/workflows/upstream-imports.yml
+if [[ -f "$bot" ]]; then
+  if ! jq -e '
+    .permissions == {contents: "read"}
+    and (.on | keys | sort) == ["schedule", "workflow_dispatch"]
+    and (.jobs | keys) == ["propose"]
+    and .jobs.propose.permissions == {contents: "write", "pull-requests": "write"}
+    and .jobs.propose.if == "github.ref == '\''refs/heads/main'\''"
+    and .jobs.propose.steps[0].with.ref == "main"
+    and .jobs.propose.steps[0].with["persist-credentials"] == false
+    and ([.. | objects | .uses? // empty] | all(test("^actions/[a-z-]+@[0-9a-f]{40}$")))
+  ' "$bot" >/dev/null; then
+    fail "upstream bot must keep its main-only, narrowly scoped write permissions"
+  fi
 fi
+while IFS= read -r workflow; do
+  [[ "$workflow" == "$bot" ]] && continue
+  if [[ "$workflow" != .github/workflows/ci.yml ]]; then
+    fail "workflow is outside the reviewed allowlist: $workflow"
+    continue
+  fi
+  if grep -Eq "[\"']?[a-z-]+[\"']?[[:space:]]*:[[:space:]]*[\"']?write(-all)?" "$workflow"; then
+    fail "workflow permissions must not grant write access outside the upstream bot"
+  fi
+done < <(find .github/workflows -type f)
 
 while IFS= read -r use; do
   use=${use%%#*}

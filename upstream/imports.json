@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "sources": [
+    {
+      "id": "unslop",
+      "repository": "cursor/plugins",
+      "ref": "main",
+      "revision": "e43c7ee26e0038c6c1fa8380dd34ce86ff94cb2a",
+      "paths": {
+        "pstack/skills/unslop/SKILL.md": "skills/unslop/SKILL.md",
+        "pstack/LICENSE": "skills/unslop/LICENSE"
+      },
+      "patches": {
+        "skills/unslop/SKILL.md": "upstream/unslop.patch.json"
+      },
+      "required": [
+        "SKILL.md",
+        "LICENSE"
+      ]
+    },
+    {
+      "id": "frontend-design",
+      "repository": "anthropics/skills",
+      "ref": "main",
+      "revision": "dbd4588f9e1033efb41dad4bef2f7947c8993d44",
+      "paths": {
+        "skills/frontend-design/": "skills/frontend-design/"
+      },
+      "required": [
+        "SKILL.md",
+        "LICENSE.txt"
+      ]
+    },
+    {
+      "id": "impeccable",
+      "repository": "pbakaus/impeccable",
+      "ref": "main",
+      "revision": "08d5b470495d242ca0470f4aeae1956c3a074f83",
+      "paths": {
+        ".agents/skills/impeccable/": "skills/impeccable/",
+        "LICENSE": "skills/impeccable/LICENSE",
+        "NOTICE.md": "skills/impeccable/NOTICE.md"
+      },
+      "rename": {
+        "skills/impeccable/SKILL.md": "skills/impeccable/UPSTREAM.md"
+      },
+      "required": [
+        "UPSTREAM.md",
+        "LICENSE",
+        "NOTICE.md",
+        "scripts/VERSION"
+      ]
+    }
+  ]
+}

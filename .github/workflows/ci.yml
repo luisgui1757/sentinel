@@ -26,7 +26,10 @@ jobs:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38  # v6
+        with:
+          node-version: "22.19.0"
       - name: Install tools (Linux)
         if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install -y jq shellcheck bats
@@ -38,6 +41,8 @@ jobs:
       # validators loudly (non-strict) while ShellCheck (present) stays blocking.
       - name: Preflight (leak scan + render smoke + adapter drift + rulesets + shellcheck)
         run: make ci
+      - name: Pinned Impeccable engine
+        run: node tests/engine-smoke.mjs
       - name: Tooling tests (bats)
         run: make test
         env:
@@ -50,7 +55,7 @@ jobs:
     env:
       SENTINEL_STRICT: "1"   # every linter must run; a missing one fails the gate
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           fetch-depth: 0   # gitleaks scans full history
       - name: Install linters
@@ -65,14 +70,14 @@ jobs:
           # Each pinned version travels with its asset sha256: download, verify,
           # then extract. A yanked/retagged/tampered upstream asset fails loudly
           # instead of silently executing in CI.
-          ec_ver=3.7.0
-          ec_sha=9a0c3a5170bffa24f9e5f0def53d285777b6c5284a95367f40d399d0b76af552
+          ec_ver=4.0.2
+          ec_sha=44efaef3ed14c6ab52eb87481d78e5e5c204796dccf26e2f4598a61ba17f8003
           ec_url="https://github.com/editorconfig-checker/editorconfig-checker"
           curl -fsSL -o ec.tar.gz \
-            "${ec_url}/releases/download/v${ec_ver}/ec-linux-amd64.tar.gz"
+            "${ec_url}/releases/download/v${ec_ver}/editorconfig-checker-linux-amd64.tar.gz"
           echo "${ec_sha}  ec.tar.gz" | sha256sum -c -
           tar -xzf ec.tar.gz
-          sudo install -m 0755 bin/ec-linux-amd64 /usr/local/bin/editorconfig-checker
+          sudo install -m 0755 editorconfig-checker /usr/local/bin/editorconfig-checker
           gl_ver=8.30.1
           gl_sha=551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
           gl_url="https://github.com/gitleaks/gitleaks"
@@ -93,10 +98,19 @@ jobs:
     runs-on: windows-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38  # v6
+        with:
+          node-version: "22.19.0"
       - name: PowerShell installer drift check
         shell: pwsh
         run: ./tools/install.ps1 -Check
+      - name: Native policy and skill installation
+        shell: pwsh
+        run: node --test tests/policy-install.test.mjs tests/skills.test.mjs tests/upstream.test.mjs
+      - name: Pinned Impeccable engine
+        shell: pwsh
+        run: node tests/engine-smoke.mjs
 
   dependency_review:
     name: dependency-review
@@ -110,13 +124,27 @@ jobs:
         if: github.event_name != 'pull_request'
         run: echo 'dependency review applies to pull requests only'
 
+  upstream:
+    name: upstream
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38  # v6
+        with:
+          node-version: "22.19.0"
+      - name: Reproduce imports from pinned sources
+        run: node tools/upstream.mjs --verify
+        env:
+          GH_TOKEN: ${{ github.token }}
+
   # Stable required-status-check context. The branch-protection rulesets require
   # `ci`. It runs ALWAYS (so the required context is never reported as "skipped",
   # which some GitHub configs treat as passing) and FAILS unless every matrix
   # `test`, `lint`, `windows`, and `dependency_review` jobs succeeded.
   ci:
     name: ci
-    needs: [test, lint, windows, dependency_review]
+    needs: [test, lint, windows, dependency_review, upstream]
     if: ${{ always() }}
     runs-on: ubuntu-latest
     steps:
@@ -125,10 +153,12 @@ jobs:
           if [ "${{ needs.test.result }}" != "success" ] \
              || [ "${{ needs.lint.result }}" != "success" ] \
              || [ "${{ needs.windows.result }}" != "success" ] \
-             || [ "${{ needs.dependency_review.result }}" != "success" ]; then
+             || [ "${{ needs.dependency_review.result }}" != "success" ] \
+             || [ "${{ needs.upstream.result }}" != "success" ]; then
             echo "test=${{ needs.test.result }} lint=${{ needs.lint.result }}" >&2
             echo "windows=${{ needs.windows.result }}" >&2
             echo "dependency-review=${{ needs.dependency_review.result }}" >&2
+            echo "upstream=${{ needs.upstream.result }}" >&2
             echo "failing the required ci check" >&2
             exit 1
           fi

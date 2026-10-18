@@ -472,11 +472,8 @@ sentinel_render_managed_block() {
   printf '%s\n' "<!-- AGENT-RULES:BEGIN do-not-edit-inside-this-block -->"
   printf '%s\n' "<!-- version: $ver  sha256: $sha -->"
   printf '\n%s\n\n' "# Operating Contract"
-  printf '%s\n' "Baseline engineering rules for this project, loaded automatically. Treat them as"
-  printf '%s\n' "the floor, not the ceiling: the active task and this repository's own conventions"
-  printf '%s\n\n' "may tighten them freely, and may relax one only with an explicit, documented justification."
-  printf '%s\n' "Precedence, highest first: runtime/platform safety; the active task; this"
-  printf '%s\n\n' "repository's conventions; the rules below; then personal global defaults."
+  printf '%s\n' "Shared defaults for coding tasks. The active task and repository instructions"
+  printf '%s\n\n' "set the scope; platform and system requirements take precedence."
   printf '%s\n' "$bundle"
   printf '%s\n' "<!-- AGENT-RULES:END -->"
 }
@@ -509,18 +506,35 @@ sentinel_compose_adapter() {
 # Canonical adapter target lists for executable tooling. Documentation may
 # describe these paths, but install/status consume this source so supported
 # targets do not drift between commands.
+sentinel_validate_hosts() {
+  local hosts=$1 host
+  [[ -n "$hosts" && "$hosts" != ,* && "$hosts" != *, && "$hosts" != *,,* ]] || return 1
+  local old_ifs=$IFS
+  IFS=,
+  for host in $hosts; do
+    case "$host" in codex|claude|copilot|kiro) ;; *) IFS=$old_ifs; return 1 ;; esac
+  done
+  IFS=$old_ifs
+}
+
 sentinel_repo_adapter_targets() {
-  local target_dir=$1
-  printf '%s\n' \
-    "$target_dir/AGENTS.md" \
-    "$target_dir/CLAUDE.md" \
-    "$target_dir/.github/copilot-instructions.md"
+  local target_dir=$1 hosts=${2:-codex,claude,copilot,kiro}
+  case ",$hosts," in *,codex,*|*,kiro,*) printf '%s\n' "$target_dir/AGENTS.md" ;; esac
+  case ",$hosts," in *,claude,*) printf '%s\n' "$target_dir/CLAUDE.md" ;; esac
+  case ",$hosts," in *,copilot,*) printf '%s\n' "$target_dir/.github/copilot-instructions.md" ;; esac
 }
 
 sentinel_global_adapter_targets() {
+  local hosts=${1:-codex,claude,copilot,kiro}
+  case ",$hosts," in *,codex,*) printf '%s\n' "${CODEX_HOME:-$HOME/.codex}/AGENTS.md" ;; esac
+  case ",$hosts," in *,claude,*) printf '%s\n' "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/CLAUDE.md" ;; esac
+  case ",$hosts," in *,copilot,*) printf '%s\n' "$HOME/.copilot/copilot-instructions.md" ;; esac
+  case ",$hosts," in *,kiro,*) printf '%s\n' "$HOME/.kiro/steering/AGENTS.md" ;; esac
+}
+
+# Retired targets are only inspected or removed on explicit request.
+sentinel_legacy_adapter_targets() {
   printf '%s\n' \
-    "${CODEX_HOME:-$HOME/.codex}/AGENTS.md" \
-    "$HOME/.claude/CLAUDE.md" \
     "${XDG_CONFIG_HOME:-$HOME/.config}/opencode/AGENTS.md" \
     "${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}/AGENTS.md"
 }

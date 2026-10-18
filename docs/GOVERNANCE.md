@@ -11,7 +11,8 @@ is not proof of the resulting state.
 - `.github/rulesets/main-owner-updates.json` prevents direct branch updates.
 - `.github/settings.yml` owns non-branch repository settings only.
 - `renovate.json` owns routine version updates; GitHub-native Dependabot owns
-  vulnerability alerts and security updates.
+  vulnerability alerts and security updates. The upstream import workflow owns
+  only the three vendored skill sources in `upstream/imports.json`.
 - `.github/ci-requirements.in` owns direct Python CI-tool pins; its generated
   `.txt` lock pins the transitive graph and accepted SHA-256 artifact digests.
 - `scripts/apply-repo-safeguards.sh` is the sole live apply path.
@@ -28,13 +29,26 @@ effective policy that neither checked-in source describes.
 | Review | One code-owner approval, stale-review dismissal, last-push approval, resolved threads; owner bypass only in `pull_request` mode |
 | Updates | Only the owner may bypass the update rule, and only in `pull_request` mode |
 | Merge methods | Squash only; auto-merge disabled; merged branches deleted |
-| Actions | Enabled; selected GitHub-owned Actions only; full commit SHA required; default token read-only and unable to approve reviews |
+| Actions | Enabled; selected GitHub-owned Actions only; full commit SHA required; default token read-only; PR creation enabled for the import bot |
 | Security | Secret scanning, push protection, Dependabot security updates, private vulnerability reporting, and weekly default-suite CodeQL for Actions enabled |
 | Releases | Immutable future releases enabled |
 
 The stable required status context is `ci`; its workflow aggregates every
 blocking job. New blocking jobs join that aggregate instead of becoming another
 ruleset context.
+
+Only `upstream-imports.yml` grants job-level `contents: write` and
+`pull-requests: write`. It runs from `main` on a schedule or manual dispatch,
+opens one draft update and never approves or merges it. CI stays read-only.
+GitHub's PR-creation setting also permits review submission; GitHub offers no
+separate toggle. The workflow submits none, and code-owner review remains required.
+Bot-created PR workflows may need a maintainer to select **Approve workflows to
+run** before checks start. This is separate from approving the PR's contents.
+
+The workflow is JSON, which GitHub accepts as YAML. This lets the existing jq
+policy check validate its exact permission scopes without adding a YAML parser.
+The workflow allowlist contains only CI and upstream imports. Adding a workflow
+requires an explicit policy update; renaming the bot cannot evade its checks.
 
 ## Verification and cutover
 

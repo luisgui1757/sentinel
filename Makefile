@@ -34,7 +34,7 @@ gate: ## Strongest local gate (strict preflight + regression suite)
 render: ## Print the rendered core contract
 	@bash tools/render
 
-test: ## Run the bats tooling regression suite
+test: ## Run the Bats and Node regression suites
 	@bash tests/run.sh
 
 lint: ## yamllint + editorconfig-checker + gitleaks (skip-if-absent)

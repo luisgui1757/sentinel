@@ -367,7 +367,7 @@ apply_policy() {
     | api_json PUT "repos/$REPO/actions/permissions" >/dev/null
   printf '%s\n' '{"github_owned_allowed":true,"verified_allowed":false,"patterns_allowed":[]}' \
     | api_json PUT "repos/$REPO/actions/permissions/selected-actions" >/dev/null
-  printf '%s\n' '{"default_workflow_permissions":"read","can_approve_pull_request_reviews":false}' \
+  printf '%s\n' '{"default_workflow_permissions":"read","can_approve_pull_request_reviews":true}' \
     | api_json PUT "repos/$REPO/actions/permissions/workflow" >/dev/null
   gh api -X PUT "repos/$REPO/immutable-releases" >/dev/null
   gh api -X PUT "repos/$REPO/vulnerability-alerts" >/dev/null

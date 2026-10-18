@@ -1,177 +1,101 @@
 # Sentinel
 
-**One set of engineering rules that every AI coding assistant follows automatically, in every repo.**
+Shared coding rules and optional skills for Codex, Claude Code, GitHub Copilot
+CLI and Kiro. T3 Code uses its configured provider and native orchestration.
 
-Sentinel is a small, language-agnostic rulebook for AI coding tools (Claude Code,
-Codex, GitHub Copilot, opencode, Pi CLI). You install it once and the rules load
-themselves at startup — no slash command, no "please read the docs," no copy-paste.
+The rules set everyday behavior: stay within scope, verify claims, preserve
+work and write plainly. Skills handle specific jobs when you ask for them.
+Helix's delivery and document skills now live here.
 
----
+## How to use (TLDR)
 
-## The idea in one picture
+Clone this repository and run commands from its root:
 
-```
-core/  (the rules)  ──►  tools/install  ──►  AGENTS.md / CLAUDE.md / copilot-instructions.md
-                                              (the files your AI tool already reads on startup)
-```
-
-Your AI tool already auto-reads a special file when it starts. `tools/install`
-writes the rules into that file. That's the whole trick.
-
----
-
-## Get it
-
-```bash
+```sh
 git clone https://github.com/luisgui1757/sentinel.git
 cd sentinel
+
+# Rules for one repository.
+tools/install --target /path/to/project --hosts codex
+
+# Optional skills for the same repository. Requires Node.js 22.19 or newer.
+node tools/skills.mjs --target /path/to/project --host codex --skills delivery,documents
+
+# Document/design skills: download and verify the pinned Impeccable engine once.
+node /path/to/project/.agents/skills/impeccable/scripts/sentinel-engine.mjs --setup
 ```
 
-Run everything below from that checkout. (Prefer to vendor a pinned copy instead
-of installing? See [`consumers.md`](consumers.md).)
+Use `--global` instead of `--target` for a per-user installation. For rules on
+Windows, run `pwsh tools/install.ps1 -Target C:\path\to\project -Hosts codex`.
+The skills command is the same on Windows, macOS and Linux. Change `codex` to
+`claude`, `copilot` or `kiro` for your host; engine setup uses that host's installed
+skill path. [Host paths and setup](docs/install.md) cover the differences.
 
----
+Open a new agent session in your project. In Codex, try `$full-stop fix this bug`
+or `$doc-view ROADMAP.md`. In Claude Code, use `/full-stop` or `/doc-view`.
+To update, pull a reviewed Sentinel revision and repeat the install commands.
+Add `--check` to the rules and skills commands (`-Check` for PowerShell rules).
+Rerun the engine's `--setup` to verify its cached binary without another download.
 
-## Use it
+Choose rules, skills or both. Installation preserves surrounding rules and
+refuses to replace edited or unowned skills. No hooks or model settings are
+installed. [Installation and migration](docs/install.md) covers preview, updates,
+removal, existing Helix links and Impeccable's pinned engine setup.
 
-> Run these from your Sentinel checkout — the commands use the repo-relative
-> `tools/install` (or `make install`). **On Windows**, use the PowerShell port,
-> which behaves identically and renders byte-for-byte the same block:
-> `pwsh tools/install.ps1 -Target C:\path\to\repo` (`-Global`, `-Check`,
-> `-Remove`, `-DryRun` mirror the bash flags).
+## Choose a skill
 
-### 1. Add the rules to a repo (and share with your team)
+Eight commands cover the main workflows:
 
-```bash
-tools/install --target /path/to/your/repo
-```
+| Job | Commands |
+|---|---|
+| Implement and independently review a change | `helix` |
+| Deliver a PR for your review | `full-stop` |
+| Deliver and merge after every gate passes | `full-send` |
+| Review a change or challenge a decision | `sol-loop`, `second-opinion` |
+| Read a Markdown document as HTML | `doc-view` |
+| Shorten or clean up writing | `tldr`, `unslop` |
 
-This writes `AGENTS.md`, `CLAUDE.md`, and `.github/copilot-instructions.md` into
-that repo. **Commit them.** Now anyone who clones it and opens any AI tool gets
-the rules — automatically.
+Four specialist commands are also callable:
 
-### 2. Add the rules to *everything* on your machine (just you)
+| Job | Commands |
+|---|---|
+| Design or check an interface | `impeccable`, `beast-ui`, `frontend-design` |
+| Choose writer and reviewer models | `setup-helix` |
 
-```bash
-tools/install --global
-```
+Use `$helix` in Codex or `/helix` in Claude Code. Other hosts expose skills
+through their own catalogs. See [the command guide](docs/how-to.md) for each
+skill's purpose and [host dispatch](skills/helix/references/dispatch.md) for
+cross-provider reviews. Filing, monitoring, takeover and modernization are
+internal procedures used by delivery workflows. Use Full-stop to continue an
+existing PR as well as to create one. Full-stop and Full-send share Helix's
+implementation and review process; their endpoints differ.
 
-Writes the rules into your home config once. Now **every** repo you open — even
-ones that never heard of Sentinel — carries the rules. (Per-machine; not shared.)
+## Where rules load
 
-### 3. Change the rules
+| Host | Project | User |
+|---|---|---|
+| Codex | `AGENTS.md` | `$CODEX_HOME/AGENTS.md`, normally `~/.codex/AGENTS.md` |
+| Claude Code | `CLAUDE.md` | `$CLAUDE_CONFIG_DIR/CLAUDE.md`, normally `~/.claude/CLAUDE.md` |
+| GitHub Copilot CLI | `.github/copilot-instructions.md` | `~/.copilot/copilot-instructions.md` |
+| Kiro | `AGENTS.md` | `~/.kiro/steering/AGENTS.md` |
+| T3 Code | Its provider's files, including `AGENTS.md` | Its provider's configuration |
 
-Edit a file in `core/`, then re-run `tools/install` (or `--global`).
+File installation is not proof that every agent session loaded the rules.
+Custom agents, overrides and trust settings can change that. See
+[host coverage](docs/tool-ingestion.md) and [verification limits](docs/limits.md).
 
-### 4. Check, verify, or remove
+## Maintain
 
-```bash
-tools/install --check    # are the blocks up to date? (drift check; used in CI)
-make status              # where are the rules installed?
-tools/install --remove   # uninstall — keeps any text you wrote around the block
-```
+Edit `core/` for rules and custom `skills/` for workflows. Regenerate rules with
+`tools/install`, then run `make gate`. Upstream imports arrive as draft PRs with
+exact pins and file diffs; nothing updates in installed copies automatically.
+See [upstream updates](docs/upstream.md). [CONTRIBUTING.md](CONTRIBUTING.md)
+lists checks and [ROADMAP.md](ROADMAP.md) tracks outstanding work.
 
-To confirm a tool actually *loaded* the rules, ask it in chat: *"What does your
-loaded contract say under Modes?"* If it can answer, the block is in context.
+Privacy scans reject known private terms, home paths and secret patterns. They
+cannot identify every unknown secret. See the [threat model](docs/THREAT_MODEL.md).
+Required CI, CodeQL and human review remain in force; see
+[repository governance](docs/GOVERNANCE.md).
 
----
-
-## What the AI actually sees
-
-The rules are short and generic — correctness, simplicity, surgical changes,
-testing discipline, how modes control edit authority, and memory hygiene. They
-live in `core/` and get inlined into the entrypoint your tool auto-loads:
-
-| Tool | File it auto-reads (per repo) | …and globally | Evidence |
-| --- | --- | --- | --- |
-| Claude Code | `CLAUDE.md` | `~/.claude/CLAUDE.md` | live-verified 2026-06-18 |
-| Codex | `AGENTS.md` | `~/.codex/AGENTS.md` (`$CODEX_HOME`) | live-verified 2026-06-18 |
-| GitHub Copilot | `.github/copilot-instructions.md` | *(set in VS Code / github.com — manual)* | docs-confirmed 2026-06-18 |
-| opencode | `AGENTS.md` | `~/.config/opencode/AGENTS.md` | docs-confirmed 2026-06-18 |
-| Pi CLI | `AGENTS.md` | `~/.pi/agent/AGENTS.md` (`$PI_CODING_AGENT_DIR`) | local-package-confirmed 2026-06-18 |
-
-The canonical tool/adapter metadata lives in
-[`templates/adapters/tool-metadata.tsv`](templates/adapters/tool-metadata.tsv);
-[`docs/tool-ingestion.md`](docs/tool-ingestion.md) records the source evidence
-behind each dated status.
-
-A repo can add its own rules *around* the Sentinel block — re-running install only
-touches the block, never your text.
-
----
-
-## Privacy
-
-Sentinel is meant to be shareable, so it must never leak your private projects.
-`make check` scans the whole repo and **fails** if a private term or home path
-slips in, reporting the location without ever printing the term. The shipped
-files only ever contain generic patterns (home paths); your *own* private project
-names live in `tools/forbidden-terms.local` — gitignored, never committed, and
-wired in via `MANIFEST.json`'s `local_denylist` key. Create it (one term per
-line) to scan for your terms too. Full guarantee and limits:
-[`docs/THREAT_MODEL.md`](docs/THREAT_MODEL.md).
-
----
-
-## Repository layout
-
-| Path | What's there |
-| --- | --- |
-| `MANIFEST.json` | the machine-readable contract: core read-order, term policy, byte budget — **start here** |
-| `core/` | the rules themselves (read in the order `MANIFEST.json` → `required_core_read_order`) |
-| `tools/` | installer (`install`, `install.ps1`) + checks (`check`, `ci`, `lint`, `render`, `repository-policy-check`, `ruleset-check`, `status`, `verify-vendor`) |
-| `scripts/` | transactional GitHub repository safeguards with preflight, recovery snapshot, rollback, and readback |
-| `docs/` | threat model, per-tool ingestion notes, release process |
-| `templates/` | overlay + adapter templates and canonical tool metadata for consumers |
-| `schemas/` | JSON Schema for `MANIFEST.json` |
-| `tests/` | the bats regression suite |
-| `AGENTS.md`, `CLAUDE.md`, `.github/copilot-instructions.md` | **generated** rule blocks (this repo dogfooding its own installer) — don't hand-edit |
-
-**Working on the rules?** Edit `core/`, run `tools/install`, commit the
-regenerated adapters. **Just reading?** `MANIFEST.json` + the files it lists are
-the whole rulebook.
-
----
-
-## Develop
-
-```bash
-make ci             # local preflight: privacy + drift + repo policy + lint + shellcheck
-make preflight      # same local preflight, named for what it proves
-make gate           # strongest local gate: strict preflight + tests + pwsh drift check
-make test           # bats tooling suite (incl. the bash/pwsh byte-identity parity)
-make install-hooks  # install a git pre-push hook that runs make gate for you
-make safeguards     # transactionally apply and verify GitHub repository policy
-make help           # list everything
-```
-
-Local `make ci`/`make preflight` is the fast pre-push surface. It runs the leak
-scan, render smoke, adapter drift, semantic ruleset verification, repository
-policy verification, lint, and ShellCheck; outside strict mode, missing optional
-linters are skipped loudly and named in the output. `make gate` is the strongest
-local proof: it runs the preflight in strict mode, the bats suite, and the
-PowerShell drift check; it requires the strict local toolchain, including
-`pwsh`.
-
-GitHub's required `ci` context is stronger than local preflight: the workflow
-runs Linux + macOS preflight and `make test`, a strict lint job with every
-linter installed, a native **Windows (amd64)** PowerShell installer check, and
-dependency review on pull requests. CodeQL default setup scans the GitHub
-Actions source on pull requests, pushes to `main`, and weekly; its errors and
-high-or-higher security alerts are merge-blocking. Renovate is the only general
-version-update bot, while GitHub-native Dependabot remains responsible for
-vulnerability alerts and security updates. Secret scanning and push protection
-guard supported credentials.
-
-`main` has one branch-policy source: `.github/rulesets/`. Integrity has no
-bypass; the owner may bypass review and update restrictions only while merging
-a PR, after strict `ci` and CodeQL pass. Actions are restricted to selected
-GitHub-owned workflows pinned to full commit SHAs, and published releases are
-immutable. The exact live contract and transactional cutover/recovery procedure
-are documented in [`docs/GOVERNANCE.md`](docs/GOVERNANCE.md).
-
-`ROADMAP.md` tracks remaining work and is deleted once the repo matures.
-
-## License
-
-MIT — see [LICENSE](LICENSE).
+Sentinel uses the [MIT license](LICENSE). Bundled skills retain their
+[third-party licenses and source credits](THIRD_PARTY.md).

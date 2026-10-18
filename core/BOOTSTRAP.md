@@ -10,5 +10,5 @@ Use this bootstrap when a repository vendors Sentinel.
 
 Sentinel is a baseline, not the final authority. A repository overlay may
 specialize or tighten these rules for its own domain, data model, commands,
-review ledgers, or release process. Relaxing a baseline rule requires an
-explicit, documented justification for that scope — never a silent override.
+verification, or release process. Relaxing a baseline rule requires an
+explicit, documented justification for that scope. Do not silently override them.

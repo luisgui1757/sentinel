@@ -28,3 +28,11 @@ Makefile   text eol=lf
 # Windows checkout never CRLF-corrupts an interpreter line or the rendered output.
 tools/*    text eol=lf
 scripts/*  text eol=lf
+
+# Skills are copied byte-for-byte on every platform, including vendored assets.
+*.mjs text eol=lf
+skills/** -text
+# Upstream whitespace is preserved and covered by upstream/lock.json.
+skills/impeccable/reference/extract.md whitespace=-blank-at-eof
+skills/impeccable/reference/harden.md whitespace=-blank-at-eof,-blank-at-eol
+skills/impeccable/reference/optimize.md whitespace=-blank-at-eof,-blank-at-eol

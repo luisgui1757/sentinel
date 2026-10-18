@@ -200,8 +200,8 @@ validate_live_repository() {
   jq_check_value "$value" "only GitHub-owned Actions must be allowed" \
     '.github_owned_allowed == true and .verified_allowed == false and .patterns_allowed == []'
   value=$(gh api "repos/$repo/actions/permissions/workflow") || { fail "could not read workflow defaults"; return; }
-  jq_check_value "$value" "workflow defaults must be read-only and unable to approve reviews" \
-    '.default_workflow_permissions == "read" and .can_approve_pull_request_reviews == false'
+  jq_check_value "$value" "workflow defaults must be read-only, with PR creation enabled for upstream imports" \
+    '.default_workflow_permissions == "read" and .can_approve_pull_request_reviews == true'
   value=$(gh api "repos/$repo/immutable-releases") || { fail "could not read immutable-release policy"; return; }
   jq_check_value "$value" "immutable releases must be enabled" '.enabled == true'
   value=$(gh api "repos/$repo/private-vulnerability-reporting") || { fail "could not read private vulnerability reporting"; return; }

@@ -5,6 +5,29 @@ uses [Semantic Versioning]. Consumers pin a version and a `bundle-sha256`.
 
 ## [Unreleased]
 
+### Combined rules and skills
+
+- Bring Helix's delivery, review, writing and document workflows into Sentinel.
+- Make skills optional with project/user installation, dependency resolution,
+  ownership checks and preservation of existing files.
+- Include Impeccable and Beast UI, with explicit pinned engine setup.
+- Shorten default rules and remove routine audit diaries. Keep plain writing,
+  authority, privacy and meaningful verification as defaults.
+- Add Copilot CLI and Kiro paths and cross-provider dispatch guidance. Keep T3
+  as an optional orchestration route and retire other hosts from new installs.
+- Fix PowerShell global installation and add native global lifecycle coverage.
+- Require browser inspection for HTML document views; support useful diagrams
+  and official icons from any relevant vendor.
+- Combine pending dependency updates with verified hashes and asset paths.
+- Keep eight primary and four specialist commands; make filing, monitoring,
+  takeover and modernization internal procedures with safe removal of older copies.
+- Share Helix's independent review across both delivery endpoints. Preserve
+  Sol-loop's selected policy and used rounds through PR fixes without a second loop.
+- Run Beast UI for layout-sensitive document additions and browser-found layout defects.
+- Automate pinned upstream imports and weekly draft updates with full file diffs.
+  Keep adaptations separate, check source hashes in CI and require review before use.
+- Add a TLDR README how-to for installation, calls, updates and verification.
+
 ### Added
 
 - Five first-principles clauses now cover executable supply-chain boundaries,
@@ -28,8 +51,7 @@ uses [Semantic Versioning]. Consumers pin a version and a `bundle-sha256`.
   dependencies. Renovate owns routine version updates, while GitHub-native
   Dependabot retains vulnerability alerts and security-update ownership.
 - The strict manifest validator is refreshed from `check-jsonschema` 0.29.4 to
-  0.37.4 after the dependency inventory identified the stale pin. Python lint
-  tools and their complete transitive graph now install from a generated,
+  0.38.2. Python lint tools and their complete transitive graph install from a generated,
   SHA-256-required lock that Renovate maintains.
 - `scripts/apply-repo-safeguards.sh` now requires an exact, clean live `main`,
   captures a private recovery snapshot, detects concurrent drift, rolls back a

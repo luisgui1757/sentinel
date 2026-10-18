@@ -24,6 +24,9 @@ bash "$SCRIPT_DIR/ruleset-check"
 echo "sentinel ci: repository policy"
 bash "$SCRIPT_DIR/repository-policy-check"
 
+echo "sentinel ci: upstream import drift"
+node "$SCRIPT_DIR/upstream.mjs" --check
+
 echo "sentinel ci: lint (yaml + editorconfig + secrets + schema)"
 bash "$SCRIPT_DIR/lint"
 
