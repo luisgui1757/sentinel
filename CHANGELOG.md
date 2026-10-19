@@ -5,6 +5,15 @@ uses [Semantic Versioning]. Consumers pin a version and a `bundle-sha256`.
 
 ## [Unreleased]
 
+### Changed
+
+- Refresh pinned Impeccable and Unslop sources. Impeccable adds line-break
+  guidance and live-browser fallbacks for plain HTTP and clipboard failures.
+  Unslop shortens wording while retaining its numbered rules and Sentinel
+  safeguards. The engine remains at 0.1.15.
+- The packaged upstream launcher now cleans up interrupted downloads.
+  Sentinel continues to use its own verified engine helper.
+
 ## [0.2.0] - 2026-10-19
 
 Pin to `v0.2.0` and verify the rendered rules with this hash:
