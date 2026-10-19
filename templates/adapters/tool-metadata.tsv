@@ -1,6 +1,6 @@
 # slug	display_name	binary	repo_entrypoint	global_entrypoint	imports	install_scope	evidence_status	evidence_date	evidence_source
-claude	Claude Code	claude	CLAUDE.md	~/.claude/CLAUDE.md	yes	repo+global	live-verified	2026-06-18	Claude Code 2.1.172 installed locally; official memory docs confirm CLAUDE.md, imports, user and project paths.
-codex	Codex	codex	AGENTS.md	${CODEX_HOME:-~/.codex}/AGENTS.md	no	repo+global	live-verified	2026-06-18	Codex CLI 0.140.0 installed locally; official Codex docs confirm AGENTS.md, CODEX_HOME, AGENTS.override.md, and 32 KiB default cap.
-copilot	GitHub Copilot	-	.github/copilot-instructions.md	manual-ui	no	repo-only	docs-confirmed	2026-06-18	GitHub docs confirm .github/copilot-instructions.md and AGENTS.md agent instructions; global configuration is UI/profile only.
-opencode	opencode	opencode	AGENTS.md	~/.config/opencode/AGENTS.md	no	repo+global	docs-confirmed	2026-06-18	OpenCode docs confirm AGENTS.md, global ~/.config/opencode/AGENTS.md, Claude fallback, and opencode.json instructions; CLI not installed locally.
-pi	Pi CLI	pi	AGENTS.md	${PI_CODING_AGENT_DIR:-~/.pi/agent}/AGENTS.md	no	repo+global	local-package-confirmed	2026-06-18	Pi CLI 0.78.1 installed locally; packaged README confirms AGENTS.md or CLAUDE.md startup context files and PI_CODING_AGENT_DIR.
+codex	Codex	codex	AGENTS.md	${CODEX_HOME:-~/.codex}/AGENTS.md	no	repo+global	docs-confirmed	2026-10-18	Official Codex instructions and skills docs; runtime loading is a separate check.
+claude	Claude Code	claude	CLAUDE.md	${CLAUDE_CONFIG_DIR:-~/.claude}/CLAUDE.md	yes	repo+global	docs-confirmed	2026-10-18	Official Claude memory and skill docs; custom roles need explicit review of inherited settings.
+copilot	GitHub Copilot CLI	copilot	.github/copilot-instructions.md	~/.copilot/copilot-instructions.md	no	repo+global	docs-confirmed	2026-10-18	Official Copilot CLI custom instructions and skills docs; custom subagent inheritance differs.
+kiro	Kiro	kiro-cli	AGENTS.md	~/.kiro/steering/AGENTS.md	no	repo+global	docs-confirmed	2026-10-18	Official Kiro steering and skills docs; custom agents require explicit resources.
+t3	T3 Code	-	AGENTS.md	provider-managed	no	repo-only	docs-confirmed	2026-10-18	Provider files and advertised native orchestration; no separate global adapter.

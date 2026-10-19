@@ -1,38 +1,16 @@
 #!/usr/bin/env bash
-# Sentinel installer.
-#
-# Renders the Sentinel core into a single inlined "managed block" and writes that
-# block into the entrypoint files that AI CLIs auto-load at startup -- so the
-# rules are injected with NO tool call and NO slash command. Pointers are not
-# used: 4 of the 5 supported tools have no @import syntax, and inlining is the
-# only way to get zero visible re-reading everywhere.
-#
-# Targets (repo-local, default):
-#   AGENTS.md                         Codex, opencode, pi, Copilot (VS Code)
-#   CLAUDE.md                         Claude Code
-#   .github/copilot-instructions.md   GitHub Copilot (broadest surface)
-#
-# Targets (--global): the same rules, cwd-independent, for every repo:
-#   $CODEX_HOME/AGENTS.md             (default ~/.codex/AGENTS.md)        Codex
-#   ~/.claude/CLAUDE.md                                                   Claude Code
-#   $XDG_CONFIG_HOME/opencode/AGENTS.md (default ~/.config/opencode/...)  opencode
-#   $PI_CODING_AGENT_DIR/AGENTS.md    (default ~/.pi/agent/AGENTS.md)     pi
-#   Copilot global is NOT file-installable (VS Code profile / github.com
-#   personal instructions are UI-only) -- reported as a manual step.
-#
-# The managed block is delimited by AGENT-RULES:BEGIN / AGENT-RULES:END markers and
-# carries the bundle's sha256. Re-running replaces ONLY that block, preserving
-# any of your own content above or below it. `--check` re-renders and fails on
-# drift (use it in CI / the pre-push hook); `--dry-run` previews.
+# Install or update Sentinel's managed rules, preserving surrounding text.
 #
 # Usage:
-#   tools/install                 write/update THIS repo's entrypoints
-#   tools/install --target DIR    write/update ANOTHER repo's entrypoints
-#   tools/install --global        write/update global (per-user) entrypoints
-#   tools/install --check         verify the blocks are up to date (CI gate)
-#   tools/install --remove        remove Sentinel blocks (uninstall; keeps your text)
-#   tools/install --dry-run       preview without writing
-#   (--target/--global/--check/--remove/--dry-run compose)
+#   tools/install --target DIR [--hosts codex,claude,copilot,kiro]
+#   tools/install --global [--hosts codex,claude,copilot,kiro]
+#   tools/install [--check | --remove | --dry-run]
+#   tools/install --global --legacy --check  # inspect retired targets
+#   tools/install --global --legacy --remove # remove only retired blocks
+#
+# With no scope flag, target this checkout. With no host flag, select all four.
+# T3 uses its configured provider's paths. Skills are optional and installed with
+# node tools/skills.mjs; rules installation never installs skills or hooks.
 set -euo pipefail
 export LC_ALL=C
 
@@ -46,6 +24,10 @@ CORE="$REPO_ROOT/$(sentinel_manifest_core_dir "$MANIFEST")"
 
 SCOPE="repo"
 ACTION="write"
+HOSTS="codex,claude,copilot,kiro"
+LEGACY=0
+TARGET_SET=0
+HOSTS_SET=0
 TARGET_DIR="$REPO_ROOT"   # which repo gets the repo-local entrypoints
 # Refuse more than one action flag rather than silently letting the last one win
 # (especially the destructive --remove). install.ps1 does the same, so the CLIs
@@ -59,16 +41,27 @@ set_action() {
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --global) SCOPE=global ;;
+    --hosts) shift; HOSTS=${1:?--hosts needs a comma-separated list}; HOSTS_SET=1 ;;
+    --hosts=*) HOSTS=${1#--hosts=}; HOSTS_SET=1 ;;
+    --legacy) LEGACY=1 ;;
     --check) set_action check ;;
     --dry-run) set_action dry ;;
     --remove|--uninstall) set_action remove ;;
-    --target) shift; TARGET_DIR=$(cd "${1:?--target needs a directory}" 2>/dev/null && pwd) || { echo "install: --target directory not found: $1" >&2; exit 2; } ;;
-    --target=*) TARGET_DIR=$(cd "${1#--target=}" 2>/dev/null && pwd) || { echo "install: --target directory not found: ${1#--target=}" >&2; exit 2; } ;;
+    --target) TARGET_SET=1; shift; TARGET_DIR=$(cd "${1:?--target needs a directory}" 2>/dev/null && pwd) || { echo "install: --target directory not found: $1" >&2; exit 2; } ;;
+    --target=*) TARGET_SET=1; TARGET_DIR=$(cd "${1#--target=}" 2>/dev/null && pwd) || { echo "install: --target directory not found: ${1#--target=}" >&2; exit 2; } ;;
     -h|--help) awk 'NR>1 && /^#/ {sub(/^# ?/,""); print; next} NR>1 {exit}' "$0"; exit 0 ;;
     *) echo "install: unknown argument: $1" >&2; exit 2 ;;
   esac
   shift
 done
+
+if [[ "$SCOPE" == global && "$TARGET_SET" == 1 ]]; then
+  echo "install: --global and --target are mutually exclusive" >&2; exit 2
+fi
+sentinel_validate_hosts "$HOSTS" || { echo "install: hosts must be codex,claude,copilot or kiro" >&2; exit 2; }
+if [[ "$LEGACY" == 1 ]] && { [[ "$SCOPE" != global || "$HOSTS_SET" == 1 ]] || [[ "$ACTION" != check && "$ACTION" != remove ]]; }; then
+  echo "install: --legacy requires --global and --check or --remove, without --hosts" >&2; exit 2
+fi
 
 # Remove the managed block (markers included) from <target> into <out>,
 # preserving all surrounding user content. Nonzero on an unterminated block.
@@ -84,10 +77,12 @@ remove_block() {
 }
 
 targets() {
-  if [[ "$SCOPE" == repo ]]; then
-    sentinel_repo_adapter_targets "$TARGET_DIR"
+  if [[ "$LEGACY" == 1 ]]; then
+    sentinel_legacy_adapter_targets
+  elif [[ "$SCOPE" == repo ]]; then
+    sentinel_repo_adapter_targets "$TARGET_DIR" "$HOSTS"
   else
-    sentinel_global_adapter_targets
+    sentinel_global_adapter_targets "$HOSTS"
   fi
 }
 
@@ -109,7 +104,7 @@ while IFS= read -r t; do
         fi
         rm -f "$out"
       else
-        if [[ "$SCOPE" == repo ]]; then
+        if [[ "$LEGACY" == 0 ]]; then
           echo "MISSING: $t (no managed block; run tools/install)"; status=1
         else
           echo "absent:  $t (advisory; run tools/install --global)"
@@ -173,9 +168,7 @@ if [[ "$SCOPE" == global ]]; then
     echo "         but may be shadowed for Codex until the override is reconciled."
     echo
   fi
-  echo "note: GitHub Copilot has no global file entrypoint. Set user-wide rules"
-  echo "      manually: VS Code 'Chat: New Instructions File -> New (User)' with"
-  echo "      applyTo: '**', and/or github.com Copilot personal instructions."
+
 fi
 
 case "$ACTION" in

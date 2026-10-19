@@ -1,43 +1,22 @@
-# Consumer Overlay (template)
+# Project instructions
 
-Copy this file into your repository's overlay directory (for example
-`docs/agent/`) and replace the bracketed sections. The overlay specializes or
-tightens Sentinel for your project. It must not restate Sentinel wholesale.
+Add this information to the repository's existing agent guide. Keep only facts
+that specialize Sentinel; do not copy the baseline rules.
 
-## Project Facts
+## Project and constraints
 
-- [What this project is, and why correctness matters here.]
-- [Runtime, data locations, and any live-data risk.]
-- [Persisted-data contract, e.g. additive-only with legacy-shape tests.]
+- [What the project does and the behavior that must remain stable.]
+- [Runtime, data boundaries and any protected environment.]
+- [Important persisted formats or external contracts.]
 
 ## Commands
 
-- [Build / serve / test commands.]
-- [The full local gate command, e.g. `make ci`.]
+- [Verified build, test and local gate commands.]
+- [Installed instruction and skill locations, including custom agent resources.]
 
-## Adoption Checklist
+## Adoption
 
-- [ ] Chosen path is explicit: installed adapters committed to the repo, or
-  vendored `core/` + `MANIFEST.json` pinned to a Sentinel commit and
-  `bundle-sha256`.
-- [ ] Drift/integrity gate is documented: `tools/install --check` for installed
-  adapters, or `tools/verify-vendor <vendor-dir> <bundle-sha256>` for vendored
-  rules.
-- [ ] Project overlay does not restate Sentinel wholesale; it only adds
-  project-specific facts, commands, invariants, and review-ledger locations.
-- [ ] Commands in this overlay were run or verified in this repo after adoption;
-  stale placeholder commands were removed.
-- [ ] Review findings, rejected findings, and assumptions have a durable
-  location that future reviewers can append to.
-- [ ] Supported AI entrypoints in this repo are listed, with any intentionally
-  unsupported surfaces named so missing files are not mistaken for drift.
-
-## Review Ledgers
-
-- [Where findings, rejected findings, and assumptions live.]
-
-## Precedence Note
-
-This overlay layers on top of the vendored Sentinel core. If the overlay and
-Sentinel conflict, the overlay wins only for project-specific scope. Generic
-rule changes belong upstream in Sentinel, not here.
+Choose installed rule blocks or a pinned vendored bundle. Document its update
+and drift check. Remove placeholders and duplicate rules. Keep relevant feature
+documentation current. Add review ledgers only when this project needs an audit
+trail, with their scope and retention explained.

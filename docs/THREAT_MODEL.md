@@ -1,106 +1,75 @@
-# Sentinel Threat Model
+# Threat model
 
-Sentinel exists to be *shared* — its rules propagate into every repo and, when
-installed globally, into a developer's home configuration. Its one security
-promise is **privacy**: nothing private about the author or their other projects
-may leak into a tree meant to be published. This document states that guarantee
-precisely — what it covers, what it does not, and why.
+Sentinel publishes reusable rules and skills. Its privacy checks look for known
+private terms, home paths and secret patterns before they enter a public tree.
+They cannot prove that a repository contains no private data.
 
-## Assets
+## Assets and boundary
 
-1. **Private project identifiers** — names of the author's other projects,
-   product names, internal domains, locale or jargon terms.
-2. **Machine-local paths** — absolute home directories and the like.
-3. **Rule integrity** — a consumer must be able to trust that the rules it
-   inlined are a known, unmodified Sentinel release.
+Protect private project names, internal domains, machine-local paths and the
+integrity of installed rules and skills. Sentinel should hold no credentials,
+tokens or user data.
 
-Sentinel holds no credentials, tokens, or user data; those are not its assets. It
-is a rules repository.
+The maintainer's machine and its gitignored `tools/forbidden-terms.local` are
+trusted. Treat committed files, repository history, CI logs and published bundles
+as public. A commit can remain accessible after it is deleted from a branch.
 
-## Trust boundary
-
-- **Trusted:** the author's machine, where the gitignored private denylist
-  (`tools/forbidden-terms.local`) lives.
-- **Published / untrusted:** the committed tree, the GitHub repo, CI logs, and
-  any consumer that vendors or installs Sentinel.
-
-The boundary is the **commit**: anything that crosses into the committed tree is
-treated as public forever (history is not erasable in practice).
-
-## Adversary
-
-The adversary is **mistake**, not malice. The author is trusted; there is no
-model for an author exfiltrating their own secrets. Failure modes:
-
-- **Accidental authorship leak** (primary): the author or an AI assistant writes
-  a private name or home path into a committed file — a rule, the README, a
-  generated adapter, the manifest, or even a file *name*.
-- **Diagnostic leak**: the scanner itself echoes a private term into a terminal
-  or a public CI log while reporting a hit.
-- **Supply-chain drift**: a consumer runs a partial, stale, or modified Sentinel
-  while believing it pinned a known release.
+This model covers mistakes: an author or agent includes private content, a
+scanner repeats it in a diagnostic, or a consumer runs altered or stale code
+while believing it has a pinned release. It does not model a malicious owner
+who deliberately disables controls or publishes their own secrets.
 
 ## Controls
 
-- **Two-tier denylist.** The committed tree carries only generic, publishable
-  patterns (`forbidden_core_terms`). Private strings live only in the gitignored
-  `tools/forbidden-terms.local`. The public tree therefore never *enumerates*
-  what is private — the exact flaw this repo was built to fix.
-- **Whole-working-tree scan** (`tools/check`): every tracked and not-yet-tracked
-  file (minus gitignored), plus file/dir **names**, plus the **manifest** itself,
-  is scanned for both generic patterns and private terms.
-- **Redaction.** A private-term hit is reported by `path:line` only — content is
-  withheld and any private term in the path is masked — so neither a terminal
-  nor a CI log echoes the term or an adjacent secret. Generic patterns are shown
-  (public by definition).
-- **Fail-closed.** An unreadable path or a grep error fails the scan rather than
-  reading as clean.
-- **Integrity hash and byte comparison.** Every generated block carries a
-  `bundle-sha256`. `tools/status` recomposes the expected adapter body and
-  compares the whole managed block, so a tampered body with a current header is
-  still reported as stale. `tools/verify-vendor` recomputes the vendored bundle
-  hash and requires the pinned expected hash by default, so a consumer can prove
-  a vendored tree matches the released rules.
-- **Executable-input provenance.** Repository policy permits only selected
-  GitHub-owned Actions and requires every workflow dependency to use a full
-  commit SHA. Python CI tools install from a generated, hash-required lock of
-  the complete transitive graph; downloaded native tools use pinned versions
-  and verified checksums before execution. `tools/repository-policy-check`
-  makes mutable or out-of-policy inputs gate failures.
-- **Immutable publication.** GitHub immutable releases prevent a published tag
-  or asset from being silently replaced after consumer verification.
+- **Separate denylists.** `MANIFEST.json` contains generic, publishable patterns.
+  Private terms stay in the ignored local file and are never enumerated publicly.
+- **Whole-working-tree scan.** `tools/check` scans tracked and untracked files
+  except ignored files, plus path names and the manifest. Unreadable paths and
+  scanner errors fail the check.
+- **Redacted findings.** Private matches report a location without matching
+  content. Private terms in paths are masked too. Generic patterns may be shown.
+- **Rule integrity.** Generated blocks include `bundle-sha256`. `tools/status`
+  compares the entire managed block, so a current header cannot conceal an
+  altered body. `tools/verify-vendor` requires the expected pinned hash by default.
+- **Executable dependencies.** Actions use approved GitHub-owned sources and full
+  commit SHAs. Python CI tools use a hash-required transitive lock. Native tools
+  use pinned versions and verified digests before execution. Repository-policy
+  checks reject mutable or disallowed workflow inputs.
+- **Immutable releases.** GitHub's immutable-release control protects published
+  tags and assets from replacement. Verify the effective setting before release.
+- **Upstream proposals.** Only the main-only import bot has workflow write access.
+  It treats upstream files as data and opens a draft PR. It never approves,
+  merges or installs them. Install reviewed Sentinel revisions. For bot PRs,
+  a maintainer approves the workflow runs before CI executes a changed engine.
+  Source verification and normal merge gates still apply.
+- **Optional skills.** Ownership hashes prevent overwriting unowned or edited
+  copies. Caught failures restore replaced folders; interrupted operations retain
+  staging backups for explicit recovery. Imported files retain source hashes
+  and licenses. Impeccable setup verifies pinned engine bytes before saving them,
+  and its helper verifies them again before execution. Installation registers no
+  upstream hooks or provider configuration.
 
-## What is NOT protected (residual risk — read this)
+## Limits
 
-- **Unknown secrets.** The scan matches *known* strings (generic patterns + your
-  denylist). A brand-new private term you have not added will pass. The denylist
-  is a memory, not a classifier — keep it current. For secret *shapes* (tokens,
-  keys) Sentinel already integrates **gitleaks** in CI (the `lint` job gated by
-  `ci`, scanning full history); note gitleaks matches known secret shapes, not
-  your private-term denylist — the two are complementary.
-- **Encoded / transformed content.** A private term that is base64'd, hashed, or
-  split across lines will not match.
-- **Matching gaps.** Pure-word terms match on word boundaries (so a short term
-  cannot trip a longer word that merely contains it) and case-sensitively; this
-  misses inflections (a plural), case variants, and a term fused into a longer
-  identifier without a separator (a codename inside a camelCase token) unless
-  you add those forms explicitly. Without `jq`, the manifest reader is also
-  best-effort (a bracket inside a term can truncate the generic list).
-- **Symlinks.** The content scanner does NOT follow symlinks (their target may be
-  outside the repo); a symlink's *name* is still checked. A symlink pointing at a
-  secret outside the repo is out of scope by design.
-- **Git history.** The scan inspects the working tree, not historical commits. A
-  term already committed in history is neither found nor removable by this tool.
-- **The denylist file.** The guarantee is void if you force-add
-  `tools/forbidden-terms.local` or disable its gitignore.
+- The private-term scan only knows configured strings. Add new terms before
+  writing about them. Gitleaks scans known secret patterns across Git history;
+  it complements the private-term scan and cannot identify every secret.
+- Encoded, hashed or split terms can evade matching. Plain words match case
+  sensitively at word boundaries. Add relevant inflections, case variants and
+  compound forms to the private list.
+- Without jq, manifest reading is approximate; a bracket inside a term can
+  truncate its generic list. The strict gate requires the full toolchain.
+- The content scanner does not follow symlinks outside the tree. It still checks
+  their names. The skills installer separately refuses destination symlinks.
+- `tools/check` scans the current working tree, not historical private terms.
+  History may already contain a leak that the current check cannot find or remove.
+- Force-adding the local denylist or disabling its ignore rule exposes its terms.
+- Skill instructions do not enforce model permissions or sandboxing. Hosts own
+  those controls. Installation and configured roles do not prove runtime behavior.
 
 ## Operating rules
 
-- Run `make ci` before ordinary local checks. For push-time proof, run
-  `make gate`; `make install-hooks` makes that strict gate automatic before
-  every push.
-- Add a term to the local denylist the moment a new private project starts —
-  before you might mention it.
-- Never commit the local denylist; never weaken redaction to print a private
-  term "just to debug."
-- Treat a green scan as "no *known* leak," not "no leak."
+Run `make ci` for local preflight and `make gate` before pushing. Install the
+pre-push gate with `make install-hooks` when wanted. Keep the local denylist
+private and current. Never print private matches to debug a scan. Treat a green
+result as "no known leak found."

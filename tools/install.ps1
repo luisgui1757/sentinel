@@ -1,33 +1,18 @@
 #!/usr/bin/env pwsh
 #Requires -Version 5.1
 <#
-Sentinel installer -- Windows / PowerShell port of tools/install.
-
-Renders the Sentinel core into a single inlined "managed block" and writes it into
-the entrypoint files AI CLIs auto-load at startup. It is a faithful port of the
-bash installer and produces BYTE-IDENTICAL output (same bundle sha256, LF line
-endings), so a repo can be installed/checked from either Windows or POSIX and the
-adapter drift check stays green on both. CI proves this on windows-latest and via
-a cross-render test on Linux.
-
-Targets (repo-local, default):
-  AGENTS.md, CLAUDE.md, .github/copilot-instructions.md
-Targets (-Global): $env:CODEX_HOME\AGENTS.md (default ~/.codex), ~/.claude/CLAUDE.md,
-  $env:XDG_CONFIG_HOME\opencode\AGENTS.md (default ~/.config), $env:PI_CODING_AGENT_DIR\AGENTS.md
-  (default ~/.pi/agent). Copilot global is UI-only (reported as a manual step).
-
-Usage:
-  pwsh tools/install.ps1                 write/update THIS repo's entrypoints
-  pwsh tools/install.ps1 -Target DIR     write/update ANOTHER repo's entrypoints
-  pwsh tools/install.ps1 -Global         write/update global (per-user) entrypoints
-  pwsh tools/install.ps1 -Check          verify the blocks are up to date (CI gate)
-  pwsh tools/install.ps1 -Remove         remove Sentinel blocks (keeps your text)
-  pwsh tools/install.ps1 -DryRun         preview without writing
+Install Sentinel rules. Preserve text outside the managed block.
+Usage: tools/install.ps1 [-Target DIR | -Global] [-Hosts codex,claude,copilot,kiro]
+       [-Check | -Remove | -DryRun]
+       -Global -Legacy [-Check | -Remove] inspects or removes retired blocks.
+Rules only by default. Optional skills: node tools/skills.mjs --help.
 #>
 [CmdletBinding()]
 param(
   [string]$Target,
   [switch]$Global,
+  [string[]]$Hosts = @("codex,claude,copilot,kiro"),
+  [switch]$Legacy,
   [switch]$Check,
   [switch]$Remove,
   [switch]$DryRun,
@@ -169,11 +154,8 @@ function Get-RenderedBlock {
   [void]$sb.Append($BEGIN + $LF)
   [void]$sb.Append("<!-- version: $ver  sha256: $sha -->" + $LF)
   [void]$sb.Append($LF + '# Operating Contract' + $LF + $LF)
-  [void]$sb.Append('Baseline engineering rules for this project, loaded automatically. Treat them as' + $LF)
-  [void]$sb.Append("the floor, not the ceiling: the active task and this repository's own conventions" + $LF)
-  [void]$sb.Append('may tighten them freely, and may relax one only with an explicit, documented justification.' + $LF + $LF)
-  [void]$sb.Append('Precedence, highest first: runtime/platform safety; the active task; this' + $LF)
-  [void]$sb.Append("repository's conventions; the rules below; then personal global defaults." + $LF + $LF)
+  [void]$sb.Append('Shared defaults for coding tasks. The active task and repository instructions' + $LF)
+  [void]$sb.Append('set the scope; platform and system requirements take precedence.' + $LF + $LF)
   [void]$sb.Append($embedded)
   [void]$sb.Append($END + $LF)
   return $sb.ToString()
@@ -237,26 +219,38 @@ function Get-HomeDir {
 }
 
 function Get-Targets([string]$scope, [string]$targetDir) {
-  if ($scope -eq 'repo') {
-    return @(
-      (Join-Path $targetDir 'AGENTS.md'),
-      (Join-Path $targetDir 'CLAUDE.md'),
-      (Join-Path (Join-Path $targetDir '.github') 'copilot-instructions.md')
-    )
+  $profileDir = Get-HomeDir
+  if ($Legacy) {
+    $xdg = if ($env:XDG_CONFIG_HOME) { $env:XDG_CONFIG_HOME } else { Join-Path $profileDir '.config' }
+    $piDir = if ($env:PI_CODING_AGENT_DIR) { $env:PI_CODING_AGENT_DIR } else { Join-Path $profileDir '.pi/agent' }
+    return @((Join-Path $xdg 'opencode/AGENTS.md'), (Join-Path $piDir 'AGENTS.md'))
   }
-  $home = Get-HomeDir
-  $codex = if ($env:CODEX_HOME) { $env:CODEX_HOME } else { Join-Path $home '.codex' }
-  $xdg   = if ($env:XDG_CONFIG_HOME) { $env:XDG_CONFIG_HOME } else { Join-Path $home '.config' }
-  $pi    = if ($env:PI_CODING_AGENT_DIR) { $env:PI_CODING_AGENT_DIR } else { Join-Path (Join-Path $home '.pi') 'agent' }
-  return @(
-    (Join-Path $codex 'AGENTS.md'),
-    (Join-Path (Join-Path $home '.claude') 'CLAUDE.md'),
-    (Join-Path (Join-Path $xdg 'opencode') 'AGENTS.md'),
-    (Join-Path $pi 'AGENTS.md')
-  )
+  $selected = $hostList.Split(',')
+  $paths = @()
+  if ($scope -eq 'repo') {
+    if ('codex' -in $selected -or 'kiro' -in $selected) { $paths += Join-Path $targetDir 'AGENTS.md' }
+    if ('claude' -in $selected) { $paths += Join-Path $targetDir 'CLAUDE.md' }
+    if ('copilot' -in $selected) { $paths += Join-Path $targetDir '.github/copilot-instructions.md' }
+  } else {
+    $codexDir = if ($env:CODEX_HOME) { $env:CODEX_HOME } else { Join-Path $profileDir '.codex' }
+    $claudeDir = if ($env:CLAUDE_CONFIG_DIR) { $env:CLAUDE_CONFIG_DIR } else { Join-Path $profileDir '.claude' }
+    if ('codex' -in $selected) { $paths += Join-Path $codexDir 'AGENTS.md' }
+    if ('claude' -in $selected) { $paths += Join-Path $claudeDir 'CLAUDE.md' }
+    if ('copilot' -in $selected) { $paths += Join-Path $profileDir '.copilot/copilot-instructions.md' }
+    if ('kiro' -in $selected) { $paths += Join-Path $profileDir '.kiro/steering/AGENTS.md' }
+  }
+  return $paths
 }
 
 # --- resolve scope/action/target ---
+if ($Global -and $Target) { throw 'install: -Global and -Target are mutually exclusive' }
+$hostList = $Hosts -join ','
+if ($hostList -notmatch '^(codex|claude|copilot|kiro)(,(codex|claude|copilot|kiro))*$') {
+  throw 'install: hosts must be codex,claude,copilot or kiro'
+}
+if ($Legacy -and (-not $Global -or $PSBoundParameters.ContainsKey('Hosts') -or (-not $Check -and -not $Remove))) {
+  throw 'install: -Legacy requires -Global and -Check or -Remove, without -Hosts'
+}
 $scope = if ($Global) { 'global' } else { 'repo' }
 # Named switches lose command-line order, so a conflict cannot resolve to bash's
 # "last flag wins". Refuse rather than silently pick one -- especially since one
@@ -294,7 +288,7 @@ foreach ($t in (Get-Targets $scope $targetDir)) {
           Write-Output "MALFORMED: $t (AGENT-RULES:BEGIN without AGENT-RULES:END)"; $status = 1
         }
       } else {
-        if ($scope -eq 'repo') { Write-Output "MISSING: $t (no managed block; run tools/install.ps1)"; $status = 1 }
+        if (-not $Legacy) { Write-Output "MISSING: $t (no managed block; run tools/install.ps1)"; $status = 1 }
         else { Write-Output "absent:  $t (advisory; run tools/install.ps1 -Global)" }
       }
     }
@@ -334,10 +328,11 @@ foreach ($t in (Get-Targets $scope $targetDir)) {
 }
 
 if ($scope -eq 'global') {
-  Write-Output ''
-  Write-Output 'note: GitHub Copilot has no global file entrypoint. Set user-wide rules'
-  Write-Output "      manually: VS Code 'Chat: New Instructions File -> New (User)' with"
-  Write-Output "      applyTo: '**', and/or github.com Copilot personal instructions."
+  $profileDir = Get-HomeDir
+  $codexDir = if ($env:CODEX_HOME) { $env:CODEX_HOME } else { Join-Path $profileDir '.codex' }
+  if (Test-Path -LiteralPath (Join-Path $codexDir 'AGENTS.override.md')) {
+    Write-Output 'warning: Codex AGENTS.override.md may shadow the installed AGENTS.md.'
+  }
 }
 
 switch ($action) {

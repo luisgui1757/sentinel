@@ -1,44 +1,38 @@
 # Releasing Sentinel
 
-Consumers pin a version and a bundle hash, so releases must be reproducible and
-traceable.
+Consumers pin a version and bundle hash. Release only a reproducible, reviewed
+revision with the required checks and approvals.
 
-1. Land the release change via PR. The exact PR head must have green `ci` and
-   CodeQL evidence; integrity has no owner bypass.
-2. `CHANGELOG.md`: move the `Unreleased` items under a new `## [x.y.z]` heading,
-   and record the **`bundle-sha256`** so consumers can pin it — read it from the
-   generated adapter header, or recompute with
+1. Prepare the release through a PR. Move `CHANGELOG.md`'s Unreleased items under
+   `## [x.y.z]`, bump `VERSION`, and record the `bundle-sha256`. Recompute it with
    `bash -c 'source tools/sentinel-lib.sh; sentinel_bundle_sha256 core MANIFEST.json'`.
-3. Bump `VERSION` to `x.y.z`.
-4. `make install` — regenerate adapters with the new version stamp.
-5. `make ci` — local preflight: leak scan, render smoke, adapter drift,
-   ruleset and repository-policy semantics, lint, and ShellCheck.
-6. `make release-check` — requires a clean index/worktree with no untracked
-   files, rejects an already-existing `v$VERSION` tag locally or on `origin`,
-   fails if the remote tag state cannot be checked, verifies the exact current
-   `bundle-sha256` in the matching `CHANGELOG.md` section, and prints the
-   certified commit after the adapters, CI gate, and bats suite pass.
-7. After the PR lands, update a clean local `main`, confirm local `HEAD` equals
-   GitHub's `main`, and re-run `make release-check`. A feature-branch result or
-   an earlier revision is not release evidence.
-8. Confirm `gh api repos/luisgui1757/sentinel/immutable-releases --jq .enabled`
-   returns `true`. Tag and push. **Sign it** (`git tag -s`) if you have a signing
-   key configured
-   — recommended; otherwise an annotated tag (`git tag -a`) is acceptable:
+2. Run `make install` to regenerate adapters, then `make gate`.
+3. From a clean worktree, run `make release-check`. It rejects staged or untracked
+   files, existing local or remote version tags, uncheckable remote tag state,
+   mismatched changelog hashes and failed checks. It prints the certified commit.
+4. Land the PR through normal review. Its exact head needs green `ci` and CodeQL;
+   integrity has no owner bypass. Update a clean local `main`, confirm its HEAD
+   equals GitHub's `main`, then rerun `make release-check`. A feature-branch result
+   or an earlier revision is not release evidence.
+5. Confirm `gh api repos/luisgui1757/sentinel/immutable-releases --jq .enabled`
+   returns `true`. Create and push an annotated tag. Sign it when a key is available:
+
    ```bash
-   git tag -s "vx.y.z" -m "Sentinel vx.y.z"   # or: git tag -a (no signing key)
+   git tag -s "vx.y.z" -m "Sentinel vx.y.z"  # use -a when no signing key is available
    git push origin "vx.y.z"
    ```
-9. Create and fully verify the release as a draft. Include the
-   `bundle-sha256`; if distributing artifacts, publish `SHA256SUMS` alongside
-   and verify the downloaded assets through the consumer path. Publish only
-   after that proof: immutable releases prevent later tag or asset correction.
 
-A consumer then pins the tag and verifies its vendored copy:
+6. Create and verify a draft release. Include `bundle-sha256`. If distributing
+   assets, include `SHA256SUMS` and verify downloaded assets through the consumer
+   path. Publish only after that proof; immutable releases cannot be corrected
+   by replacing a tag or asset.
+
+A consumer pins the tag and verifies its vendored rules:
 
 ```bash
 tools/verify-vendor <vendor-dir> <bundle-sha256>
 ```
 
-Use `tools/verify-vendor --structure-only <vendor-dir>` only for an explicit
-non-integrity audit; normal vendor verification requires the pinned hash.
+Use `--structure-only` only for an explicit structural audit. Normal verification
+requires the expected hash. Optional skills use their installed ownership registry
+and `tools/skills.mjs --check`; the rule hash alone does not certify skill copies.

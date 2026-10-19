@@ -65,9 +65,9 @@ global_entrypoint_key_for_path() {
   local path=$1 tilde="~"
   case "$path" in
     "${CODEX_HOME:-$HOME/.codex}/AGENTS.md") printf '%s\n' "\${CODEX_HOME:-$tilde/.codex}/AGENTS.md" ;;
-    "$HOME/.claude/CLAUDE.md") printf '%s\n' "$tilde/.claude/CLAUDE.md" ;;
-    "${XDG_CONFIG_HOME:-$HOME/.config}/opencode/AGENTS.md") printf '%s\n' "$tilde/.config/opencode/AGENTS.md" ;;
-    "${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}/AGENTS.md") printf '%s\n' "\${PI_CODING_AGENT_DIR:-$tilde/.pi/agent}/AGENTS.md" ;;
+    "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/CLAUDE.md") printf '%s\n' "\${CLAUDE_CONFIG_DIR:-$tilde/.claude}/CLAUDE.md" ;;
+    "$HOME/.copilot/copilot-instructions.md") printf '%s\n' "$tilde/.copilot/copilot-instructions.md" ;;
+    "$HOME/.kiro/steering/AGENTS.md") printf '%s\n' "$tilde/.kiro/steering/AGENTS.md" ;;
     *) printf '%s\n' "$path" ;;
   esac
 }
@@ -120,9 +120,8 @@ echo "repo ($TARGET_DIR):"
 while IFS= read -r t; do repo_row "$t"; done < <(sentinel_repo_adapter_targets "$TARGET_DIR")
 echo
 echo "global (per-user):"
-while IFS= read -r t; do global_row "$t"; done < <(sentinel_global_adapter_targets)
+while IFS= read -r t; do global_row "$t"; done < <(sentinel_global_adapter_targets "codex,claude,copilot,kiro")
 echo
 printf 'CLI binaries on PATH:'
 cli_binaries
 echo
-echo "(Copilot has no global file -- set it in VS Code / github.com; see docs/tool-ingestion.md)"

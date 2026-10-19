@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "name": "sentinel",
-  "description": "Reusable operating contract for AI coding assistants.",
+  "description": "Shared coding rules. Optional task skills are installed separately.",
   "core_dir": "core",
   "required_core_read_order": [
     "core/MODES.md",
@@ -22,5 +22,5 @@
     "C:\\Users\\"
   ],
   "local_denylist": "tools/forbidden-terms.local",
-  "render_budget_bytes": 32768
+  "render_budget_bytes": 8192
 }

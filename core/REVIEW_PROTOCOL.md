@@ -1,36 +1,12 @@
-# Review Protocol
+# Reviews
 
-Reviews are evidence-first. Apply this protocol whenever REVIEW mode is active,
-including generated installs that inline the core contract.
+Read the task, repository instructions and relevant code. Recheck known open
+findings. Test a plausible alternative explanation before calling something a bug.
 
-## Before A Review
+Lead with material findings. Give the severity, location, wrong behavior,
+supporting evidence and a concrete correction. If none remain, say so and name
+any verification gaps. Review labels and model confidence are not evidence.
 
-- Read the active repository entrypoint and repository overlay. If the repo uses
-  a vendor or pointer setup instead of an inlined generated entrypoint, read the
-  vendored core files named by its manifest.
-- Read the requested review prompt and any local ledgers or rejected-finding
-  lists.
-- Re-validate prior open findings before hunting for new ones.
-
-## Findings
-
-Every finding should include:
-
-- Severity.
-- Exact location.
-- Concise statement of wrong behavior.
-- Reproduction, trace, or proof.
-- Source of truth.
-- Multi-location check.
-- Recommended fix.
-- Confidence.
-
-Lead with material findings, ordered by severity. If there are no material
-findings, say so directly and name any test or verification gaps that remain.
-
-## Ledgers
-
-- Preserve history. Append or change status with justification.
-- Record false alarms in the rejected-finding location defined by the
-  repository overlay.
-- Accepted bugs need tests and documentation updates.
+Keep findings in the conversation or pull request. Create audit files, ledgers
+or assumption journals only when the user or repository explicitly requires them.
+Preserve existing records when that requirement applies.

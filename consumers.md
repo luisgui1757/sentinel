@@ -29,3 +29,11 @@ optional metadata and is not part of the hash.)
 
 Consumers are listed without exposing private project details. Add a row when a
 new repository adopts Sentinel.
+
+## Optional skill bundle
+
+Core-only consumers keep the same manifest and rendering contract. Skills have a
+separate catalog and installer; vendoring `core/` does not install them. See
+[installation](docs/install.md). Update a downstream pin only after the desired
+Sentinel revision is merged and released, then verify the generated consumer
+entrypoint. Existing consumer and user rules outside the managed block remain.

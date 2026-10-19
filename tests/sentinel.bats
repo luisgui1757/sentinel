@@ -243,7 +243,7 @@ JSON
 @test "install: REVIEW mode is self-contained in generated adapters" {
   app="$TMP/appreview"; mkdir -p "$app"
   bash "$ROOT/tools/install" --target "$app" >/dev/null
-  grep -q 'severity, exact location' "$app/AGENTS.md"
+  grep -q 'severity, location, wrong behavior' "$app/AGENTS.md"
   ! grep -q 'deep-review protocol' "$app/AGENTS.md"
 }
 
@@ -284,13 +284,13 @@ JSON
   bash "$ROOT/tools/install" --target "$app" >/dev/null
   run bash "$ROOT/tools/status" --target "$app"
   [ "$status" -eq 0 ]
-  [[ "$output" == *"AGENTS.md"*"Codex, opencode, Pi CLI"* ]]
+  [[ "$output" == *"AGENTS.md"*"Codex, Kiro, T3 Code"* ]]
   [[ "$output" == *"CLAUDE.md"*"Claude Code"* ]]
   [[ "$output" == *"copilot-instructions.md"*"GitHub Copilot"* ]]
   [[ "$output" == *"claude="* ]]
   [[ "$output" == *"codex="* ]]
-  [[ "$output" == *"opencode="* ]]
-  [[ "$output" == *"pi="* ]]
+  [[ "$output" == *"copilot="* ]]
+  [[ "$output" == *"kiro-cli="* ]]
 }
 
 @test "status: reports Codex global AGENTS.md as overridden when AGENTS.override.md exists" {
@@ -370,8 +370,10 @@ JSON
   [ "$status" -eq 0 ]
   [ -f "$g/.codex/AGENTS.md" ]
   [ -f "$g/.claude/CLAUDE.md" ]
-  [ -f "$g/.config/opencode/AGENTS.md" ]
-  [ -f "$g/.pi/agent/AGENTS.md" ]
+  [ -f "$g/.copilot/copilot-instructions.md" ]
+  [ ! -e "$g/.config/opencode/AGENTS.md" ]
+  [ -f "$g/.kiro/steering/AGENTS.md" ]
+  [ ! -e "$g/.pi/agent/AGENTS.md" ]
   grep -q '^<!-- AGENT-RULES:BEGIN' "$g/.claude/CLAUDE.md"
 }
 
@@ -676,7 +678,9 @@ EOF
   grep -Fq \
     'uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294' \
     "$workflow"
-  grep -Fq 'needs: [test, lint, windows, dependency_review]' "$workflow"
+  grep -Fq 'needs: [test, lint, windows, dependency_review, upstream]' "$workflow"
+  grep -Fq 'needs.upstream.result' "$workflow"
+  grep -Fq 'node tools/upstream.mjs --verify' "$workflow"
   grep -Fq 'needs.dependency_review.result' "$workflow"
 }
 
@@ -772,6 +776,47 @@ EOF
   [[ "$output" == *"workflow permissions must not grant write access"* ]]
 }
 
+@test "repository-policy-check: rejects broadened import-bot permissions and triggers" {
+  policy="$TMP/repository-policy-bot"
+  mkdir -p "$policy/.github/workflows"
+  cp "$ROOT/.github/settings.yml" "$policy/.github/settings.yml"
+  cp "$ROOT/.github/ci-requirements.in" "$ROOT/.github/ci-requirements.txt" "$policy/.github/"
+  cp "$ROOT/renovate.json" "$policy/renovate.json"
+  cp "$ROOT/.github/workflows/ci.yml" "$policy/.github/workflows/ci.yml"
+  for mutation in '.jobs.propose.permissions.actions = "write"' \
+    '.on.pull_request_target = {}' '.jobs.propose.if = "true"' \
+    '.jobs.extra = .jobs.propose' '.jobs.propose.steps[0].with.ref = "test"' \
+    '.jobs.propose.steps[0].uses = "actions/checkout@main"'; do
+    jq "$mutation" "$ROOT/.github/workflows/upstream-imports.yml" > "$policy/.github/workflows/upstream-imports.yml"
+    run env SENTINEL_REPO_ROOT="$policy" bash "$ROOT/tools/repository-policy-check"
+    [ "$status" -ne 0 ]
+    [[ "$output" == *"narrowly scoped write permissions"* ]]
+  done
+}
+
+@test "repository-policy-check: copied bots and quoted or inline grants cannot evade the policy" {
+  policy="$TMP/repository-policy-formats"
+  mkdir -p "$policy/.github/workflows"
+  cp "$ROOT/.github/settings.yml" "$policy/.github/settings.yml"
+  cp "$ROOT/.github/ci-requirements.in" "$ROOT/.github/ci-requirements.txt" "$policy/.github/"
+  cp "$ROOT/renovate.json" "$policy/renovate.json"
+  cp "$ROOT/.github/workflows/ci.yml" "$policy/.github/workflows/ci.yml"
+  for name in other.yml upstream-imports.yaml; do
+    cp "$ROOT/.github/workflows/upstream-imports.yml" "$policy/.github/workflows/$name"
+    run env SENTINEL_REPO_ROOT="$policy" bash "$ROOT/tools/repository-policy-check"
+    [ "$status" -ne 0 ]
+    [[ "$output" == *"outside the reviewed allowlist"* ]]
+    rm "$policy/.github/workflows/$name"
+  done
+  for grant in "contents: 'write'" 'permissions: {contents: write}' '"contents": "write"' 'permissions: "write-all"'; do
+    cp "$ROOT/.github/workflows/ci.yml" "$policy/.github/workflows/ci.yml"
+    printf '\n%s\n' "$grant" >> "$policy/.github/workflows/ci.yml"
+    run env SENTINEL_REPO_ROOT="$policy" bash "$ROOT/tools/repository-policy-check"
+    [ "$status" -ne 0 ]
+    [[ "$output" == *"workflow permissions must not grant write access"* ]]
+  done
+}
+
 @test "safeguards: documents preflight, recovery, and PR-only bypass" {
   run bash "$ROOT/scripts/apply-repo-safeguards.sh" --help
   [ "$status" -eq 0 ]
@@ -848,4 +893,28 @@ EOF
   run pwsh -NoProfile -File "$ROOT/tools/install.ps1" -Check
   [ "$status" -eq 0 ]
   [[ "$output" == *"blocks up to date"* ]]
+}
+
+@test "test runner: missing Bats skips only Bats, not Node" {
+  mkdir -p "$TMP/bin"
+  ln -s "$(command -v dirname)" "$TMP/bin/dirname"
+  printf '#!/bin/sh\necho "Node suites ran: $*"\n' > "$TMP/bin/node"
+  chmod +x "$TMP/bin/node"
+  run env SENTINEL_STRICT=0 PATH="$TMP/bin" /bin/bash "$ROOT/tests/run.sh"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"bats-core not installed; SKIPPING"* ]]
+  [[ "$output" == *"Node suites ran: --test"* ]]
+}
+
+@test "status: Copilot global rules are reported as supported and current" {
+  mkdir -p "$TMP/profile"
+  run env HOME="$TMP/profile" CODEX_HOME="$TMP/profile/.codex" \
+    CLAUDE_CONFIG_DIR="$TMP/profile/.claude" bash "$ROOT/tools/install" --global --hosts copilot
+  [ "$status" -eq 0 ]
+  [ -f "$TMP/profile/.copilot/copilot-instructions.md" ]
+  run env HOME="$TMP/profile" CODEX_HOME="$TMP/profile/.codex" \
+    CLAUDE_CONFIG_DIR="$TMP/profile/.claude" bash "$ROOT/tools/status"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"current"*"~/.copilot/copilot-instructions.md"*"GitHub Copilot CLI"* ]]
+  [[ "$output" != *"Copilot has no global file"* ]]
 }
