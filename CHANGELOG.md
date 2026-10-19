@@ -5,6 +5,15 @@ uses [Semantic Versioning]. Consumers pin a version and a `bundle-sha256`.
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-19
+
+Pin to `v0.2.0` and verify the rendered rules with this hash:
+
+**bundle-sha256:** `e6a3681891e1ace509b20c95c17a5ae1f7f8328b90f1b219be151df88eeadcb8`
+
+The hash covers the rules. Verify installed skills separately with
+`node tools/skills.mjs --check` and the original host and target options.
+
 ### Combined rules and skills
 
 - Bring Helix's delivery, review, writing and document workflows into Sentinel.
@@ -66,6 +75,11 @@ uses [Semantic Versioning]. Consumers pin a version and a `bundle-sha256`.
 
 ### Fixed
 
+- Safeguard activation handles expected GitHub 404 responses on macOS Bash,
+  stops before writing when recovery state cannot be read, and rolls back
+  actual API failures.
+- Live CodeQL verification requires both Actions and JavaScript/TypeScript
+  while accepting GitHub's additional language entries.
 - `tools/check` now excludes tracked paths deleted from the working tree before
   scanning, avoiding a false unreadable-path failure while preserving the
   fail-closed behavior for files that actually exist.
