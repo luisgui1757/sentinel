@@ -44,10 +44,14 @@ including human edits. A leftover branch without an open PR stops the bot for
 inspection. Commits that do not change selected files produce no update.
 Manual dispatch is also available, only on `main`.
 
-After this feature merges, apply the canonical repository safeguards from clean
+To activate the bot, apply the canonical repository safeguards from clean
 `main` as described in [governance](GOVERNANCE.md). This enables GitHub's required
-PR-creation setting. Until then, the scheduled bot cannot publish; no live setting
-is changed by this PR. No extra account token is needed.
+PR-creation setting. Merging the code alone does not enable publication.
+No extra account token is needed.
+
+If activation was paused, re-enable the workflow after the safeguards pass:
+`gh workflow enable upstream-imports.yml`. Start the first live run with
+`gh workflow run upstream-imports.yml --ref main` and inspect its result.
 
 Review a bot PR before [approving its workflow runs](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/trigger-a-workflow)
 if GitHub asks. Confirm that CI starts after approval on the first live dispatch.

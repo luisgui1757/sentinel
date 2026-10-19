@@ -30,12 +30,17 @@ effective policy that neither checked-in source describes.
 | Updates | Only the owner may bypass the update rule, and only in `pull_request` mode |
 | Merge methods | Squash only; auto-merge disabled; merged branches deleted |
 | Actions | Enabled; selected GitHub-owned Actions only; full commit SHA required; default token read-only; PR creation enabled for the import bot |
-| Security | Secret scanning, push protection, Dependabot security updates, private vulnerability reporting, and weekly default-suite CodeQL for Actions enabled |
+| Security | Secret scanning, push protection, Dependabot security updates, private vulnerability reporting, and weekly default-suite CodeQL for Actions and JavaScript/TypeScript enabled |
 | Releases | Immutable future releases enabled |
 
 The stable required status context is `ci`; its workflow aggregates every
 blocking job. New blocking jobs join that aggregate instead of becoming another
 ruleset context.
+
+CodeQL must cover both Actions and JavaScript/TypeScript. GitHub's default setup
+[adds supported languages automatically](https://docs.github.com/en/code-security/concepts/code-scanning/setup-types)
+when the code changes. Additional language entries are accepted; losing either
+required language fails verification.
 
 Only `upstream-imports.yml` grants job-level `contents: write` and
 `pull-requests: write`. It runs from `main` on a schedule or manual dispatch,
@@ -74,6 +79,11 @@ successful exact-head CodeQL analysis, and non-duplicated live ruleset names.
 Immediately before its first write, apply checks `main` again for concurrent
 drift. It then applies every control and reads the effective state back through
 GitHub's APIs.
+
+macOS's bundled Bash 3.2 is supported. Absent classic protection is a normal
+HTTP 404, not an apply failure. An unreadable vulnerability-alerts setting stops
+snapshot capture before any write. A failed classic-protection read after writes
+triggers rollback.
 
 ## Recovery
 

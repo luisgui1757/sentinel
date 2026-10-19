@@ -104,7 +104,8 @@ upsert_ruleset() {
 
 api_or_null_on_404() {
   local path=$1 value
-  if value=$(gh api "$path" 2>/dev/null); then
+  # Bash 3.2 otherwise runs the inherited ERR trap before the caller handles 404.
+  if value=$(gh api "$path" 2>/dev/null || exit $?); then
     printf '%s\n' "$value"
   elif [[ $(jq -r '.status // empty' <<<"$value") == 404 ]]; then
     printf 'null\n'
@@ -115,10 +116,12 @@ api_or_null_on_404() {
 
 delete_classic_if_present() {
   local value
-  if value=$(gh api "repos/$REPO/branches/main/protection" 2>/dev/null); then
+  if value=$(gh api "repos/$REPO/branches/main/protection" 2>/dev/null || exit $?); then
     gh api -X DELETE "repos/$REPO/branches/main/protection" >/dev/null
   elif [[ $(jq -r '.status // empty' <<<"$value") != 404 ]]; then
-    fail "could not determine classic branch-protection state"
+    # Return to the ERR handler; fail/exit would skip rollback in the parent.
+    echo "apply-repo-safeguards: FAIL: could not determine classic branch-protection state" >&2
+    return 1
   fi
 }
 
@@ -165,7 +168,7 @@ classic_restore_payload() {
 
 capture_snapshot() {
   local snapshot_dir stamp temp_dir repo_json actions_json selected_json workflow_json
-  local immutable_json private_reporting_json automated_json classic_json vulnerability_alerts
+  local immutable_json private_reporting_json automated_json classic_json vulnerability_alerts vulnerability_json
   snapshot_dir=$(cd "$REPO_ROOT" && git rev-parse --git-common-dir)/sentinel-safeguards
   [[ "$snapshot_dir" == /* ]] || snapshot_dir="$REPO_ROOT/$snapshot_dir"
   mkdir -p "$snapshot_dir"
@@ -185,7 +188,8 @@ capture_snapshot() {
   immutable_json=$(gh api "repos/$REPO/immutable-releases")
   private_reporting_json=$(gh api "repos/$REPO/private-vulnerability-reporting")
   automated_json=$(gh api "repos/$REPO/automated-security-fixes")
-  if [[ $(api_or_null_on_404 "repos/$REPO/vulnerability-alerts") == null ]]; then
+  vulnerability_json=$(api_or_null_on_404 "repos/$REPO/vulnerability-alerts")
+  if [[ "$vulnerability_json" == null ]]; then
     vulnerability_alerts=false
   else
     vulnerability_alerts=true
