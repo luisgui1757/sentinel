@@ -5,7 +5,7 @@
       "id": "unslop",
       "repository": "cursor/plugins",
       "ref": "main",
-      "revision": "e43c7ee26e0038c6c1fa8380dd34ce86ff94cb2a",
+      "revision": "6b78e9f4e46c75d1697d837e51f07c2692e60b24",
       "paths": {
         "pstack/skills/unslop/SKILL.md": "skills/unslop/SKILL.md",
         "pstack/LICENSE": "skills/unslop/LICENSE"
@@ -35,7 +35,7 @@
       "id": "impeccable",
       "repository": "pbakaus/impeccable",
       "ref": "main",
-      "revision": "08d5b470495d242ca0470f4aeae1956c3a074f83",
+      "revision": "0665bd812ae0908fcab17b96fd4f840defb882d9",
       "paths": {
         ".agents/skills/impeccable/": "skills/impeccable/",
         "LICENSE": "skills/impeccable/LICENSE",
