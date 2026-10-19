@@ -3,7 +3,7 @@
 > `MANIFEST.json`; change the rules in `core/`, then re-run `tools/install`.
 
 <!-- AGENT-RULES:BEGIN do-not-edit-inside-this-block -->
-<!-- version: 0.1.2  sha256: e6a3681891e1ace509b20c95c17a5ae1f7f8328b90f1b219be151df88eeadcb8 -->
+<!-- version: 0.2.0  sha256: e6a3681891e1ace509b20c95c17a5ae1f7f8328b90f1b219be151df88eeadcb8 -->
 
 # Operating Contract
 
