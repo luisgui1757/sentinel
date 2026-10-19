@@ -212,9 +212,9 @@ validate_live_repository() {
     || { fail "could not read automated security fixes"; return; }
   jq_check_value "$value" "Dependabot automated security fixes must be enabled" '.enabled == true'
   value=$(gh api "repos/$repo/code-scanning/default-setup") || { fail "could not read CodeQL default setup"; return; }
-  jq_check_value "$value" "CodeQL default setup must scan Actions weekly with the default query suite" '
+  jq_check_value "$value" "CodeQL default setup must scan Actions and JavaScript/TypeScript weekly with the default query suite" '
     .state == "configured"
-    and .languages == ["actions"]
+    and ((["actions", "javascript-typescript"] - .languages) == [])
     and .query_suite == "default"
     and .schedule == "weekly"
   '

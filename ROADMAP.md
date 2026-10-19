@@ -2,8 +2,10 @@
 
 ## In progress
 
-- Complete hosted checks and human review for the combined bundle. Merge keeps
-  the repository's normal approval and check requirements.
+- Complete live upstream-bot activation after the macOS safeguard fix merges.
+  The first attempt rolled back; the bot has not published a live update yet.
+  The workflow is paused. Re-enable it after postflight passes, then verify its
+  first live run.
 
 ## Next
 
@@ -13,6 +15,7 @@
 
 ## Done
 
+- Combined bundle passed hosted checks and human review and was merged.
 - Shared rules and optional delivery, document and writing skills live together.
 - Managed rule blocks preserve surrounding instructions and detect drift.
 - Optional skill installation preserves edited and unowned files.
