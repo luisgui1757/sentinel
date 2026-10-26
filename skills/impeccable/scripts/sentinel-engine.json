@@ -1,30 +1,30 @@
 {
-  "version": "0.1.15",
+  "version": "0.1.17",
   "assets": {
     "darwin-arm64": {
-      "url": "https://github.com/pbakaus/impeccable/releases/download/engine-v0.1.15/impeccable-darwin-arm64",
-      "sha256": "c7914209b4490dc81b7ab17c20f1f76415d1f0b8bb5de6f7e86e9aa111d1c1a5",
-      "bytes": 17060640
+      "url": "https://github.com/pbakaus/impeccable/releases/download/engine-v0.1.17/impeccable-darwin-arm64",
+      "sha256": "71a53f37750ef94322855454a869e941ea3774d86d2634867ebf95e0684f7ea1",
+      "bytes": 17606048
     },
     "darwin-x64": {
-      "url": "https://github.com/pbakaus/impeccable/releases/download/engine-v0.1.15/impeccable-darwin-x64",
-      "sha256": "3e7d6906a384c71bfe73597674239413b9ad2520b84cf373cc30500581029ff8",
-      "bytes": 19226624
+      "url": "https://github.com/pbakaus/impeccable/releases/download/engine-v0.1.17/impeccable-darwin-x64",
+      "sha256": "6bd3afca7b3a3b950bcc40c970dc31144cb3317aef8d8e8224b55af603c716eb",
+      "bytes": 19816952
     },
     "linux-arm64": {
-      "url": "https://github.com/pbakaus/impeccable/releases/download/engine-v0.1.15/impeccable-linux-arm64",
-      "sha256": "bb572a5250359731b3df902279ed4c3a901b149742b36623c2130f15221561e4",
-      "bytes": 17705576
+      "url": "https://github.com/pbakaus/impeccable/releases/download/engine-v0.1.17/impeccable-linux-arm64",
+      "sha256": "bc2670ba2eb329b0b45ffe8853f3e20eec078153be357075a597aefa22b1e2e6",
+      "bytes": 18230776
     },
     "linux-x64": {
-      "url": "https://github.com/pbakaus/impeccable/releases/download/engine-v0.1.15/impeccable-linux-x64",
-      "sha256": "b4e2ebcb97b2be5e5a0ae71d4a03596c12d3672f19b24cfdd7244e304e679fb7",
-      "bytes": 21212432
+      "url": "https://github.com/pbakaus/impeccable/releases/download/engine-v0.1.17/impeccable-linux-x64",
+      "sha256": "44c0d601e985980a9c39718fee15b48a8f7cbe67779f6ae05efe9124817ab629",
+      "bytes": 21844144
     },
     "win32-x64": {
-      "url": "https://github.com/pbakaus/impeccable/releases/download/engine-v0.1.15/impeccable-windows-x64.exe",
-      "sha256": "981324ea15cc3c107d46b8133b5be77f639dbcd22e671f1eb7d8c69136e9693b",
-      "bytes": 19672464
+      "url": "https://github.com/pbakaus/impeccable/releases/download/engine-v0.1.17/impeccable-windows-x64.exe",
+      "sha256": "edb62bff4ee48dc59b6b34f5788b9052ff0efc73019a4e4fc3b1067a4ebf94ee",
+      "bytes": 20285328
     }
   }
 }
