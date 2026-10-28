@@ -186,7 +186,7 @@ replace_file() {
   next=$(mktemp "$(dirname "$1")/.sentinel.XXXXXX")
   cat "$2" > "$next"
   if [[ -f "$1" ]]; then
-    mode=$(stat -c %a "$1" 2>/dev/null || stat -f %Lp "$1")
+    mode=$(stat -L -c %a "$1" 2>/dev/null || stat -L -f %Lp "$1")
     chmod "$mode" "$next"
   fi
   mv "$next" "$1"

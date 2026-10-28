@@ -259,6 +259,17 @@ for (const impl of impls) {
     }));
   }
 
+  test(`${impl}: a linked rules file gets the mode of its target`, { skip: process.platform === 'win32' }, () => withHome(async home => {
+    const real = path.join(home, 'dotfiles/AGENTS.md'), file = path.join(home, '.codex/AGENTS.md');
+    await fs.mkdir(path.dirname(real), { recursive: true });
+    await fs.mkdir(path.dirname(file), { recursive: true });
+    await fs.writeFile(real, 'my rules\n');
+    await fs.chmod(real, 0o640);
+    await fs.symlink(real, file);
+    ok(install(impl, home, { global: true, hosts: 'codex' }));
+    assert.equal((await fs.stat(file)).mode & 0o777, 0o640);
+  }));
+
   test(`${impl}: a project can take the UI skills without the rules`, () => withHome(async home => {
     const project = path.join(home, 'project');
     await fs.mkdir(project);
