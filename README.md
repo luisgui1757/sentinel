@@ -54,8 +54,9 @@ changed them. `--check` reports these folders as `LEGACY`.
 | Kiro | `~/.kiro/steering/AGENTS.md` | `~/.kiro/skills` |
 | OpenCode | `~/.config/opencode/AGENTS.md` | `~/.agents/skills` |
 
-`CODEX_HOME`, `CLAUDE_CONFIG_DIR`, `COPILOT_HOME` and `XDG_CONFIG_HOME` change
-these folders. A project install writes the rules to `AGENTS.md`, and
+`CODEX_HOME`, `CLAUDE_CONFIG_DIR`, `COPILOT_HOME`, `KIRO_HOME` and
+`XDG_CONFIG_HOME` change these folders. When the installer replaces a rules
+file, the file keeps its mode. A project install writes the rules to `AGENTS.md`, and
 `CLAUDE.md` imports that file. Project skills go to `.agents/skills`,
 `.claude/skills` and `.kiro/skills`.
 

@@ -24,7 +24,7 @@ const impls = [
   process.platform === 'win32' && has('powershell', ['-NoProfile', '-Command', 'exit 0']) && 'powershell',
 ].filter(Boolean);
 
-// opts: { global, project, hosts, skills, noRules, check, remove }
+// opts: { global, project, hosts, skills, noRules, check, remove, env }
 function install(impl, home, opts) {
   const skills = opts.skills ?? 'none';
   const args = impl === 'bash'
@@ -36,8 +36,8 @@ function install(impl, home, opts) {
       ...(opts.noRules ? ['-NoRules'] : []), ...(opts.check ? ['-Check'] : []), ...(opts.remove ? ['-Remove'] : [])];
   const env = { ...process.env, HOME: home, USERPROFILE: home, POWERSHELL_TELEMETRY_OPTOUT: '1',
     XDG_CACHE_HOME: path.join(home, '..', 'cache') };
-  for (const name of ['CODEX_HOME', 'CLAUDE_CONFIG_DIR', 'COPILOT_HOME', 'XDG_CONFIG_HOME']) delete env[name];
-  return spawnSync(impl, args, { env, encoding: 'utf8' });
+  for (const name of ['CODEX_HOME', 'CLAUDE_CONFIG_DIR', 'COPILOT_HOME', 'XDG_CONFIG_HOME', 'KIRO_HOME']) delete env[name];
+  return spawnSync(impl, args, { env: { ...env, ...opts.env }, encoding: 'utf8' });
 }
 
 // Assert a zero exit, and show the installer output when it fails.
@@ -229,6 +229,45 @@ for (const impl of impls) {
     assert.deepEqual(await tree(path.join(skills, 'sol-loop')), await tree(path.join(root, 'skills/sol-loop')));
     assert.equal(await exists(legacy), false);
     ok(install(impl, home, { ...opts, check: true }));
+  }));
+
+  test(`${impl}: KIRO_HOME moves the Kiro rules and skills`, () => withHome(async home => {
+    const kiro = path.join(home, 'kiro home');
+    const opts = { global: true, hosts: 'kiro', skills: 'core', env: { KIRO_HOME: kiro } };
+    ok(install(impl, home, opts));
+    assert.equal(await read(path.join(kiro, 'steering/AGENTS.md')), block);
+    assert.deepEqual((await fs.readdir(path.join(kiro, 'skills'))).sort(), inProfiles('core').sort());
+    assert.equal(await exists(path.join(home, '.kiro')), false);
+    ok(install(impl, home, { ...opts, check: true }));
+    ok(install(impl, home, { ...opts, remove: true }));
+    assert.equal(await exists(path.join(kiro, 'steering/AGENTS.md')), false);
+    assert.deepEqual(await fs.readdir(path.join(kiro, 'skills')), []);
+  }));
+
+  for (const mode of [0o640, 0o444]) {
+    test(`${impl}: a rules file keeps mode ${mode.toString(8)}`, { skip: process.platform === 'win32' }, () => withHome(async home => {
+      const file = path.join(home, '.codex/AGENTS.md');
+      await fs.mkdir(path.dirname(file), { recursive: true });
+      await fs.writeFile(file, 'my rules\n');
+      await fs.chmod(file, mode);
+      ok(install(impl, home, { global: true, hosts: 'codex' }));
+      assert.equal(await read(file), `my rules\n\n${block}`);
+      assert.equal((await fs.stat(file)).mode & 0o777, mode);
+      ok(install(impl, home, { global: true, hosts: 'codex', remove: true }));
+      assert.match(await read(file), /^my rules\n/);
+      assert.equal((await fs.stat(file)).mode & 0o777, mode);
+    }));
+  }
+
+  test(`${impl}: a linked rules file gets the mode of its target`, { skip: process.platform === 'win32' }, () => withHome(async home => {
+    const real = path.join(home, 'dotfiles/AGENTS.md'), file = path.join(home, '.codex/AGENTS.md');
+    await fs.mkdir(path.dirname(real), { recursive: true });
+    await fs.mkdir(path.dirname(file), { recursive: true });
+    await fs.writeFile(real, 'my rules\n');
+    await fs.chmod(real, 0o640);
+    await fs.symlink(real, file);
+    ok(install(impl, home, { global: true, hosts: 'codex' }));
+    assert.equal((await fs.stat(file)).mode & 0o777, 0o640);
   }));
 
   test(`${impl}: a project can take the UI skills without the rules`, () => withHome(async home => {
