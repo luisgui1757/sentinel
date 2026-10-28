@@ -13,7 +13,7 @@
       "source": "tstack",
       "path": "skills/babysit-pr/SKILL.md",
       "sha256": "fbe43ba3ab76a466a88ef8b46dca1b41fb8101347d24a396903849865173a6ac",
-      "local": "2d7aa22ed57503553c5c2925c371611e7de4bfb94e675c488cced4599bc078aa",
+      "local": "eb87c9132181668842115752611035db3fd27318302aab9e4201403818929def",
       "executable": false
     },
     "skills/babysit-pr/scripts/pr-wait": {
@@ -27,7 +27,7 @@
       "source": "tstack",
       "path": "skills/council/SKILL.md",
       "sha256": "da8b4166f19defb2b6916e8f8fe30fa93b8bd2eabaf870ba87e9accaa038e2b8",
-      "local": "811d215a4bd461f3496032eb43d233240d254fa9c213cf43802a5a05f3bb96c1",
+      "local": "0ac789230b5648882edc2c467b4cd8e475c7967663a93baa999f257234d0eb63",
       "executable": false
     },
     "skills/file-pr/SKILL.md": {
@@ -53,7 +53,7 @@
       "source": "tstack",
       "path": "skills/full-stop/SKILL.md",
       "sha256": "243ed08a040df888e35a5db8da704dced345270efdd0afa74252a766e05a4b09",
-      "local": "c011150ffe854ff0a6b36ec6c9164ba7e7368b6c0aef611f7f7c6b8463989982",
+      "local": "8e396465fc37c533ddeadbd46b69595416664411a33a9eb0f3fdc26649664188",
       "executable": false
     },
     "skills/full-stop/agents/openai.yaml": {
@@ -90,7 +90,7 @@
       "source": "tstack",
       "path": "skills/sol-loop/SKILL.md",
       "sha256": "1db1eb4c4a156ee666070e9a12623d520cd1bd9b19c3fc21003fe5a440ba0b10",
-      "local": "3f93c3b3791a5e0b44a25371fa83e14d3e45b78cce7bcbc9837f3b3405306708",
+      "local": "0f24a2deb5ca08c4bb08bf1e99bca167907be6b5dc5dd15dc330b17a63354dee",
       "executable": false
     },
     "skills/takeover/SKILL.md": {
@@ -103,7 +103,6 @@
       "source": "tstack",
       "path": "skills/full-send/SKILL.md",
       "sha256": "ba585e47cd901506b0e2de13025b0e39bc02462c136cf27491ad3efbdfe66020",
-      "local": "89bfeec9ab824ce7fdf6e0609701153e120e4ba0b6ec4df2af739b266a72acc2",
       "executable": false
     },
     "skills/babysit-pr/LICENSE": {
