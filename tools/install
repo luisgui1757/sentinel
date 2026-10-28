@@ -179,12 +179,17 @@ skill_state() {
 }
 
 # Replace the file <target> with <src> in one rename. An existing target keeps
-# its mode: cp -p copies the mode to the new file before it gets the content.
+# its mode, also a read-only mode: the new file gets the mode after its content.
+# stat -c is GNU, stat -f is BSD and macOS.
 replace_file() {
-  local next
+  local next mode
   next=$(mktemp "$(dirname "$1")/.sentinel.XXXXXX")
-  if [[ -f "$1" ]]; then cp -p "$1" "$next"; fi
-  cat "$2" > "$next" && mv "$next" "$1"
+  cat "$2" > "$next"
+  if [[ -f "$1" ]]; then
+    mode=$(stat -c %a "$1" 2>/dev/null || stat -f %Lp "$1")
+    chmod "$mode" "$next"
+  fi
+  mv "$next" "$1"
 }
 
 copy_skill() {

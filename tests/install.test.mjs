@@ -244,17 +244,20 @@ for (const impl of impls) {
     assert.deepEqual(await fs.readdir(path.join(kiro, 'skills')), []);
   }));
 
-  test(`${impl}: a rules file keeps its mode`, { skip: process.platform === 'win32' }, () => withHome(async home => {
-    const file = path.join(home, '.codex/AGENTS.md');
-    await fs.mkdir(path.dirname(file), { recursive: true });
-    await fs.writeFile(file, 'my rules\n');
-    await fs.chmod(file, 0o640);
-    ok(install(impl, home, { global: true, hosts: 'codex' }));
-    assert.equal((await fs.stat(file)).mode & 0o777, 0o640);
-    ok(install(impl, home, { global: true, hosts: 'codex', remove: true }));
-    assert.match(await read(file), /^my rules\n/);
-    assert.equal((await fs.stat(file)).mode & 0o777, 0o640);
-  }));
+  for (const mode of [0o640, 0o444]) {
+    test(`${impl}: a rules file keeps mode ${mode.toString(8)}`, { skip: process.platform === 'win32' }, () => withHome(async home => {
+      const file = path.join(home, '.codex/AGENTS.md');
+      await fs.mkdir(path.dirname(file), { recursive: true });
+      await fs.writeFile(file, 'my rules\n');
+      await fs.chmod(file, mode);
+      ok(install(impl, home, { global: true, hosts: 'codex' }));
+      assert.equal(await read(file), `my rules\n\n${block}`);
+      assert.equal((await fs.stat(file)).mode & 0o777, mode);
+      ok(install(impl, home, { global: true, hosts: 'codex', remove: true }));
+      assert.match(await read(file), /^my rules\n/);
+      assert.equal((await fs.stat(file)).mode & 0o777, mode);
+    }));
+  }
 
   test(`${impl}: a project can take the UI skills without the rules`, () => withHome(async home => {
     const project = path.join(home, 'project');
