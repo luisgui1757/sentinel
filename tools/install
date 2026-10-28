@@ -74,7 +74,7 @@ targets() {
     selected codex && echo "rules ${CODEX_HOME:-$HOME/.codex}/AGENTS.md"
     selected claude && echo "rules ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/CLAUDE.md"
     selected copilot && echo "rules ${COPILOT_HOME:-$HOME/.copilot}/copilot-instructions.md"
-    selected kiro && echo "rules $HOME/.kiro/steering/AGENTS.md"
+    selected kiro && echo "rules ${KIRO_HOME:-$HOME/.kiro}/steering/AGENTS.md"
     selected opencode && echo "rules ${XDG_CONFIG_HOME:-$HOME/.config}/opencode/AGENTS.md"
   else
     echo "rules $dir/AGENTS.md"
@@ -86,11 +86,11 @@ targets() {
 # Codex, Copilot CLI and OpenCode read .agents/skills. Claude Code and Kiro
 # each read their own folder.
 skill_roots() {
-  local base=$HOME claude="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
-  if [[ "$scope" == project ]]; then base=$dir claude="$dir/.claude"; fi
+  local base=$HOME claude="${CLAUDE_CONFIG_DIR:-$HOME/.claude}" kiro="${KIRO_HOME:-$HOME/.kiro}"
+  if [[ "$scope" == project ]]; then base=$dir claude="$dir/.claude" kiro="$dir/.kiro"; fi
   if selected codex || selected copilot || selected opencode; then echo "$base/.agents/skills"; fi
   selected claude && echo "$claude/skills"
-  selected kiro && echo "$base/.kiro/skills"
+  selected kiro && echo "$kiro/skills"
   return 0
 }
 
@@ -178,6 +178,15 @@ skill_state() {
   fi
 }
 
+# Replace the file <target> with <src> in one rename. An existing target keeps
+# its mode: cp -p copies the mode to the new file before it gets the content.
+replace_file() {
+  local next
+  next=$(mktemp "$(dirname "$1")/.sentinel.XXXXXX")
+  if [[ -f "$1" ]]; then cp -p "$1" "$next"; fi
+  cat "$2" > "$next" && mv "$next" "$1"
+}
+
 copy_skill() {
   local next
   next=$(mktemp -d "$(dirname "$2")/.sentinel.XXXXXX")
@@ -200,8 +209,7 @@ if [[ "$rules" == 1 ]]; then
         fi
         if [[ -f "$target" ]] && cmp -s "$target" "$out"; then echo "unchanged: $target"; continue; fi
         mkdir -p "$(dirname "$target")"
-        next=$(mktemp "$(dirname "$target")/.sentinel.XXXXXX")
-        cp "$out" "$next" && mv "$next" "$target"
+        replace_file "$target" "$out"
         echo "wrote:     $target"
         ;;
       check)
@@ -217,8 +225,7 @@ if [[ "$rules" == 1 ]]; then
           echo "refused:   $target (AGENT-RULES:BEGIN without AGENT-RULES:END)" >&2; status=1; continue
         fi
         if grep -q '[^[:space:]]' "$out"; then
-          next=$(mktemp "$(dirname "$target")/.sentinel.XXXXXX")
-          cp "$out" "$next" && mv "$next" "$target"
+          replace_file "$target" "$out"
           echo "removed:   block in $target"
         else
           rm -f "$target"

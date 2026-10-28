@@ -67,6 +67,11 @@ function Write-TextAtomic([string]$path, [string]$content) {
   if (-not (Test-Path -LiteralPath $dir)) { New-Item -ItemType Directory -Path $dir -Force | Out-Null }
   $next = Join-Path $dir ('.sentinel.' + [Guid]::NewGuid().ToString('N'))
   Write-Text $next $content
+  # An existing file keeps its mode, as in tools/install. On Windows,
+  # [IO.File]::Replace keeps the attributes and the ACL.
+  if ((Test-Path -LiteralPath $path) -and [Environment]::OSVersion.Platform -eq [PlatformID]::Unix) {
+    [System.IO.File]::SetUnixFileMode($next, [System.IO.File]::GetUnixFileMode($path))
+  }
   if (Test-Path -LiteralPath $path) { [System.IO.File]::Replace($next, $path, [NullString]::Value, $true) }
   else { [System.IO.File]::Move($next, $path) }
 }
@@ -219,7 +224,7 @@ if ($Global) {
   if ($hostList -contains 'codex') { $targets += , @((Join-Path (Get-EnvOr 'CODEX_HOME' (Join-Path $homeDir '.codex')) 'AGENTS.md'), 'rules') }
   if ($hostList -contains 'claude') { $targets += , @((Join-Path (Get-EnvOr 'CLAUDE_CONFIG_DIR' (Join-Path $homeDir '.claude')) 'CLAUDE.md'), 'rules') }
   if ($hostList -contains 'copilot') { $targets += , @((Join-Path (Get-EnvOr 'COPILOT_HOME' (Join-Path $homeDir '.copilot')) 'copilot-instructions.md'), 'rules') }
-  if ($hostList -contains 'kiro') { $targets += , @((Join-Path $homeDir '.kiro/steering/AGENTS.md'), 'rules') }
+  if ($hostList -contains 'kiro') { $targets += , @((Join-Path (Get-EnvOr 'KIRO_HOME' (Join-Path $homeDir '.kiro')) 'steering/AGENTS.md'), 'rules') }
   if ($hostList -contains 'opencode') { $targets += , @((Join-Path (Get-EnvOr 'XDG_CONFIG_HOME' (Join-Path $homeDir '.config')) 'opencode/AGENTS.md'), 'rules') }
 } else {
   $targets += , @((Join-Path $Project 'AGENTS.md'), 'rules')
@@ -230,11 +235,12 @@ if ($Global) {
 # each read their own folder.
 $base = if ($Global) { $homeDir } else { $Project }
 $claudeDir = if ($Global) { Get-EnvOr 'CLAUDE_CONFIG_DIR' (Join-Path $homeDir '.claude') } else { Join-Path $Project '.claude' }
+$kiroDir = if ($Global) { Get-EnvOr 'KIRO_HOME' (Join-Path $homeDir '.kiro') } else { Join-Path $Project '.kiro' }
 $skillRoots = @()
 if ($skillList.Count -gt 0) {
   if ($hostList -contains 'codex' -or $hostList -contains 'copilot' -or $hostList -contains 'opencode') { $skillRoots += Join-Path $base '.agents/skills' }
   if ($hostList -contains 'claude') { $skillRoots += Join-Path $claudeDir 'skills' }
-  if ($hostList -contains 'kiro') { $skillRoots += Join-Path $base '.kiro/skills' }
+  if ($hostList -contains 'kiro') { $skillRoots += Join-Path $kiroDir 'skills' }
 }
 
 $blocks = @{
