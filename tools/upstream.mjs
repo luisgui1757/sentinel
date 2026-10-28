@@ -1,13 +1,14 @@
 #!/usr/bin/env node
 // Import data only. Never run upstream scripts or install into a user profile.
 import fs from 'node:fs/promises';
+import os from 'node:os';
 import path from 'node:path';
+import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 
 const manifestPath = 'upstream/imports.json';
 const lockPath = 'upstream/lock.json';
-const enginePath = 'skills/impeccable/scripts/sentinel-engine.json';
 const sha = bytes => createHash('sha256').update(bytes).digest('hex');
 const json = value => Buffer.from(`${JSON.stringify(value, null, 2)}\n`);
 const fail = message => { throw new Error(message); };
@@ -25,13 +26,13 @@ async function read(root, name) {
   return fs.readFile(current);
 }
 
+// A mapping copies one upstream file to one or more destinations, or one
+// upstream directory to one destination directory. Destinations are under skills/.
 async function inputs(root) {
   const bytes = await read(root, manifestPath);
   const manifest = JSON.parse(bytes);
-  if (manifest.version !== 1 || !Array.isArray(manifest.sources) || !manifest.sources.length) fail('Invalid import manifest');
-  const hashes = { [manifestPath]: sha(bytes) }, patches = {}, ids = new Set();
-  const engine = await read(root, enginePath);
-  if (engine) hashes[enginePath] = sha(engine);
+  if (manifest.version !== 2 || !Array.isArray(manifest.sources) || !manifest.sources.length) fail('Invalid import manifest');
+  const ids = new Set();
   for (const source of manifest.sources) {
     if (!/^[a-z][a-z0-9-]*$/.test(source.id) || ids.has(source.id)
       || !/^[\w-]+\/[\w.-]+$/.test(source.repository) || !/^[0-9a-f]{40}$/.test(source.revision)
@@ -39,37 +40,41 @@ async function inputs(root) {
       || !Array.isArray(source.required) || !source.required.length) fail('Invalid source');
     ids.add(source.id);
     for (const [from, to] of Object.entries(source.paths)) {
-      if (!safe(from) || !safe(to) || !to.startsWith(`skills/${source.id}/`)
-        || from.endsWith('/') !== to.endsWith('/')) fail(`Invalid mapping: ${from}`);
-    }
-    for (const [from, to] of Object.entries(source.rename || {})) {
-      if (!safe(from) || !safe(to) || !from.startsWith(`skills/${source.id}/`)
-        || !to.startsWith(`skills/${source.id}/`)) fail('Invalid rename');
-    }
-    for (const [target, patch] of Object.entries(source.patches || {})) {
-      if (!safe(target) || !target.startsWith(`skills/${source.id}/`) || !safe(patch) || !patch.startsWith('upstream/')) fail('Invalid patch path');
-      const data = await read(root, patch);
-      if (!data) fail(`Missing patch: ${patch}`);
-      hashes[patch] = sha(data);
-      const parsed = JSON.parse(data);
-      if (!Array.isArray(parsed.replace) || parsed.replace.some(item => ![item.before].flat().length
-        || [item.before].flat().some(before => typeof before !== 'string' || !before) || typeof item.after !== 'string')
-        || (parsed.append !== undefined && typeof parsed.append !== 'string')) fail(`Invalid patch: ${patch}`);
-      patches[target] = parsed;
+      const targets = [to].flat();
+      if (!safe(from) || !targets.length || (from.endsWith('/') && targets.length !== 1)
+        || targets.some(dest => !safe(dest) || !dest.startsWith('skills/') || from.endsWith('/') !== dest.endsWith('/'))) {
+        fail(`Invalid mapping: ${from}`);
+      }
     }
   }
-  return { manifest, hashes, patches };
+  return { manifest, hashes: { [manifestPath]: sha(bytes) } };
 }
 
+// A locked file has the sha256 of the upstream bytes. A file that Sentinel
+// edited also has `local`, the sha256 of the edited bytes.
 async function checkedFiles(root, lock) {
   if (lock.version !== 1 || !lock.files || !Object.keys(lock.files).length) fail('Invalid import lock');
   for (const [file, entry] of Object.entries(lock.files)) {
-    if (!safe(file) || !file.startsWith('skills/') || !/^[0-9a-f]{64}$/.test(entry.sha256)) fail('Invalid locked file');
+    if (!safe(file) || !file.startsWith('skills/') || ![entry.sha256, entry.local ?? entry.sha256].every(h => /^[0-9a-f]{64}$/.test(h))) fail('Invalid locked file');
     const bytes = await read(root, file);
-    if (!bytes || sha(bytes) !== entry.sha256) fail(`Imported file changed or missing: ${file}`);
-    if (process.platform !== 'win32' && entry.executable !== undefined
+    if (!bytes || sha(bytes) !== (entry.local ?? entry.sha256)) fail(`Imported file changed or missing; run --sync to keep an edit: ${file}`);
+    if (entry.local && /^<{7} /m.test(bytes)) fail(`Merge conflict not resolved: ${file}`);
+    if (process.platform !== 'win32'
       && !!((await fs.stat(path.join(root, file))).mode & 0o111) !== entry.executable) fail(`Imported file mode changed: ${file}`);
   }
+}
+
+// Merge the upstream change from base to theirs into ours. A conflict stays in
+// the result as conflict markers.
+async function merge(ours, base, theirs) {
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'sentinel-merge-'));
+  try {
+    const files = ['local', 'base', 'upstream'].map(name => path.join(dir, name));
+    await Promise.all([ours, base, theirs].map((bytes, i) => fs.writeFile(files[i], bytes)));
+    const result = spawnSync('git', ['merge-file', '-p', '-L', 'local', '-L', 'base', '-L', 'upstream', ...files], { maxBuffer: 64 * 1024 * 1024 });
+    if (result.error || result.status === null || result.status > 127) fail(`git merge-file failed: ${result.error?.message || result.stderr}`);
+    return { bytes: result.stdout, conflict: result.status > 0 };
+  } finally { await fs.rm(dir, { recursive: true, force: true }); }
 }
 
 export async function run({ root, mode, fetchImpl = fetch }) {
@@ -82,9 +87,8 @@ export async function run({ root, mode, fetchImpl = fetch }) {
     const config = await inputs(root);
     const oldBytes = await read(root, lockPath);
     const old = oldBytes ? JSON.parse(oldBytes) : null;
-    if (old) await checkedFiles(root, old);
-    else if (mode !== 'sync') fail('Import lock missing; run --sync');
-    if (old?.inputs[enginePath] && old.inputs[enginePath] !== config.hashes[enginePath]) fail('Engine pins changed locally');
+    if (!old && mode !== 'sync') fail('Import lock missing; run --sync');
+    if (old && mode !== 'sync') await checkedFiles(root, old);
     if (mode === 'check') {
       if (JSON.stringify(old.inputs) !== JSON.stringify(config.hashes)) fail('Import inputs changed; run --sync');
       return 'Import hashes and inputs match';
@@ -104,7 +108,7 @@ export async function run({ root, mode, fetchImpl = fetch }) {
       return Buffer.concat(chunks);
     }
     const api = async suffix => JSON.parse(await download(`https://api.github.com/repos/${suffix}`));
-    const files = {}, output = new Map();
+    const files = {}, output = new Map(), conflicts = [];
     for (const source of config.manifest.sources) {
       const priorRevision = source.revision;
       if (mode === 'update') {
@@ -120,87 +124,68 @@ export async function run({ root, mode, fetchImpl = fetch }) {
         if (!entries.length) fail(`Missing upstream path: ${from}`);
         for (const entry of entries) {
           if (!safe(entry.path) || entry.type !== 'blob' || !['100644', '100755'].includes(entry.mode)) fail(`Unsupported upstream entry: ${entry.path}`);
-          let dest = from.endsWith('/') ? to + entry.path.slice(from.length) : to;
-          dest = source.rename?.[dest] || dest;
-          if (!safe(dest) || selected.has(dest) || output.has(dest)) fail(`Duplicate or unsafe destination: ${dest}`);
-          selected.set(dest, entry);
+          for (const target of [to].flat()) {
+            const dest = from.endsWith('/') ? target + entry.path.slice(from.length) : target;
+            if (!safe(dest) || selected.has(dest) || output.has(dest)) fail(`Duplicate or unsafe destination: ${dest}`);
+            selected.set(dest, entry);
+          }
         }
       }
-      for (const name of source.required) if (!selected.has(`skills/${source.id}/${name}`)) fail(`Missing required import: ${name}`);
-      const originals = new Map();
+      for (const name of source.required) if (!selected.has(`skills/${name}`)) fail(`Missing required import: ${name}`);
+      const downloads = new Map(), originals = new Map();
       for (const [dest, entry] of selected) {
         const from = entry.path;
-        const original = await download(`https://raw.githubusercontent.com/${source.repository}/${source.revision}/${from}`);
-        if (old?.sources?.[source.id] === source.revision && old.files[dest]?.path === from
-          && (old.files[dest].upstreamSha256 !== sha(original) || old.files[dest].executable !== (entry.mode === '100755'))) {
+        if (!downloads.has(from)) downloads.set(from, await download(`https://raw.githubusercontent.com/${source.repository}/${source.revision}/${from}`));
+        const original = downloads.get(from);
+        if (old?.sources[source.id] === source.revision && old.files[dest]?.path === from
+          && (old.files[dest].sha256 !== sha(original) || old.files[dest].executable !== (entry.mode === '100755'))) {
           fail(`Pinned upstream bytes differ from the lock: ${dest}`);
         }
         originals.set(dest, original);
       }
+      // Keep the old pin when no imported file changed, so unrelated upstream commits make no update.
       const previous = Object.entries(old?.files || {}).filter(([, entry]) => entry.source === source.id);
       if (mode === 'update' && previous.length === selected.size && previous.every(([dest, entry]) =>
-        originals.has(dest) && sha(originals.get(dest)) === entry.upstreamSha256
+        originals.has(dest) && sha(originals.get(dest)) === entry.sha256
         && entry.path === selected.get(dest).path && entry.executable === (selected.get(dest).mode === '100755'))) source.revision = priorRevision;
       for (const [dest, entry] of selected) {
-        const original = originals.get(dest);
-        let bytes = original;
-        if (config.patches[dest]) {
-          const patch = config.patches[dest];
-          let text = bytes.toString('utf8');
-          for (const replacement of patch.replace) {
-            const matches = [replacement.before].flat().filter(before => text.split(before).length === 2);
-            if (matches.length !== 1) fail(`Patch conflict: ${dest}`);
-            text = text.replace(matches[0], () => replacement.after);
+        const theirs = originals.get(dest), prior = old?.files[dest];
+        const ours = prior && await read(root, dest);
+        let bytes = theirs;
+        // Keep a Sentinel edit, and merge an upstream change into it.
+        if (ours && sha(ours) !== prior.sha256) {
+          if (sha(theirs) === prior.sha256) bytes = ours;
+          else {
+            const base = await download(`https://raw.githubusercontent.com/${source.repository}/${old.sources[source.id]}/${prior.path}`);
+            if (sha(base) !== prior.sha256) fail(`Pinned upstream bytes differ from the lock: ${dest}`);
+            const merged = await merge(ours, base, theirs);
+            bytes = merged.bytes;
+            if (merged.conflict) conflicts.push(dest);
           }
-          text += (patch.append || '').replaceAll('{{revision}}', source.revision);
-          bytes = Buffer.from(text);
         }
-        files[dest] = { source: source.id, path: entry.path, upstreamSha256: sha(original), sha256: sha(bytes), executable: entry.mode === '100755' };
+        files[dest] = { source: source.id, path: entry.path, sha256: sha(theirs),
+          ...(sha(bytes) !== sha(theirs) && { local: sha(bytes) }), executable: entry.mode === '100755' };
         output.set(dest, bytes);
       }
-      for (const target of Object.keys(source.patches || {})) if (!selected.has(target)) fail(`Unused patch: ${target}`);
     }
     if (mode === 'update') {
       output.set(manifestPath, json(config.manifest));
       config.hashes[manifestPath] = sha(output.get(manifestPath));
     }
-    // Engine releases travel with their matching skill VERSION, never a floating launcher.
-    const versionFile = output.get('skills/impeccable/scripts/VERSION');
-    if (versionFile) {
-      const engineBytes = await read(root, enginePath);
-      const engine = JSON.parse(engineBytes);
-      const version = versionFile.toString().trim();
-      if (!/^\d+\.\d+\.\d+$/.test(version)) fail('Invalid engine version');
-      const release = await api(`pbakaus/impeccable/releases/tags/engine-v${version}`);
-      if (release.tag_name !== `engine-v${version}` || release.draft || release.prerelease) fail('Engine release is not stable');
-      const platforms = ['darwin-arm64', 'darwin-x64', 'linux-arm64', 'linux-x64', 'win32-x64'];
-      if (JSON.stringify(Object.keys(engine.assets).sort()) !== JSON.stringify(platforms)) fail('Unexpected engine platforms');
-      for (const platform of platforms) {
-        const name = `impeccable-${platform === 'win32-x64' ? 'windows-x64.exe' : platform}`;
-        const asset = release.assets?.find(item => item.name === name);
-        const url = `https://github.com/pbakaus/impeccable/releases/download/engine-v${version}/${name}`;
-        if (!asset || asset.browser_download_url !== url || !/^sha256:[0-9a-f]{64}$/.test(asset.digest) || !Number.isSafeInteger(asset.size) || asset.size < 1) fail(`Missing verified engine asset: ${name}`);
-        engine.assets[platform] = { url, sha256: asset.digest.slice(7), bytes: asset.size };
-      }
-      engine.version = version;
-      output.set(enginePath, json(engine));
-      config.hashes[enginePath] = sha(output.get(enginePath));
-    }
     const next = { version: 1, inputs: config.hashes, sources: Object.fromEntries(config.manifest.sources.map(source => [source.id, source.revision])), files };
     output.set(lockPath, json(next));
     if (mode === 'verify') {
-      if (!oldBytes.equals(output.get(lockPath))) fail('Upstream bytes or engine pin differ from the lock');
+      if (!oldBytes.equals(output.get(lockPath))) fail('Upstream bytes differ from the lock');
       return 'Pinned upstream sources reproduce the bundle';
     }
     // Prepare everything before touching the bundle. Restore all files if any write fails.
     const originals = new Map(), modes = new Map();
     for (const file of new Set([...Object.keys(old?.files || {}), ...output.keys()])) {
       const before = await read(root, file);
-      if (before && !old?.files[file] && file.startsWith('skills/') && file !== enginePath && !before.equals(output.get(file))) fail(`Unowned destination: ${file}`);
+      if (before && !old?.files[file] && file.startsWith('skills/') && !before.equals(output.get(file))) fail(`Unowned destination: ${file}`);
       originals.set(file, before);
       if (before) modes.set(file, (await fs.stat(path.join(root, file))).mode);
     }
-    if (old) await checkedFiles(root, old);
     const changed = [...originals.keys()].filter(file => {
       const before = originals.get(file), after = output.get(file);
       return before ? !after || !before.equals(after)
@@ -222,6 +207,11 @@ export async function run({ root, mode, fetchImpl = fetch }) {
         if (before) { await fs.writeFile(path.join(root, file), before); await fs.chmod(path.join(root, file), modes.get(file)); }
         else await fs.rm(path.join(root, file), { force: true });
       }
+      throw error;
+    }
+    if (conflicts.length) {
+      const error = new Error(`Merge conflicts in ${conflicts.join(', ')}. Resolve them, then run --sync`);
+      error.conflicts = conflicts;
       throw error;
     }
     return `Imported ${Object.keys(files).length} files; ${changed.length} changed`;

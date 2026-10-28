@@ -1,26 +1,46 @@
 #!/usr/bin/env pwsh
 #Requires -Version 5.1
 <#
-Install Sentinel rules. Preserve text outside the managed block.
-Usage: tools/install.ps1 [-Target DIR | -Global] [-Hosts codex,claude,copilot,kiro]
-       [-Check | -Remove | -DryRun]
-       -Global -Legacy [-Check | -Remove] inspects or removes retired blocks.
-Rules only by default. Optional skills: node tools/skills.mjs --help.
+Install the Sentinel rules and skills for one or more coding agents.
+
+Usage:
+  tools/install.ps1 -Global -Hosts LIST [-Skills LIST] [-NoRules] [-Check | -Remove]
+  tools/install.ps1 -Project DIR -Hosts LIST [-Skills LIST] [-NoRules] [-Check | -Remove]
+
+-Hosts takes codex, claude, copilot, kiro and opencode, or "all".
+-Skills takes the profiles in skills/profiles.txt, or "none". The default is core.
+The rules go into a managed block. Text outside the block stays. A skill folder
+is replaced only when this installer or Sentinel v0.2.0 wrote it and nobody
+changed it since.
+tools/install does the same on macOS and Linux.
 #>
 [CmdletBinding()]
 param(
-  [string]$Target,
   [switch]$Global,
-  [string[]]$Hosts = @("codex,claude,copilot,kiro"),
-  [switch]$Legacy,
+  [string]$Project,
+  [string[]]$Hosts,
+  [string[]]$Skills = @('core'),
+  [switch]$NoRules,
   [switch]$Check,
   [switch]$Remove,
-  [switch]$DryRun,
   [switch]$Help
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+
+$LF = "`n"
+$BEGIN = '<!-- AGENT-RULES:BEGIN do-not-edit-inside-this-block -->'
+$END = '<!-- AGENT-RULES:END -->'
+$AllHosts = @('codex', 'claude', 'copilot', 'kiro', 'opencode')
+$Marker = '.sentinel-owned'
+$Legacy = '.sentinel-skills.json'
+$Root = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
+
+function Stop-Usage([string]$message) {
+  [Console]::Error.WriteLine("install: $message")
+  exit 2
+}
 
 if ($Help) {
   $inDoc = $false
@@ -32,53 +52,26 @@ if ($Help) {
   exit 0
 }
 
-$LF        = "`n"
-$BEGIN     = '<!-- AGENT-RULES:BEGIN do-not-edit-inside-this-block -->'
-$END       = '<!-- AGENT-RULES:END -->'
-$BEGIN_PFX = '<!-- AGENT-RULES:BEGIN'
-$END_PFX   = '<!-- AGENT-RULES:END -->'
-
-$RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
-$Manifest = Join-Path $RepoRoot 'MANIFEST.json'
-
-function Read-TextRaw([string]$path) {
-  # RAW bytes as UTF-8, NO line-ending normalization. The bash installer reads
-  # raw (cat/awk) and compares with `cmp`; normalizing here would make `-Check`
-  # accept a CRLF target that `tools/install --check` rejects -- breaking the
-  # cross-platform byte-identity guarantee. .gitattributes forces LF on the
-  # committed tree, so a normal checkout is already LF on both platforms.
-  return [System.IO.File]::ReadAllText($path, [System.Text.Encoding]::UTF8)
+# Read and write raw UTF-8 without a BOM and without line-ending changes, so the
+# result is byte-identical to tools/install.
+function Read-Text([string]$path) {
+  return (New-Object System.Text.UTF8Encoding($false)).GetString([System.IO.File]::ReadAllBytes($path))
 }
 
-function Write-TextLF([string]$path, [string]$content) {
-  $enc = New-Object System.Text.UTF8Encoding($false)  # UTF-8, no BOM
-  [System.IO.File]::WriteAllText($path, $content, $enc)
+function Write-Text([string]$path, [string]$content) {
+  [System.IO.File]::WriteAllText($path, $content, (New-Object System.Text.UTF8Encoding($false)))
 }
 
-function Write-TextLFAtomic([string]$path, [string]$content) {
+function Write-TextAtomic([string]$path, [string]$content) {
   $dir = Split-Path -Parent $path
   if (-not (Test-Path -LiteralPath $dir)) { New-Item -ItemType Directory -Path $dir -Force | Out-Null }
-  $tmp = Join-Path $dir ('.sentinel.' + [Guid]::NewGuid().ToString('N'))
-  try {
-    Write-TextLF $tmp $content
-    if (Test-Path -LiteralPath $path -PathType Leaf) {
-      [System.IO.File]::Replace($tmp, $path, [NullString]::Value, $true)
-    } elseif (Test-Path -LiteralPath $path) {
-      throw "install: target exists but is not a file: $path"
-    } else {
-      [System.IO.File]::Move($tmp, $path)
-    }
-  } catch {
-    if (Test-Path -LiteralPath $tmp) { Remove-Item -LiteralPath $tmp -Force }
-    throw
-  }
+  $next = Join-Path $dir ('.sentinel.' + [Guid]::NewGuid().ToString('N'))
+  Write-Text $next $content
+  if (Test-Path -LiteralPath $path) { [System.IO.File]::Replace($next, $path, [NullString]::Value, $true) }
+  else { [System.IO.File]::Move($next, $path) }
 }
 
-# Byte-exact "is the file already this content?", matching bash `cmp`. Compares
-# the target's RAW bytes (BOM and all) against $content encoded UTF-8 no-BOM as it
-# would be written -- a string `-eq` would silently ignore a BOM or odd bytes that
-# `tools/install --check` (cmp) treats as drift.
-function Test-FileBytesEqual([string]$path, [string]$content) {
+function Test-SameBytes([string]$path, [string]$content) {
   if (-not (Test-Path -LiteralPath $path)) { return $false }
   $a = [System.IO.File]::ReadAllBytes($path)
   $b = (New-Object System.Text.UTF8Encoding($false)).GetBytes($content)
@@ -87,258 +80,258 @@ function Test-FileBytesEqual([string]$path, [string]$content) {
   return $true
 }
 
-function Get-Sha256Hex([string]$content) {
-  $bytes = [System.Text.Encoding]::UTF8.GetBytes($content)
-  $sha = [System.Security.Cryptography.SHA256]::Create()
-  try { $hash = $sha.ComputeHash($bytes) } finally { $sha.Dispose() }
-  return (($hash | ForEach-Object { $_.ToString('x2') }) -join '')
-}
-
-# Faithful port of sentinel_render_bundle: for each required core file, demote
-# every heading one level (outside ``` fences) and concatenate, each file
-# followed by one blank line. LF throughout. Refuses to emit an empty bundle.
-function Get-RenderedBundle {
-  $manifestObj = Get-Content -Raw -LiteralPath $Manifest | ConvertFrom-Json
-  $order = @($manifestObj.required_core_read_order)
-  $out = [System.Text.StringBuilder]::new()
-  $emitted = 0
-  foreach ($rel in $order) {
-    if ([string]::IsNullOrEmpty($rel)) { continue }
-    $p = Join-Path $RepoRoot $rel
-    if (-not (Test-Path -LiteralPath $p)) { throw "sentinel: missing core file: $rel" }
-    $raw = Read-TextRaw $p
-    if ($raw.Length -eq 0) {
-      # awk emits ZERO records for an empty file -- only the separator follows.
-      [void]$out.Append($LF); $emitted = 1; continue
-    }
-    # awk record model: a trailing newline does not create an empty final record.
-    if ($raw.EndsWith($LF)) { $raw = $raw.Substring(0, $raw.Length - 1) }
-    $lines = $raw.Split([char]10)
-    $fence = $false
-    foreach ($line in $lines) {
-      if ($line -match '^```') { $fence = -not $fence }
-      if ((-not $fence) -and ($line -match '^#{1,6} ')) {
-        [void]$out.Append('#'); [void]$out.Append($line); [void]$out.Append($LF)
-      } else {
-        [void]$out.Append($line); [void]$out.Append($LF)
-      }
-    }
-    [void]$out.Append($LF)   # blank-line separator (matches printf '\n')
-    $emitted = 1
-  }
-  if ($emitted -eq 0) {
-    throw "sentinel: empty required_core_read_order (manifest unreadable or empty); refusing empty bundle"
-  }
-  return $out.ToString()
-}
-
-# Faithful port of render_block (markers + provenance header + inlined contract).
-function Get-RenderedBlock {
-  # Match bash exactly: a PRESENT VERSION yields its stripped content (even if
-  # that is empty); only a MISSING VERSION falls back to "dev". (bash:
-  # `ver=$(tr -d ' \r\n' < VERSION 2>/dev/null || echo dev)` -- the `||` fires on
-  # a missing file, not on empty content.)
-  $vfile = Join-Path $RepoRoot 'VERSION'
-  if (Test-Path -LiteralPath $vfile) {
-    $ver = (Read-TextRaw $vfile) -replace '[ \r\n]', ''
-  } else {
-    $ver = 'dev'
-  }
-  $bundle = Get-RenderedBundle
-  $sha = Get-Sha256Hex $bundle
-  # bash assigns the bundle via $(...) which strips trailing newlines, then
-  # printf '%s\n' re-adds exactly one.
-  $embedded = $bundle.TrimEnd([char]10) + $LF
-
-  $sb = [System.Text.StringBuilder]::new()
-  [void]$sb.Append($BEGIN + $LF)
-  [void]$sb.Append("<!-- version: $ver  sha256: $sha -->" + $LF)
-  [void]$sb.Append($LF + '# Operating Contract' + $LF + $LF)
-  [void]$sb.Append('Shared defaults for coding tasks. The active task and repository instructions' + $LF)
-  [void]$sb.Append('set the scope; platform and system requirements take precedence.' + $LF + $LF)
-  [void]$sb.Append($embedded)
-  [void]$sb.Append($END + $LF)
-  return $sb.ToString()
-}
-
-function Test-HasBeginMarker([string]$path) {
+function Test-HasBlock([string]$path) {
   if (-not (Test-Path -LiteralPath $path)) { return $false }
-  foreach ($line in (Read-TextRaw $path).Split([char]10)) {
-    if ($line.StartsWith($BEGIN_PFX)) { return $true }
+  foreach ($line in (Read-Text $path).Split([char]10)) {
+    if ($line.StartsWith('<!-- AGENT-RULES:BEGIN')) { return $true }
   }
   return $false
 }
 
-# Port of compose_into. Returns composed content; throws 'UNTERMINATED' on a
-# BEGIN with no matching END.
-function Get-ComposedContent([string]$target, [string]$block) {
-  if ((Test-Path -LiteralPath $target) -and (Test-HasBeginMarker $target)) {
-    $raw = Read-TextRaw $target
-    if ($raw.EndsWith($LF)) { $raw = $raw.Substring(0, $raw.Length - 1) }
-    $lines = $raw.Split([char]10)
-    $result = [System.Text.StringBuilder]::new()
-    $done = $false; $skip = $false
-    foreach ($line in $lines) {
-      if ($line.StartsWith($BEGIN_PFX)) {
-        if (-not $done) { [void]$result.Append($block); $done = $true }
-        $skip = $true; continue
-      }
-      if ($line.StartsWith($END_PFX) -and $skip) { $skip = $false; continue }
-      if ($skip) { continue }
-      [void]$result.Append($line); [void]$result.Append($LF)
-    }
-    if ($skip) { throw 'UNTERMINATED' }
-    return $result.ToString()
-  } else {
-    if (Test-Path -LiteralPath $target) { return (Read-TextRaw $target) + $LF + $block }
-    return $block
-  }
-}
-
-# Port of remove_block. Throws 'UNTERMINATED' on a BEGIN with no matching END.
-function Get-RemovedContent([string]$target) {
-  $raw = Read-TextRaw $target
+# Return the lines of the file with the managed blocks replaced by $block. An
+# empty $block removes them. Throw on BEGIN without END.
+function Get-Composed([string]$path, [string]$block) {
+  $raw = Read-Text $path
   if ($raw.EndsWith($LF)) { $raw = $raw.Substring(0, $raw.Length - 1) }
-  $lines = $raw.Split([char]10)
-  $result = [System.Text.StringBuilder]::new()
-  $skip = $false
-  foreach ($line in $lines) {
-    if ($line.StartsWith($BEGIN_PFX)) { $skip = $true; continue }
-    if ($line.StartsWith($END_PFX) -and $skip) { $skip = $false; continue }
+  $out = [System.Text.StringBuilder]::new()
+  $done = $false; $skip = $false
+  foreach ($line in $raw.Split([char]10)) {
+    if ($line.StartsWith('<!-- AGENT-RULES:BEGIN')) {
+      if (-not $done) { [void]$out.Append($block); $done = $true }
+      $skip = $true; continue
+    }
+    if ($skip -and $line.StartsWith('<!-- AGENT-RULES:END -->')) { $skip = $false; continue }
     if ($skip) { continue }
-    [void]$result.Append($line); [void]$result.Append($LF)
+    [void]$out.Append($line + $LF)
   }
   if ($skip) { throw 'UNTERMINATED' }
-  return $result.ToString()
+  return $out.ToString()
 }
 
-function Get-HomeDir {
+# Return "<sha256>  <path>" for each file in a skill folder, sorted by path.
+# EnumerateFiles returns paths that start with $dir exactly as given. Other APIs
+# can expand a Windows short name such as RUNNER~1, and then the prefix differs.
+function Get-Manifest([string]$dir) {
+  $base = $dir.TrimEnd('\', '/')
+  $files = New-Object 'System.Collections.Generic.Dictionary[string,string]' -ArgumentList ([StringComparer]::Ordinal)
+  foreach ($file in [System.IO.Directory]::EnumerateFiles($base, '*', [System.IO.SearchOption]::AllDirectories)) {
+    if ([System.IO.Path]::GetFileName($file) -ceq $Marker) { continue }
+    $files[$file.Substring($base.Length + 1).Replace('\', '/')] = $file
+  }
+  $sorted = [string[]]@($files.Keys)
+  [Array]::Sort($sorted, [StringComparer]::Ordinal)
+  # .NET hashes the bytes directly. Get-FileHash can be missing in Windows
+  # PowerShell 5.1 when PowerShell 7 started it.
+  $sha = [System.Security.Cryptography.SHA256]::Create()
+  $out = [System.Text.StringBuilder]::new()
+  try {
+    foreach ($rel in $sorted) {
+      $hash = [BitConverter]::ToString($sha.ComputeHash([System.IO.File]::ReadAllBytes($files[$rel])))
+      [void]$out.Append($hash.Replace('-', '').ToLowerInvariant() + "  $rel$LF")
+    }
+  } finally { $sha.Dispose() }
+  return $out.ToString()
+}
+
+# Sentinel v0.2.0 listed the folders that it installed in <root>/.sentinel-skills.json,
+# with the SHA-256 of each file. Return name -> hashes in the format of Get-Manifest.
+function Get-Legacy([string]$root) {
+  $result = New-Object 'System.Collections.Generic.Dictionary[string,string]' -ArgumentList ([StringComparer]::Ordinal)
+  $path = Join-Path $root $Legacy
+  if (Test-Path -LiteralPath $path -PathType Leaf) {
+    foreach ($skill in (Read-Text $path | ConvertFrom-Json).skills.PSObject.Properties) {
+      $files = @($skill.Value.PSObject.Properties)
+      $names = [string[]]@($files | ForEach-Object { $_.Name })
+      [Array]::Sort($names, [StringComparer]::Ordinal)
+      $out = [System.Text.StringBuilder]::new()
+      foreach ($name in $names) { [void]$out.Append(($files | Where-Object { $_.Name -ceq $name }).Value + "  $name$LF") }
+      $result[$skill.Name] = $out.ToString()
+    }
+  }
+  return , $result
+}
+
+# Return the state of an installed skill folder: missing, unowned, changed, owned,
+# or legacy (installed by Sentinel v0.2.0 and not changed since).
+function Get-SkillState([string]$dest, $oldHashes) {
+  if (-not (Test-Path -LiteralPath $dest)) { return 'missing' }
+  $markerPath = Join-Path $dest $Marker
+  if (Test-Path -LiteralPath $markerPath -PathType Leaf) {
+    if ((Get-Manifest $dest) -cne (Read-Text $markerPath)) { return 'changed' }
+    return 'owned'
+  }
+  $name = Split-Path -Leaf $dest
+  if (-not $oldHashes.ContainsKey($name)) { return 'unowned' }
+  if ((Get-Manifest $dest) -cne $oldHashes[$name]) { return 'changed' }
+  return 'legacy'
+}
+
+function Copy-Skill([string]$src, [string]$dest) {
+  $next = Join-Path (Split-Path -Parent $dest) ('.sentinel.' + [Guid]::NewGuid().ToString('N'))
+  Copy-Item -LiteralPath $src -Destination $next -Recurse -Force
+  Write-Text (Join-Path $next $Marker) (Get-Manifest $next)
+  if (Test-Path -LiteralPath $dest) { Remove-Item -LiteralPath $dest -Recurse -Force }
+  Move-Item -LiteralPath $next -Destination $dest
+}
+
+function Get-Home {
   if ($env:HOME) { return $env:HOME }
   if ($env:USERPROFILE) { return $env:USERPROFILE }
   return [Environment]::GetFolderPath('UserProfile')
 }
 
-function Get-Targets([string]$scope, [string]$targetDir) {
-  $profileDir = Get-HomeDir
-  if ($Legacy) {
-    $xdg = if ($env:XDG_CONFIG_HOME) { $env:XDG_CONFIG_HOME } else { Join-Path $profileDir '.config' }
-    $piDir = if ($env:PI_CODING_AGENT_DIR) { $env:PI_CODING_AGENT_DIR } else { Join-Path $profileDir '.pi/agent' }
-    return @((Join-Path $xdg 'opencode/AGENTS.md'), (Join-Path $piDir 'AGENTS.md'))
-  }
-  $selected = $hostList.Split(',')
-  $paths = @()
-  if ($scope -eq 'repo') {
-    if ('codex' -in $selected -or 'kiro' -in $selected) { $paths += Join-Path $targetDir 'AGENTS.md' }
-    if ('claude' -in $selected) { $paths += Join-Path $targetDir 'CLAUDE.md' }
-    if ('copilot' -in $selected) { $paths += Join-Path $targetDir '.github/copilot-instructions.md' }
-  } else {
-    $codexDir = if ($env:CODEX_HOME) { $env:CODEX_HOME } else { Join-Path $profileDir '.codex' }
-    $claudeDir = if ($env:CLAUDE_CONFIG_DIR) { $env:CLAUDE_CONFIG_DIR } else { Join-Path $profileDir '.claude' }
-    if ('codex' -in $selected) { $paths += Join-Path $codexDir 'AGENTS.md' }
-    if ('claude' -in $selected) { $paths += Join-Path $claudeDir 'CLAUDE.md' }
-    if ('copilot' -in $selected) { $paths += Join-Path $profileDir '.copilot/copilot-instructions.md' }
-    if ('kiro' -in $selected) { $paths += Join-Path $profileDir '.kiro/steering/AGENTS.md' }
-  }
-  return $paths
+function Get-EnvOr([string]$name, [string]$fallback) {
+  $value = [Environment]::GetEnvironmentVariable($name)
+  if ($value) { return $value }
+  return $fallback
 }
 
-# --- resolve scope/action/target ---
-if ($Global -and $Target) { throw 'install: -Global and -Target are mutually exclusive' }
-$hostList = $Hosts -join ','
-if ($hostList -notmatch '^(codex|claude|copilot|kiro)(,(codex|claude|copilot|kiro))*$') {
-  throw 'install: hosts must be codex,claude,copilot or kiro'
+if ($Global -and $Project) { Stop-Usage 'choose one of -Global or -Project' }
+if (-not $Global -and -not $Project) { Stop-Usage 'choose -Global or -Project DIR' }
+if ($Check -and $Remove) { Stop-Usage 'choose one of -Check or -Remove' }
+$hostList = @(($Hosts -join ',').Split(',') | Where-Object { $_ })
+if ($hostList -contains 'all') { $hostList = $AllHosts }
+if ($hostList.Count -eq 0) { Stop-Usage '-Hosts needs a list, for example -Hosts codex,claude' }
+foreach ($h in $hostList) {
+  if ($AllHosts -notcontains $h) { Stop-Usage "unknown host: $h (use $($AllHosts -join ',') or all)" }
 }
-if ($Legacy -and (-not $Global -or $PSBoundParameters.ContainsKey('Hosts') -or (-not $Check -and -not $Remove))) {
-  throw 'install: -Legacy requires -Global and -Check or -Remove, without -Hosts'
-}
-$scope = if ($Global) { 'global' } else { 'repo' }
-# Named switches lose command-line order, so a conflict cannot resolve to bash's
-# "last flag wins". Refuse rather than silently pick one -- especially since one
-# of them (-Remove) is destructive.
-$actionSwitches = @($Check, $Remove, $DryRun | Where-Object { $_ }).Count
-if ($actionSwitches -gt 1) {
-  [Console]::Error.WriteLine('install: choose at most one of -Check, -Remove, -DryRun.'); exit 2
-}
-$action = 'write'
-if ($Check)  { $action = 'check' }
-if ($DryRun) { $action = 'dry' }
-if ($Remove) { $action = 'remove' }
-
-$targetDir = $RepoRoot
-if ($Target) {
-  if (-not (Test-Path -LiteralPath $Target -PathType Container)) {
-    [Console]::Error.WriteLine("install: -Target directory not found: $Target"); exit 2
-  }
-  $targetDir = (Resolve-Path -LiteralPath $Target).Path
+if ($Project) {
+  if (-not (Test-Path -LiteralPath $Project -PathType Container)) { Stop-Usage '-Project needs an existing directory' }
+  $Project = (Resolve-Path -LiteralPath $Project).Path
 }
 
-$block = Get-RenderedBlock
+$profileLines = @(Get-Content -LiteralPath (Join-Path $Root 'skills/profiles.txt') |
+  Where-Object { $_ -notmatch '^#' } |
+  ForEach-Object { , @($_.Trim() -split '\s+') } |
+  Where-Object { $_.Count -eq 2 })
+$profileList = @(($Skills -join ',').Split(',') | Where-Object { $_ })
+if ($profileList.Count -eq 0) { Stop-Usage '-Skills needs a list of profiles, or none' }
+if ($profileList -contains 'none') { $profileList = @() }
+foreach ($p in $profileList) {
+  if (-not ($profileLines | Where-Object { $_[0] -ceq $p })) { Stop-Usage "unknown skill profile: $p" }
+}
+$allSkills = @($profileLines | ForEach-Object { $_[1] } | Sort-Object -Unique)
+$skillList = @($profileLines | Where-Object { $profileList -ccontains $_[0] } | ForEach-Object { $_[1] } | Sort-Object -Unique)
+
+$homeDir = Get-Home
+$targets = @()
+if ($Global) {
+  if ($hostList -contains 'codex') { $targets += , @((Join-Path (Get-EnvOr 'CODEX_HOME' (Join-Path $homeDir '.codex')) 'AGENTS.md'), 'rules') }
+  if ($hostList -contains 'claude') { $targets += , @((Join-Path (Get-EnvOr 'CLAUDE_CONFIG_DIR' (Join-Path $homeDir '.claude')) 'CLAUDE.md'), 'rules') }
+  if ($hostList -contains 'copilot') { $targets += , @((Join-Path (Get-EnvOr 'COPILOT_HOME' (Join-Path $homeDir '.copilot')) 'copilot-instructions.md'), 'rules') }
+  if ($hostList -contains 'kiro') { $targets += , @((Join-Path $homeDir '.kiro/steering/AGENTS.md'), 'rules') }
+  if ($hostList -contains 'opencode') { $targets += , @((Join-Path (Get-EnvOr 'XDG_CONFIG_HOME' (Join-Path $homeDir '.config')) 'opencode/AGENTS.md'), 'rules') }
+} else {
+  $targets += , @((Join-Path $Project 'AGENTS.md'), 'rules')
+  if ($hostList -contains 'claude') { $targets += , @((Join-Path $Project 'CLAUDE.md'), 'import') }
+}
+
+# Codex, Copilot CLI and OpenCode read .agents/skills. Claude Code and Kiro
+# each read their own folder.
+$base = if ($Global) { $homeDir } else { $Project }
+$claudeDir = if ($Global) { Get-EnvOr 'CLAUDE_CONFIG_DIR' (Join-Path $homeDir '.claude') } else { Join-Path $Project '.claude' }
+$skillRoots = @()
+if ($skillList.Count -gt 0) {
+  if ($hostList -contains 'codex' -or $hostList -contains 'copilot' -or $hostList -contains 'opencode') { $skillRoots += Join-Path $base '.agents/skills' }
+  if ($hostList -contains 'claude') { $skillRoots += Join-Path $claudeDir 'skills' }
+  if ($hostList -contains 'kiro') { $skillRoots += Join-Path $base '.kiro/skills' }
+}
+
+$blocks = @{
+  rules = $BEGIN + $LF + (Read-Text (Join-Path $Root 'rules/AGENTS.md')) + $END + $LF
+  import = $BEGIN + $LF + '@AGENTS.md' + $LF + $END + $LF
+}
+
 $status = 0
-$changed = 0
-
-foreach ($t in (Get-Targets $scope $targetDir)) {
-  switch ($action) {
-    'check' {
-      if (Test-HasBeginMarker $t) {
-        try {
-          $composed = Get-ComposedContent $t $block
-          if (Test-FileBytesEqual $t $composed) { Write-Output "ok:      $t" }
-          else { Write-Output "DRIFT:   $t"; $status = 1 }
-        } catch {
-          Write-Output "MALFORMED: $t (AGENT-RULES:BEGIN without AGENT-RULES:END)"; $status = 1
+if (-not $NoRules) {
+  foreach ($entry in $targets) {
+    $target = $entry[0]; $block = $blocks[$entry[1]]
+    if ($Check) {
+      if (-not (Test-HasBlock $target)) { Write-Output "MISSING:   $target"; $status = 1; continue }
+      try { $composed = Get-Composed $target $block } catch { Write-Output "MALFORMED: $target"; $status = 1; continue }
+      if (Test-SameBytes $target $composed) { Write-Output "ok:        $target" }
+      else { Write-Output "DRIFT:     $target"; $status = 1 }
+    } elseif ($Remove) {
+      if (-not (Test-HasBlock $target)) { Write-Output "absent:    $target"; continue }
+      try { $rest = Get-Composed $target '' } catch {
+        [Console]::Error.WriteLine("refused:   $target (AGENT-RULES:BEGIN without AGENT-RULES:END)"); $status = 1; continue
+      }
+      if ($rest -match '\S') { Write-TextAtomic $target $rest; Write-Output "removed:   block in $target" }
+      else { Remove-Item -LiteralPath $target; Write-Output "removed:   $target" }
+    } else {
+      if (Test-HasBlock $target) {
+        try { $composed = Get-Composed $target $block } catch {
+          [Console]::Error.WriteLine("refused:   $target (AGENT-RULES:BEGIN without AGENT-RULES:END)"); $status = 1; continue
         }
-      } else {
-        if (-not $Legacy) { Write-Output "MISSING: $t (no managed block; run tools/install.ps1)"; $status = 1 }
-        else { Write-Output "absent:  $t (advisory; run tools/install.ps1 -Global)" }
-      }
-    }
-    'remove' {
-      if (Test-HasBeginMarker $t) {
-        try {
-          $out = Get-RemovedContent $t
-          if ($out -match '[^\s]') { Write-TextLFAtomic $t $out; Write-Output "removed block: $t (kept surrounding content)"; $changed = 1 }
-          else { Remove-Item -LiteralPath $t; Write-Output "removed file:  $t (was Sentinel-only)"; $changed = 1 }
-        } catch {
-          [Console]::Error.WriteLine("install: $t has AGENT-RULES:BEGIN without AGENT-RULES:END; refusing to edit."); $status = 1
-        }
-      } else { Write-Output "absent:  $t (no managed block to remove)" }
-    }
-    'dry' {
-      try {
-        $composed = Get-ComposedContent $t $block
-        if (-not (Test-FileBytesEqual $t $composed)) { Write-Output "would write: $t" }
-        else { Write-Output "unchanged:   $t" }
-      } catch {
-        Write-Output "would REFUSE: $t (AGENT-RULES:BEGIN without AGENT-RULES:END -- fix markers)"; $status = 1
-      }
-    }
-    'write' {
-      $dir = Split-Path -Parent $t
-      if (-not (Test-Path -LiteralPath $dir)) { New-Item -ItemType Directory -Path $dir -Force | Out-Null }
-      try {
-        $composed = Get-ComposedContent $t $block
-        if (Test-FileBytesEqual $t $composed) { Write-Output "unchanged: $t" }
-        else { Write-TextLFAtomic $t $composed; Write-Output "wrote:     $t"; $changed = 1 }
-      } catch {
-        [Console]::Error.WriteLine("install: $t has AGENT-RULES:BEGIN without AGENT-RULES:END; refusing to write (would drop your trailing content). Fix the markers.")
-        $status = 1
-      }
+      } elseif (Test-Path -LiteralPath $target) { $composed = (Read-Text $target) + $LF + $block }
+      else { $composed = $block }
+      if (Test-SameBytes $target $composed) { Write-Output "unchanged: $target"; continue }
+      Write-TextAtomic $target $composed
+      Write-Output "wrote:     $target"
     }
   }
 }
 
-if ($scope -eq 'global') {
-  $profileDir = Get-HomeDir
-  $codexDir = if ($env:CODEX_HOME) { $env:CODEX_HOME } else { Join-Path $profileDir '.codex' }
-  if (Test-Path -LiteralPath (Join-Path $codexDir 'AGENTS.override.md')) {
-    Write-Output 'warning: Codex AGENTS.override.md may shadow the installed AGENTS.md.'
+$action = if ($Check) { 'check' } elseif ($Remove) { 'remove' } else { 'write' }
+foreach ($skillRoot in $skillRoots) {
+  $oldHashes = Get-Legacy $skillRoot
+  foreach ($name in $skillList) {
+    $dest = Join-Path $skillRoot $name
+    $src = Join-Path $Root "skills/$name"
+    $state = Get-SkillState $dest $oldHashes
+    switch ("${action}:$state") {
+      { $_ -like '*:unowned' } {
+        if ($action -eq 'remove') { Write-Output "skipped:   $dest (not installed by Sentinel)" }
+        else { [Console]::Error.WriteLine("refused:   $dest (not installed by Sentinel; move it away first)"); $status = 1 }
+      }
+      { $_ -like '*:changed' } { [Console]::Error.WriteLine("refused:   $dest (changed after install)"); $status = 1 }
+      'write:missing' {
+        New-Item -ItemType Directory -Path $skillRoot -Force | Out-Null
+        Copy-Skill $src $dest; Write-Output "installed: $dest"
+      }
+      { $_ -in 'write:owned', 'write:legacy' } {
+        if ($state -eq 'owned' -and (Get-Manifest $dest) -ceq (Get-Manifest $src)) { Write-Output "unchanged: $dest" }
+        else { Copy-Skill $src $dest; Write-Output "updated:   $dest" }
+      }
+      'check:missing' { Write-Output "MISSING:   $dest"; $status = 1 }
+      'check:legacy' { Write-Output "LEGACY:    $dest (from Sentinel v0.2.0)"; $status = 1 }
+      'check:owned' {
+        if ((Get-Manifest $dest) -ceq (Get-Manifest $src)) { Write-Output "ok:        $dest" }
+        else { Write-Output "DRIFT:     $dest"; $status = 1 }
+      }
+      'remove:missing' { Write-Output "absent:    $dest" }
+      { $_ -in 'remove:owned', 'remove:legacy' } { Remove-Item -LiteralPath $dest -Recurse -Force; Write-Output "removed:   $dest" }
+    }
+  }
+  # A skill that Sentinel no longer ships leaves the machine with the next run.
+  if (-not (Test-Path -LiteralPath $skillRoot)) { continue }
+  $names = New-Object 'System.Collections.Generic.SortedSet[string]' -ArgumentList ([StringComparer]::Ordinal)
+  foreach ($folder in @(Get-ChildItem -LiteralPath $skillRoot -Directory -Force | Where-Object { -not $_.Name.StartsWith('.') })) {
+    if (Test-Path -LiteralPath (Join-Path $folder.FullName $Marker) -PathType Leaf) { [void]$names.Add($folder.Name) }
+  }
+  foreach ($name in $oldHashes.Keys) { [void]$names.Add($name) }
+  foreach ($name in $names) {
+    if ($allSkills -ccontains $name) { continue }
+    $dest = Join-Path $skillRoot $name
+    $state = Get-SkillState $dest $oldHashes
+    if ($state -eq 'missing') { continue }
+    if ($action -eq 'check') { Write-Output "RETIRED:   $dest"; $status = 1 }
+    elseif ($state -in 'owned', 'legacy') { Remove-Item -LiteralPath $dest -Recurse -Force; Write-Output "removed:   $dest (retired)" }
+    else { [Console]::Error.WriteLine("refused:   $dest (retired, but changed after install)"); $status = 1 }
+  }
+  # Remove the v0.2.0 list when each folder in it has a marker or is gone.
+  $legacyPath = Join-Path $skillRoot $Legacy
+  if ($action -ne 'check' -and (Test-Path -LiteralPath $legacyPath -PathType Leaf)) {
+    $left = @($oldHashes.Keys | Where-Object {
+      (Test-Path -LiteralPath (Join-Path $skillRoot $_) -PathType Container) -and
+      -not (Test-Path -LiteralPath (Join-Path (Join-Path $skillRoot $_) $Marker) -PathType Leaf)
+    })
+    if ($left.Count -eq 0) { Remove-Item -LiteralPath $legacyPath -Force; Write-Output "removed:   $legacyPath" }
   }
 }
 
-switch ($action) {
-  'check'  { if ($status -eq 0) { Write-Output 'sentinel install: blocks up to date.' } else { Write-Output 'sentinel install: out of date (drift or missing); run tools/install.ps1.' } }
-  'write'  { if ($changed -eq 1) { Write-Output "sentinel install: done ($scope)." } else { Write-Output "sentinel install: already up to date ($scope)." } }
-  'remove' { if ($changed -eq 1) { Write-Output "sentinel install: removed ($scope)." } else { Write-Output "sentinel install: nothing to remove ($scope)." } }
+$codexOverride = Join-Path (Get-EnvOr 'CODEX_HOME' (Join-Path $homeDir '.codex')) 'AGENTS.override.md'
+if (-not $NoRules -and $Global -and ($hostList -contains 'codex') -and (Test-Path -LiteralPath $codexOverride)) {
+  Write-Output "warning: Codex reads $codexOverride instead of AGENTS.md in that directory."
 }
-
 exit $status

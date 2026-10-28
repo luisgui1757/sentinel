@@ -1,10 +1,4 @@
-# Sentinel secret-shape scan config. Extends gitleaks' default ruleset to catch
-# the SHAPES of secrets (tokens, keys), complementing the literal private denylist
-# in tools/forbidden-terms.local (which catches known private STRINGS). See
-# docs/THREAT_MODEL.md.
-#
-# No path allowlist: a real secret committed anywhere -- including under tests/ --
-# must still be caught. If a specific fixture value ever trips a rule, allowlist
-# that exact regex or stopword, never a whole path.
+# Use the default gitleaks rules. Do not allowlist a whole path. If a fixture
+# trips a rule, allowlist that exact value.
 [extend]
 useDefault = true

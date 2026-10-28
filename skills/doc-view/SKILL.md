@@ -31,8 +31,8 @@ creating HTML. Do not silently select a theme.
 
 ## Use the required skills
 
-Load and apply [Impeccable](../impeccable/SKILL.md), [Unslop](../unslop/SKILL.md),
-[TLDR](../tldr/SKILL.md), and Anthropic's [Frontend-design](../frontend-design/SKILL.md)
+Load and apply [Impeccable](../impeccable/SKILL.md) and Anthropic's
+[Frontend-design](../frontend-design/SKILL.md)
 through the host's actual skill mechanism. Inspect the installed catalog and
 read the complete instructions when the host loads skills by file.
 A command name in a prompt is not proof that its instructions loaded.
@@ -43,8 +43,8 @@ install a dependency or substitute another skill without authorization.
 
 Use Frontend-design and Impeccable's Read mode for hierarchy, layout,
 accessibility and responsive behavior. The chosen project style and the user's
-brief govern their visual choices. Use TLDR for the short summary, then Unslop
-for authored prose. Do not rewrite protected quotations or technical literals.
+brief govern their visual choices. Write the short summary and other authored
+prose under the writing rules. Do not rewrite protected quotations or technical literals.
 Keep dependency setup and verification within the task's authorized scope;
 check helper side effects before running them. Optional context repair, global
 cache updates and maintenance do not become authorized by loading a skill.
@@ -111,7 +111,7 @@ Fix defects, reload and inspect again. A DOM assertion or screenshot saved witho
 inspection is not visual proof. If a browser check cannot run, report the view as
 generated but not visually verified; do not call it ready.
 
-Apply TLDR again to the final handoff: the HTML link and any blocker, normally
+Keep the final handoff short: the HTML link and any blocker, normally
 under 80 words. Keep the check-by-check inventory in evidence, not the reply.
 The source and generated view should be easy to find. Creating a local view
 does not publish it.

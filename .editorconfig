@@ -8,40 +8,13 @@ trim_trailing_whitespace = true
 indent_style = space
 indent_size = 2
 
-[*.{py,c,cpp,cc,h,hpp,rs,go}]
-indent_size = 4
-
-[*.{md,markdown}]
+[*.md]
 trim_trailing_whitespace = false
 
 [Makefile]
 indent_style = tab
 
-[*.{toml,yml,yaml,json,jsonc,sh,zsh,bash}]
-indent_size = 2
-
-# Preserve imported files byte-for-byte. See THIRD_PARTY.md and upstream/lock.json.
-
-[skills/impeccable/SCREENSHOT-LICENSE]
-insert_final_newline = false
-
-[skills/impeccable/UPSTREAM.md]
-insert_final_newline = false
-
-[skills/impeccable/agents/openai.yaml]
-insert_final_newline = false
-
-[skills/impeccable/reference/degraded/asset-producer.md]
-insert_final_newline = false
-
-[skills/impeccable/reference/degraded/documenter.md]
-insert_final_newline = false
-
-[skills/impeccable/reference/degraded/finish-reviewer.md]
-insert_final_newline = false
-
-[skills/impeccable/reference/degraded/manual-edit-applier.md]
-insert_final_newline = false
-
-[skills/impeccable/scripts/data/font-index-failures.json]
-insert_final_newline = false
+# Keep the bytes of imported files. See upstream/lock.json.
+[skills/**]
+insert_final_newline = unset
+trim_trailing_whitespace = unset

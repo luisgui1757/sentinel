@@ -1,6 +1,0 @@
-# slug	display_name	binary	repo_entrypoint	global_entrypoint	imports	install_scope	evidence_status	evidence_date	evidence_source
-codex	Codex	codex	AGENTS.md	${CODEX_HOME:-~/.codex}/AGENTS.md	no	repo+global	docs-confirmed	2026-10-18	Official Codex instructions and skills docs; runtime loading is a separate check.
-claude	Claude Code	claude	CLAUDE.md	${CLAUDE_CONFIG_DIR:-~/.claude}/CLAUDE.md	yes	repo+global	docs-confirmed	2026-10-18	Official Claude memory and skill docs; custom roles need explicit review of inherited settings.
-copilot	GitHub Copilot CLI	copilot	.github/copilot-instructions.md	~/.copilot/copilot-instructions.md	no	repo+global	docs-confirmed	2026-10-18	Official Copilot CLI custom instructions and skills docs; custom subagent inheritance differs.
-kiro	Kiro	kiro-cli	AGENTS.md	~/.kiro/steering/AGENTS.md	no	repo+global	docs-confirmed	2026-10-18	Official Kiro steering and skills docs; custom agents require explicit resources.
-t3	T3 Code	-	AGENTS.md	provider-managed	no	repo-only	docs-confirmed	2026-10-18	Provider files and advertised native orchestration; no separate global adapter.

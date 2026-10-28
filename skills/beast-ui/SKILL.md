@@ -14,7 +14,7 @@ and intended behavior. Resolve the installed [Impeccable](../impeccable/SKILL.md
 skill and its base directory, then load the relevant playbook from its
 `reference/` folder for each stage. Use the host's actual skill mechanism or
 read the files directly; do not invent a `Skill` tool or plugin command. Run every
-engine command in these playbooks through Impeccable's pinned helper.
+engine command in these playbooks through Impeccable's bundled launcher.
 
 1. **Audit.** Find accessibility, responsive layout and rendering defects.
 2. **Layout.** Fix structure, spacing, hierarchy and any blocking layout defects.

@@ -1,13 +1,8 @@
-# Private, machine-local denylist of project-specific / domain / stack terms.
-# Keeps the PUBLIC repo from ever enumerating the owner's other projects.
-# Seeded content lives only on the owner's machine; this file is never committed.
-tools/forbidden-terms.local
-
-# Any local-only override or scratch file.
+# Local files, such as the lock of tools/upstream.mjs.
 *.local
 
-# OS / editor cruft.
+# OS cruft.
 .DS_Store
 
-# Per-machine AI-CLI local state (sessions, local settings) -- never shared.
+# Local agent state.
 .claude/
