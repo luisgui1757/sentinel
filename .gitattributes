@@ -1,38 +1,18 @@
-# Auto detect text files and perform LF normalization
 * text=auto
 
-# Force LF on every shell/text file regardless of platform / core.autocrlf, so a
-# Windows checkout never CRLF-corrupts shell scripts (which would break WSL /
-# Git-Bash with `bad interpreter: /usr/bin/env bash^M`). Matches .editorconfig
-# (end_of_line = lf).
-*.sh    text eol=lf
-*.bash  text eol=lf
-*.zsh   text eol=lf
-*.toml  text eol=lf
-*.conf  text eol=lf
+# Keep LF on each platform, so a Windows checkout gives the same bytes and the
+# installers write the same files.
+*.md      text eol=lf
+*.json    text eol=lf
+*.mjs     text eol=lf
+*.toml    text eol=lf
+*.yml     text eol=lf
+tools/*   text eol=lf
+LICENSE   text eol=lf
+Makefile  text eol=lf
 
-# Force LF on every file the installer reads or renders, so a Windows checkout
-# stays byte-for-byte identical to a POSIX one and tools/install.ps1 --check
-# never sees CRLF "drift". The rendered bundle is hashed: a stray CRLF would
-# change the sha256 and split Windows from POSIX.
-*.md       text eol=lf
-*.json     text eol=lf
-*.ps1      text eol=lf
-VERSION    text eol=lf
-LICENSE    text eol=lf
-.gitignore text eol=lf
-Makefile   text eol=lf
-
-# The shell tooling is extensionless (tools/install, tools/check, ...), so the
-# *.sh rule above misses it. Force LF on the whole tools/ and scripts/ trees so a
-# Windows checkout never CRLF-corrupts an interpreter line or the rendered output.
-tools/*    text eol=lf
-scripts/*  text eol=lf
-
-# Skills are copied byte-for-byte on every platform, including vendored assets.
-*.mjs text eol=lf
+# Imported skills keep the upstream bytes. upstream/lock.json pins them.
 skills/** -text
-# Upstream whitespace is preserved and covered by upstream/lock.json.
 skills/impeccable/reference/extract.md whitespace=-blank-at-eof
 skills/impeccable/reference/harden.md whitespace=-blank-at-eof,-blank-at-eol
 skills/impeccable/reference/optimize.md whitespace=-blank-at-eof,-blank-at-eol

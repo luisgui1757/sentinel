@@ -12,19 +12,22 @@ export async function propose({ command, update }) {
   if (command('git', ['ls-remote', '--heads', 'origin', `refs/heads/${branch}`]).trim()) {
     throw new Error('Update branch already exists without an open PR; inspect it before retrying');
   }
-  await update();
+  // A merge conflict still gets a draft PR, so that a person resolves it there.
+  let conflicts = [];
+  try { await update(); } catch (error) { if (!error.conflicts) throw error; conflicts = error.conflicts; }
   const paths = command('git', ['status', '--porcelain', '--untracked-files=all']).trim();
   if (!paths) return 'Upstream pins are current';
   command('git', ['switch', '-c', branch]);
   command('git', ['add', '--', 'upstream/imports.json', 'upstream/lock.json', 'skills']);
   command('git', ['-c', 'user.name=github-actions[bot]', '-c', 'user.email=41898282+github-actions[bot]@users.noreply.github.com',
     'commit', '-m', 'chore(deps): update pinned upstream skills', '-m',
-    'Import the selected upstream files and matching engine pins. Preserve local adaptations. Require review and all checks before merging.']);
+    'Import the selected upstream files at their new revisions. Require review and all checks before merging.']);
   command('gh', ['auth', 'setup-git']);
   command('git', ['push', '--set-upstream', 'origin', `HEAD:refs/heads/${branch}`]);
   const url = command('gh', ['pr', 'create', '--base', 'main', '--head', branch, '--draft',
     '--title', 'chore(deps): update pinned upstream skills', '--body',
-    'Update the pinned sources, imported files and any matching engine assets. Local adaptations are preserved.\n\nReview the full diff, especially licenses, Unslop adaptations and engine pins. Approve workflow runs on this PR if GitHub requests it, resolve findings, and require all checks before marking it ready. No automatic merge or installation.']);
+    'Update the pinned sources and the files that Sentinel imports from them.\n\nReview the full diff, especially licenses, scripts and new skills. Approve workflow runs on this PR if GitHub requests it, resolve findings, and require all checks before marking it ready. No automatic merge or installation.'
+    + (conflicts.length ? `\n\nThe upstream changes conflict with Sentinel edits in ${conflicts.map(file => `\`${file}\``).join(', ')}. Resolve the conflict markers, then run \`node tools/upstream.mjs --sync\`.` : '')]);
   return `Created draft update: ${url.trim()}`;
 }
 

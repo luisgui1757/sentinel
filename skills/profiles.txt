@@ -1,0 +1,15 @@
+# Skill profiles. Each line is: <profile> <skill>.
+# tools/install --skills core,ui installs the skills of both profiles.
+core babysit-pr
+core council
+core file-pr
+core full-stop
+core leaving-pr-comments
+core modernize
+core sol-loop
+core takeover
+core untangle
+ui beast-ui
+ui doc-view
+ui frontend-design
+ui impeccable

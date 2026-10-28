@@ -1,35 +1,14 @@
-# Security Policy
+# Security
 
-Sentinel is a rules repository; its security surface is **privacy**. See
-[`docs/THREAT_MODEL.md`](docs/THREAT_MODEL.md) for the precise guarantee and its
-documented limits.
+Report a security problem in private. On GitHub, open **Security**, then
+**Advisories**, then **Report a vulnerability**. Do not open a public issue that
+shows a secret or a private path.
 
-## Reporting
+CI scans the full history for secrets with gitleaks. It also checks the tree
+for paths in a user home folder. The installers copy files and run no code from
+the imported skills.
 
-Report a suspected leak, or a flaw in the leak scanner, **privately** to the
-maintainer — open a private GitHub security advisory, or contact the owner
-directly. Do NOT open a public issue that itself contains the leaked private
-term. Private vulnerability reporting is enabled on GitHub so the repository's
-**Security and quality → Advisories → Report a vulnerability** flow is the
-preferred channel.
+`upstream/lock.json` records the SHA-256 of each imported file. CI compares the
+files with the lock and with the pinned upstream revisions.
 
-GitHub also runs secret scanning with push protection, CodeQL analysis of the
-Actions workflow, Dependabot vulnerability alerts and security updates, and
-dependency review. Renovate owns routine version updates without automerge so
-the two bots do not duplicate responsibility. These hosted controls complement
-the repository's full-history Gitleaks scan and strict cross-platform `ci` gate;
-they do not replace either one. Actions are limited to selected GitHub-owned
-workflows pinned to commit SHAs, and published releases are immutable.
-
-## Scope
-
-- **In scope:** a path by which a private term or a machine-local path can reach
-  the published tree undetected, or by which the scanner echoes a private term
-  to a terminal or CI log.
-- **Out of scope:** the residual risks documented in the threat model (unknown
-  secrets, encoded content, git history, symlink targets).
-
-## Supported versions
-
-The latest tagged release is supported. Consumers pin a commit/tag and a
-`bundle-sha256`; verify with `tools/verify-vendor <dir> <bundle-sha256>`.
+Fixes go to `main` and to the next release.

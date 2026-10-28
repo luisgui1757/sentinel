@@ -12,17 +12,14 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-defaults:
-  run:
-    shell: bash
-
 jobs:
+  # Each runner has pwsh. Linux and macOS also test the bash installer.
   test:
     name: test
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 15
     steps:
@@ -30,99 +27,32 @@ jobs:
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38  # v6
         with:
           node-version: "22.19.0"
-      - name: Install tools (Linux)
-        if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install -y jq shellcheck bats
-      - name: Install tools (macOS)
-        if: runner.os == 'macOS'
-        run: brew install jq bats-core shellcheck
-      # The 4 lint validators live in the `lint` job (where they run STRICT); this
-      # job carries jq/shellcheck/bats, so `make ci`'s lint step skips the absent
-      # validators loudly (non-strict) while ShellCheck (present) stays blocking.
-      - name: Preflight (leak scan + render smoke + adapter drift + rulesets + shellcheck)
-        run: make ci
-      - name: Pinned Impeccable engine
-        run: node tests/engine-smoke.mjs
-      - name: Tooling tests (bats)
-        run: make test
-        env:
-          SENTINEL_STRICT: "1"   # the suite MUST run here; a missing bats fails, never skips
+      - name: Installer and import tests
+        run: node --test "tests/*.test.mjs"
 
   lint:
     name: lint
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    env:
-      SENTINEL_STRICT: "1"   # every linter must run; a missing one fails the gate
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
-          fetch-depth: 0   # gitleaks scans full history
-      - name: Install linters
-        run: |
-          set -euxo pipefail
-          # The generated lock pins the complete transitive graph and every
-          # accepted artifact digest. Renovate regenerates it from the two
-          # direct pins in ci-requirements.in.
-          python3 -m pip install --user --require-hashes \
-            -r .github/ci-requirements.txt
-          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
-          # Each pinned version travels with its asset sha256: download, verify,
-          # then extract. A yanked/retagged/tampered upstream asset fails loudly
-          # instead of silently executing in CI.
-          ec_ver=4.0.2
-          ec_sha=44efaef3ed14c6ab52eb87481d78e5e5c204796dccf26e2f4598a61ba17f8003
-          ec_url="https://github.com/editorconfig-checker/editorconfig-checker"
-          curl -fsSL -o ec.tar.gz \
-            "${ec_url}/releases/download/v${ec_ver}/editorconfig-checker-linux-amd64.tar.gz"
-          echo "${ec_sha}  ec.tar.gz" | sha256sum -c -
-          tar -xzf ec.tar.gz
-          sudo install -m 0755 editorconfig-checker /usr/local/bin/editorconfig-checker
-          gl_ver=8.30.1
-          gl_sha=551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
-          gl_url="https://github.com/gitleaks/gitleaks"
-          curl -fsSL -o gitleaks.tar.gz \
-            "${gl_url}/releases/download/v${gl_ver}/gitleaks_${gl_ver}_linux_x64.tar.gz"
-          echo "${gl_sha}  gitleaks.tar.gz" | sha256sum -c -
-          tar -xzf gitleaks.tar.gz gitleaks
-          sudo install -m 0755 gitleaks /usr/local/bin/gitleaks
-      - name: Lint (yaml + editorconfig + secrets + schema)
-        run: make lint
-
-  # Native Windows proof that the PowerShell installer renders byte-identically to
-  # the bash one: -Check fails if the committed entrypoints drift under the PS
-  # renderer (CRLF, encoding, or logic divergence). The Linux `test` job already
-  # cross-checks bash-vs-pwsh output (bats); this guards the real Windows runtime.
-  windows:
-    name: windows
-    runs-on: windows-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+          fetch-depth: 0  # gitleaks reads the full history
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38  # v6
         with:
           node-version: "22.19.0"
-      - name: PowerShell installer drift check
-        shell: pwsh
-        run: ./tools/install.ps1 -Check
-      - name: Native policy and skill installation
-        shell: pwsh
-        run: node --test tests/policy-install.test.mjs tests/skills.test.mjs tests/upstream.test.mjs
-      - name: Pinned Impeccable engine
-        shell: pwsh
-        run: node tests/engine-smoke.mjs
-
-  dependency_review:
-    name: dependency-review
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - name: Review dependency changes
-        if: github.event_name == 'pull_request'
-        uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294  # v5.0.0
-      - name: Mark non-pull-request runs successful
-        if: github.event_name != 'pull_request'
-        run: echo 'dependency review applies to pull requests only'
+      - name: Shell script, home paths and STE prose
+        run: make lint
+      - name: Secrets
+        run: |
+          set -euo pipefail
+          gl_ver=8.30.1
+          gl_sha=551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
+          curl -fsSL -o gitleaks.tar.gz \
+            "https://github.com/gitleaks/gitleaks/releases/download/v${gl_ver}/gitleaks_${gl_ver}_linux_x64.tar.gz"
+          echo "${gl_sha}  gitleaks.tar.gz" | sha256sum -c -
+          tar -xzf gitleaks.tar.gz gitleaks
+          ./gitleaks git --no-banner --redact .
 
   upstream:
     name: upstream
@@ -133,33 +63,38 @@ jobs:
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38  # v6
         with:
           node-version: "22.19.0"
-      - name: Reproduce imports from pinned sources
+      - name: Pinned upstream sources give the same files
         run: node tools/upstream.mjs --verify
         env:
           GH_TOKEN: ${{ github.token }}
 
-  # Stable required-status-check context. The branch-protection rulesets require
-  # `ci`. It runs ALWAYS (so the required context is never reported as "skipped",
-  # which some GitHub configs treat as passing) and FAILS unless every matrix
-  # `test`, `lint`, `windows`, and `dependency_review` jobs succeeded.
+  dependency_review:
+    name: dependency-review
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Review dependency changes
+        if: github.event_name == 'pull_request'
+        uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294  # v5.0.0
+      - name: Pass on pushes
+        if: github.event_name != 'pull_request'
+        run: echo 'dependency review applies to pull requests only'
+
+  # Branch protection requires this check. It always runs, and it fails unless
+  # each job above passed.
   ci:
     name: ci
-    needs: [test, lint, windows, dependency_review, upstream]
+    needs: [test, lint, upstream, dependency_review]
     if: ${{ always() }}
     runs-on: ubuntu-latest
     steps:
-      - name: Require all prerequisite jobs to have succeeded
+      - name: All jobs passed
         run: |
-          if [ "${{ needs.test.result }}" != "success" ] \
-             || [ "${{ needs.lint.result }}" != "success" ] \
-             || [ "${{ needs.windows.result }}" != "success" ] \
-             || [ "${{ needs.dependency_review.result }}" != "success" ] \
-             || [ "${{ needs.upstream.result }}" != "success" ]; then
+          if [ "${{ needs.test.result }}" != success ] \
+             || [ "${{ needs.lint.result }}" != success ] \
+             || [ "${{ needs.upstream.result }}" != success ] \
+             || [ "${{ needs.dependency_review.result }}" != success ]; then
             echo "test=${{ needs.test.result }} lint=${{ needs.lint.result }}" >&2
-            echo "windows=${{ needs.windows.result }}" >&2
-            echo "dependency-review=${{ needs.dependency_review.result }}" >&2
-            echo "upstream=${{ needs.upstream.result }}" >&2
-            echo "failing the required ci check" >&2
+            echo "upstream=${{ needs.upstream.result }} dependency-review=${{ needs.dependency_review.result }}" >&2
             exit 1
           fi
-          echo "all prerequisite jobs passed"

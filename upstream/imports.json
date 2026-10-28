@@ -1,21 +1,55 @@
 {
-  "version": 1,
+  "version": 2,
   "sources": [
     {
-      "id": "unslop",
-      "repository": "cursor/plugins",
+      "id": "tstack",
+      "repository": "t3dotgg/tstack",
       "ref": "main",
-      "revision": "6b78e9f4e46c75d1697d837e51f07c2692e60b24",
+      "revision": "7de017b3fc9d50c03cf3ecb98fb71e0ca65a78bd",
       "paths": {
-        "pstack/skills/unslop/SKILL.md": "skills/unslop/SKILL.md",
-        "pstack/LICENSE": "skills/unslop/LICENSE"
-      },
-      "patches": {
-        "skills/unslop/SKILL.md": "upstream/unslop.patch.json"
+        "skills/": "skills/",
+        "skills/full-send/SKILL.md": "skills/full-stop/full-send.md",
+        "LICENSE": [
+          "skills/babysit-pr/LICENSE",
+          "skills/council/LICENSE",
+          "skills/file-pr/LICENSE",
+          "skills/full-send/LICENSE",
+          "skills/full-stop/LICENSE",
+          "skills/leaving-pr-comments/LICENSE",
+          "skills/modernize/LICENSE",
+          "skills/sol-loop/LICENSE",
+          "skills/takeover/LICENSE"
+        ]
       },
       "required": [
-        "SKILL.md",
-        "LICENSE"
+        "babysit-pr/SKILL.md",
+        "babysit-pr/scripts/pr-wait",
+        "council/SKILL.md",
+        "file-pr/SKILL.md",
+        "full-send/SKILL.md",
+        "full-stop/SKILL.md",
+        "full-stop/full-send.md",
+        "leaving-pr-comments/SKILL.md",
+        "modernize/SKILL.md",
+        "sol-loop/SKILL.md",
+        "takeover/SKILL.md"
+      ]
+    },
+    {
+      "id": "impeccable",
+      "repository": "pbakaus/impeccable",
+      "ref": "main",
+      "revision": "414603bf14c7a344edb466bb1f85690c77ce8b7d",
+      "paths": {
+        ".agents/skills/impeccable/": "skills/impeccable/",
+        "LICENSE": "skills/impeccable/LICENSE",
+        "NOTICE.md": "skills/impeccable/NOTICE.md"
+      },
+      "required": [
+        "impeccable/SKILL.md",
+        "impeccable/LICENSE",
+        "impeccable/NOTICE.md",
+        "impeccable/scripts/engine-checksums.txt"
       ]
     },
     {
@@ -27,28 +61,8 @@
         "skills/frontend-design/": "skills/frontend-design/"
       },
       "required": [
-        "SKILL.md",
-        "LICENSE.txt"
-      ]
-    },
-    {
-      "id": "impeccable",
-      "repository": "pbakaus/impeccable",
-      "ref": "main",
-      "revision": "0665bd812ae0908fcab17b96fd4f840defb882d9",
-      "paths": {
-        ".agents/skills/impeccable/": "skills/impeccable/",
-        "LICENSE": "skills/impeccable/LICENSE",
-        "NOTICE.md": "skills/impeccable/NOTICE.md"
-      },
-      "rename": {
-        "skills/impeccable/SKILL.md": "skills/impeccable/UPSTREAM.md"
-      },
-      "required": [
-        "UPSTREAM.md",
-        "LICENSE",
-        "NOTICE.md",
-        "scripts/VERSION"
+        "frontend-design/SKILL.md",
+        "frontend-design/LICENSE.txt"
       ]
     }
   ]

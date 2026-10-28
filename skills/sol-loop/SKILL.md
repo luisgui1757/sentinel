@@ -1,123 +1,117 @@
 ---
 name: sol-loop
-description: Run a bounded independent review and correction loop with a Sol model. Use when the user or calling workflow requests sol-loop; hold publication until agreement.
+description: Use when the user says "sol loop".
 ---
 
-# Sol loop
+# sol-loop
 
-## Purpose and budget
+This is a workflow for making your code changes more correct before (or
+sometimes after) filing a pull request. tl;dr - use OpenAI's GPT Sol to review
+your code in a loop.
 
-Have Sol review the change, usually before a PR and sometimes afterwards. Make the smallest changes
-that address valid findings and satisfy the intended behavior. Avoid scope growth and push back on
-findings you believe are wrong.
+Make the most minimal possible changes to appease the Sol reviewers. Be careful
+of scope creep and don't be scared to push back.
 
-- Three rounds by default. First round: the whole change. Later rounds: new code and unresolved
-  findings.
-- Extend to five only when the user asks, or an evidence-backed blocker/should remains in security,
-  permissions, auth, data loss, or state/concurrency.
-- Stop early when only nits remain. Declined nits or comments/docs/formatting edits do not buy
-  another round.
-- One reviewer. The reviewer may not delegate.
-- Keep stable finding IDs, severity, disposition and evidence. Record usage only when reported.
+## Budget
 
-When called by another workflow, this is its review loop, not an extra review pass.
-Carry the used rounds and findings back to the caller. Re-entry does not reset the
-budget or clear a dispute; an exhausted loop remains blocked until the user intervenes.
-If earlier rounds or open findings cannot be established from the conversation or PR,
-report that gap. Do not assume approval or a fresh budget.
+- Default: 3 rounds total. Round 1 is full. Later rounds check only
+  changed code and open findings.
+- Extend to 5 only for security, permissions, auth, data loss, or
+  state/concurrency, while a blocker or should stays open with evidence. Or when
+  the user asks.
+- Stop early if a round returns only nits. Declined nits and comment,
+  doc, or format-only fixes need no new round.
+- One reviewer only. Sol must not start subagents or reviewers.
+- Keep a ledger: id, severity, outcome, usage if returned. Never guess it.
 
-## Establish the review
+## 1. Scope
 
-1. Inspect `git status --short`. Preserve unrelated work. Isolate the task's paths, including
-   untracked files; ask if the scope cannot be separated.
-2. Fetch the remote. For a PR, inspect its base and head; switch branches only with a clean
-   worktree. HEAD must equal the PR head or be ahead only by this task's changes. Use the merge-base
-   with the PR's target branch. For local or stacked work, use the intended target, defaulting to
-   the remote default only when none is specified. Without a remote, use a user-specified base; HEAD is suitable only for wholly
-   uncommitted work.
-3. Freeze that base and one diff definition: base to working tree, restricted to the task's paths,
-   including new files. State intent and exclusions briefly.
-4. Run the relevant checks first. Fix failures caused by this change; disclose pre-existing failures
-   and checks you cannot run.
-5. Discover the available Sol models; use the latest unless the user specifies one. Record actual
-   provider/model/effort when the tools expose them. Do not substitute a different model.
+Run `git status --short`. Do not stash, discard, or include unrelated
+changes. Limit review to the change paths if they separate cleanly.
+Otherwise stop and ask.
 
-Use [host dispatch](../helix/references/dispatch.md) to reach the requested Sol model.
-Inside T3, use its live capabilities and a new review task each round. A child thread ID is not
-a continuation destination. Outside T3, use native delegation or a supported Codex CLI/API route.
-A role named `sol` is suitable only if execution actually targets the requested model.
+Find the base after `git fetch origin`:
 
-While review runs, freeze the scoped files. Wait for completion; do not poll for progress or start a
-second reviewer. Use the host's documented wait and cancellation routes. Silence, an error and a timeout are not approval. On failure, cancel, confirm it
-stopped, then restart with the findings.
+- PR: `gh pr view <n> --json baseRefName,headRefOid`. Check out the branch
+  only if clean. Confirm `HEAD` is the PR head, or ahead only by this
+  change. Base: `git merge-base HEAD origin/<baseRefName>`.
+- Local: `git merge-base HEAD origin/<default-branch>`. No remote: a base
+  the user names, or `HEAD` for uncommitted changes only.
 
-## Reviewer brief
+The change is base to working tree in those paths, with untracked files.
+Use one diff command all rounds. State intent and out-of-scope in 1-2
+sentences. Run covering checks. Do not send code this change breaks. Note
+missing or pre-failing checks in the brief.
 
-Send a self-contained brief with repository, fixed base, scoped paths, intent, exclusions, check
-results and the exact diff inspection command. Tell the reviewer:
+## 2. Start Sol
 
-- Review only. No edits, commits, pushes, PR comments or subagents.
-- Read surrounding code and callers. Find bugs and failures against the intended behavior. Flag
-  unnecessary code, tests and guards. Skip style unless it hides a bug.
-- Blocker: the intended scenario is wrong. Should: a real defect that callers encounter within
-  scope. Nit: everything else. Out-of-scope paths, minor performance costs and extra compatibility
-  are nits. Apply the supported-behavior qualification below to uncommon cases.
-- Return APPROVE or CHANGES, followed by stable ID, severity, file:line, problem and proposed fix
-  for each finding.
+Pick the latest Sol unless the user named a version. Do not hardcode an ID.
+Use `high` effort unless the user names another effort. Record provider,
+model, and effort only if exposed.
 
-## Respond and repeat
+In Codex, use a native Sol subagent and keep its ID. Elsewhere, start each
+round as a background command with the brief on stdin:
+`codex exec --sandbox read-only --model <Sol ID> -c model_reasoning_effort=<effort> -`. Without the Codex CLI,
+use another CLI from the `council` skill that runs Sol. If no route runs Sol,
+report the blocker. Do not substitute a model.
 
-Judge each claim and severity yourself. Another path, a rare case or a small cost is a nit
-regardless of the reviewer's label, subject to the supported-behavior qualification below. Make the
-smallest sufficient fix. Prefer narrowing or removing code to adding machinery. Add one focused
-regression test that fails without the fix where warranted. Reject wrong findings with evidence;
-decline out-of-scope work and nits with a short reason and record them as follow-up.
+Do not edit scoped files while review runs. Wait for the notice. Do not
+poll or start a second reviewer. Timeout, error, or no reply is not
+approval. On failure, cancel, verify stop, restart with the ledger.
 
-Update the findings in the conversation or PR, rerun checks and inspect diff size. If review inflated the change, look for a
-smaller solution before continuing. Do not concede a wrong finding to get approval.
+Round 1 brief (a CLI reviewer gets no history):
 
-Another round requires budget remaining and an open blocker/should, changed behavior, or an approval
-that no longer covers the behavior diff. Send the original brief, the findings with evidence,
-the same-base full diff and the delta since the prior round. Ask the reviewer to resolve or retain
-each prior ID with a reason. Use a fresh T3 review task, or continue the saved native reviewer.
+```
+Review only. Do not edit, commit, push, comment on PRs, or start subagents.
+Repo: <abs path> Base: <sha> Intent: <intent> Out of scope: <scope> Checks: <results>
+See: git diff <base> [-- <paths>]; git status --short (read untracked).
+Read surrounding code. Find bugs, broken callers, mismatch with intent.
+Skip style unless it hides a bug. Hold to the smallest change. Flag code,
+tests, or guards the intent does not need. Other paths, rare cases, small
+perf, extra compat: nits.
+blocker = intended case wrong. should = real bug callers will hit, in intent. nit = rest.
+Reply:
+VERDICT: APPROVE or CHANGES
+S1 [blocker|should|nit] <file>:<line> <claim>. Fix: <suggestion> (stable ids)
+```
 
-Agreement means approval of the current behavior diff, no open blocker/should, and no unresolved
-concern of your own. After a rebase, compare the diff again; rerun review if behavior changed or
-equivalence is uncertain. Keep the base SHA and diff identity with the review evidence. A dispute that survives two exchanges, or exhausted rounds, goes to the user
-with both positions. Neither is approval.
+## 3. Answer findings
 
-Hold pushes until agreement. Push afterwards only if the task authorizes it. Report the result
-briefly to the caller. Include review evidence in a PR only when requested or required; never add
-a model signature or automatic receipt. Effort appears as verified only when execution exposes it.
+Check each finding and severity yourself. Another path, rare case, or
+small cost is a nit, whatever label it came with.
 
-Report rounds and actual model, what the review changed, diff size before/after, fixed and declined
-findings with reasons, reported usage or "not exposed," and whether anything was pushed.
+- Agree: smallest fix. Prefer delete or narrow over new lock, cache,
+  helper, or option. Fix the case that happened. Add one focused test
+  that fails without the fix, if intent needs it.
+- Disagree: say why, with evidence (file:line, test, output).
+- Out of scope or nit: decline in one line. List as follow-up.
 
-## Host behavior and review evidence
+Update the ledger. Re-run checks and `git diff --shortstat <base>`. If
+review grew the diff, cut first. Do not agree just to end the loop.
 
-- The active user and repository rules control authority. Reviewing a PR does not itself authorize
-  edits, pushes or comments. In review-only mode, return findings and suggested changes without
-  applying them.
-- Use current tool schemas. On T3, make one capability probe through the host's supported
-  direct/discovery route, even if delegation tools are not yet listed. If the host exposes no
-  permitted route to that probe, or it finds no suitable Sol route, report the blocker. Tool names
-  in this document do not authorize inventing a callable tool or bypassing host restrictions.
-- A supported input or documented invariant is within scope even when uncommon. Never downgrade an
-  auth, data-loss or other real intended-behavior failure just because it is rare. Include this
-  qualification in the reviewer brief. Repository severity and test requirements take precedence
-  over the simplified labels and single-test preference above.
-- Reduce unnecessary diff growth, not a necessary correction. Keep fixes that the task or repository
-  requires.
-- When review evidence is requested, include the actual rounds, model, base and verdict in the
-  verification section. For an unfinished loop, report the actual outcome; never imply approval.
-- In review-only mode, inspect an existing suitable checkout or the PR's committed diff without
-  changing the user's checkout. Do not switch branches or run mutating checks when the user forbids
-  file changes. One round normally suffices; use another only to resolve a specific open finding
-  within the budget.
-- A failed launch is not a completed review round, but repeated identical execution failure is a
-  blocker. Retry once after confirmed cancellation and a concrete recovery step; do not restart
-  indefinitely. A user cancellation stops the loop; cancel an active reviewer through the supported
-  route and report any unconfirmed termination.
+## 4. Next round
 
-This procedure requires Git, the task's checks and a working Sol delegation route. The shared
-host reference describes supported routes; it does not run the Helix delivery workflow.
+Start one only if budget remains and a blocker or should is open, behavior code
+changed, or approval does not cover the current behavior diff. Start a fresh
+CLI round, or follow up the saved native ID. Send the round 1 brief,
+the ledger (`fixed:` / `disagree:` / `declined:` + evidence), the same base
+diff, and the change since last round. Tell Sol: open ids and changed code only.
+Mark each old id `resolved` or `still open: <reason>`.
+
+## 5. Stop and ship
+
+Agreed: APPROVE on the current behavior diff, no blocker or should open,
+no concern of your own. Stuck: an item stays disputed after two replies,
+or budget ends. Show both sides in 2-3 lines each. The user decides.
+Budget end is not approval.
+
+Do not push during the loop. Push after agreement only if the user asked
+to push, ship, or update the PR. If you push to a PR, add above the model
+blurb:
+
+`Reviewed with sol-loop: <N> rounds with <model>. Sol verdict: approved`.
+
+Add `on <effort>` only if verified.
+
+Report: rounds, model, what Sol changed, diff size before/after, fixed and
+declined findings with reasons, usage if exposed (else say not), pushed or not.

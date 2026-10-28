@@ -14,15 +14,13 @@ async function fixture(fn) {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'sentinel-import-'));
   try {
     await fs.mkdir(path.join(root, 'upstream'));
-    const manifest = { version: 1, sources: [{ id: 'sample', repository: 'example/skills', ref: 'main', revision: pin,
-      paths: { 'bundle/': 'skills/sample/' }, required: ['UPSTREAM.md', 'LICENSE'], rename: { 'skills/sample/SKILL.md': 'skills/sample/UPSTREAM.md' },
-      patches: { 'skills/sample/UPSTREAM.md': 'upstream/sample.patch.json' } }] };
+    const manifest = { version: 2, sources: [{ id: 'sample', repository: 'example/skills', ref: 'main', revision: pin,
+      paths: { 'bundle/': 'skills/sample/' }, required: ['sample/SKILL.md', 'sample/LICENSE'] }] };
     const write = (name, text) => fs.writeFile(path.join(root, name), text);
     await write('upstream/imports.json', encode(manifest));
-    await write('upstream/sample.patch.json', encode({ replace: [{ before: 'Upstream intro\n', after: 'Scoped intro\n' }], append: 'Credit {{revision}}\n' }));
     const versions = {
-      [pin]: { 'bundle/SKILL.md': 'Upstream intro\nKeep original rules.\n', 'bundle/LICENSE': 'Original license\n', 'bundle/reference/obsolete.md': 'Old reference\n' },
-      [next]: { 'bundle/SKILL.md': 'Upstream intro\nKeep new rules.\n', 'bundle/LICENSE': 'New license\n', 'bundle/reference/new.md': 'New reference\n' },
+      [pin]: { 'bundle/SKILL.md': 'Upstream intro\nWork steps.\nKeep original rules.\n', 'bundle/LICENSE': 'Original license\n', 'bundle/reference/obsolete.md': 'Old reference\n' },
+      [next]: { 'bundle/SKILL.md': 'Upstream intro\nWork steps.\nKeep new rules.\n', 'bundle/LICENSE': 'New license\n', 'bundle/reference/new.md': 'New reference\n' },
     };
     const requests = [];
     const fetchImpl = async url => {
@@ -50,18 +48,33 @@ async function snapshot(root) {
   return files;
 }
 
-test('imports reproduce pinned bytes, adapt one file and preserve local wrappers', async () => fixture(async f => {
-  await fs.mkdir(path.join(f.root, 'skills/sample'), { recursive: true });
-  await f.write('skills/sample/SKILL.md', 'Local wrapper\n');
+test('imports reproduce pinned bytes and keep the files that Sentinel owns', async () => fixture(async f => {
+  await fs.mkdir(path.join(f.root, 'skills'), { recursive: true });
+  await f.write('skills/profiles.txt', 'core sample\n');
   await f.invoke('sync');
   const before = await snapshot(f.root);
   await f.invoke('sync');
   await f.invoke('verify');
   await f.invoke('check', () => { throw new Error('Offline check attempted network'); });
   assert.deepEqual(await snapshot(f.root), before);
-  assert.equal(await fs.readFile(path.join(f.root, 'skills/sample/SKILL.md'), 'utf8'), 'Local wrapper\n');
-  assert.equal(await fs.readFile(path.join(f.root, 'skills/sample/UPSTREAM.md'), 'utf8'), `Scoped intro\nKeep original rules.\nCredit ${pin}\n`);
+  assert.equal(await fs.readFile(path.join(f.root, 'skills/profiles.txt'), 'utf8'), 'core sample\n');
+  assert.equal(await fs.readFile(path.join(f.root, 'skills/sample/SKILL.md'), 'utf8'), 'Upstream intro\nWork steps.\nKeep original rules.\n');
   assert.equal(await fs.readFile(path.join(f.root, 'skills/sample/LICENSE'), 'utf8'), 'Original license\n');
+}));
+
+test('one upstream file can go to several skills, and only into skills/', async () => fixture(async f => {
+  f.manifest.sources[0].paths['bundle/LICENSE'] = ['skills/one/LICENSE', 'skills/two/LICENSE'];
+  await f.write('upstream/imports.json', encode(f.manifest));
+  await f.invoke('sync');
+  for (const dest of ['sample', 'one', 'two']) {
+    assert.equal(await fs.readFile(path.join(f.root, `skills/${dest}/LICENSE`), 'utf8'), 'Original license\n');
+  }
+  await f.invoke('check'); await f.invoke('verify');
+  f.manifest.sources[0].paths['bundle/LICENSE'] = 'tools/LICENSE';
+  await f.write('upstream/imports.json', encode(f.manifest));
+  const before = await snapshot(f.root);
+  await assert.rejects(f.invoke('sync'), /Invalid mapping/);
+  assert.deepEqual(await snapshot(f.root), before);
 }));
 
 test('updates lock revisions, additions and removals together, then stop changing', async () => fixture(async f => {
@@ -90,8 +103,33 @@ test('edited imports and stale inputs fail offline checks without writing', asyn
   await assert.rejects(f.invoke('check'), /inputs changed/);
 }));
 
+test('sync keeps a Sentinel edit, and update merges the upstream change into it', async () => fixture(async f => {
+  await f.invoke('sync');
+  const skill = path.join(f.root, 'skills/sample/SKILL.md');
+  await f.write('skills/sample/SKILL.md', 'Sentinel intro\nWork steps.\nKeep original rules.\n');
+  await f.invoke('sync');
+  await f.invoke('check'); await f.invoke('verify');
+  assert.equal(await fs.readFile(skill, 'utf8'), 'Sentinel intro\nWork steps.\nKeep original rules.\n');
+  await f.invoke('update');
+  assert.equal(await fs.readFile(skill, 'utf8'), 'Sentinel intro\nWork steps.\nKeep new rules.\n');
+  await f.invoke('check'); await f.invoke('verify');
+}));
+
+test('a conflict with a Sentinel edit fails checks until somebody resolves it', async () => fixture(async f => {
+  await f.invoke('sync');
+  await f.write('skills/sample/SKILL.md', 'Upstream intro\nWork steps.\nKeep Sentinel rules.\n');
+  await f.invoke('sync');
+  await assert.rejects(f.invoke('update'), error => error.conflicts?.join() === 'skills/sample/SKILL.md');
+  assert.match(await fs.readFile(path.join(f.root, 'skills/sample/SKILL.md'), 'utf8'), /^<{7} local\n/m);
+  await assert.rejects(f.invoke('check'), /conflict not resolved/);
+  await f.write('skills/sample/SKILL.md', 'Upstream intro\nWork steps.\nKeep new Sentinel rules.\n');
+  await f.invoke('sync');
+  await f.invoke('check'); await f.invoke('verify');
+  assert.equal(JSON.parse(await fs.readFile(path.join(f.root, 'upstream/lock.json'))).sources.sample, next);
+}));
+
 const faults = {
-  patch: /Patch conflict/, repeated: /Patch conflict/, symlink: /Unsupported upstream entry/,
+  symlink: /Unsupported upstream entry/,
   truncated: /Incomplete upstream tree/, missing: /Missing upstream path/, license: /Missing required import/,
   collision: /Unowned destination/, network: /Upstream request failed \(503\)/, traversal: /Unsupported upstream entry/,
 };
@@ -99,8 +137,6 @@ for (const [fault, expected] of Object.entries(faults)) {
   test(`${fault}: invalid updates leave the entire bundle unchanged`, async () => fixture(async f => {
     await f.invoke('sync');
     let transport = f.fetchImpl;
-    if (fault === 'patch') f.versions[next]['bundle/SKILL.md'] = 'Changed intro\n';
-    if (fault === 'repeated') f.versions[next]['bundle/SKILL.md'] = 'Upstream intro\nUpstream intro\n';
     if (fault === 'symlink' || fault === 'truncated') transport = async url => {
       const response = await f.fetchImpl(url);
       if (!url.includes('/git/trees/')) return response;
@@ -158,66 +194,6 @@ test('unrelated upstream commits do not create pin-only update noise', async () 
   assert.deepEqual(await snapshot(f.root), before);
 }));
 
-test('only one explicitly reviewed patch variant may match', async () => fixture(async f => {
-  const patch = { replace: [{ before: ['Old supported intro\n', 'Upstream intro\n'], after: 'Scoped intro\n' }] };
-  await f.write('upstream/sample.patch.json', encode(patch));
-  await f.invoke('sync'); await f.invoke('update'); await f.invoke('verify');
-  patch.replace[0].before.push('Upstream intro\n');
-  await f.write('upstream/sample.patch.json', encode(patch));
-  const before = await snapshot(f.root);
-  await assert.rejects(f.invoke('sync'), /Patch conflict/);
-  assert.deepEqual(await snapshot(f.root), before);
-}));
-
-for (const valid of [true, false]) test(`engine update: ${valid ? 'locks all matching assets' : 'missing digest blocks every change'}`, async () => fixture(async f => {
-  const platforms = ['darwin-arm64', 'darwin-x64', 'linux-arm64', 'linux-x64', 'win32-x64'];
-  const engine = { version: '1.0.0', assets: {} };
-  const assets = version => platforms.map(platform => {
-    const name = `impeccable-${platform === 'win32-x64' ? 'windows-x64.exe' : platform}`;
-    return { name, browser_download_url: `https://github.com/pbakaus/impeccable/releases/download/engine-v${version}/${name}`, digest: `sha256:${'a'.repeat(64)}`, size: 100 };
-  });
-  for (const [i, asset] of assets('1.0.0').entries()) engine.assets[platforms[i]] = { url: asset.browser_download_url, sha256: asset.digest.slice(7), bytes: asset.size };
-  await fs.mkdir(path.join(f.root, 'skills/impeccable/scripts'), { recursive: true });
-  await f.write('skills/impeccable/scripts/sentinel-engine.json', encode(engine));
-  f.manifest.sources.push({ id: 'impeccable', repository: 'pbakaus/impeccable', ref: 'main', revision: pin,
-    paths: { 'engine/': 'skills/impeccable/scripts/' }, required: ['scripts/VERSION'] });
-  f.versions[pin]['engine/VERSION'] = '1.0.0\n';
-  f.versions[next]['engine/VERSION'] = '2.0.0\n';
-  await f.write('upstream/imports.json', encode(f.manifest));
-  const transport = async url => {
-    if (!url.includes('/releases/')) return f.fetchImpl(url);
-    const version = url.split('engine-v')[1];
-    const release = { tag_name: `engine-v${version}`, draft: false, prerelease: false, assets: assets(version) };
-    if (!valid && version === '2.0.0') delete release.assets[0].digest;
-    return Response.json(release);
-  };
-  await f.invoke('sync', transport);
-  const before = await snapshot(f.root);
-  if (!valid) {
-    await assert.rejects(f.invoke('update', transport), /Missing verified engine asset/);
-    assert.deepEqual(await snapshot(f.root), before);
-  } else {
-    await f.invoke('update', transport);
-    await f.invoke('check'); await f.invoke('verify', transport);
-    const result = JSON.parse(await fs.readFile(path.join(f.root, 'skills/impeccable/scripts/sentinel-engine.json')));
-    assert.equal(result.version, '2.0.0');
-    assert.equal(Object.keys(result.assets).length, 5);
-    assert.match(result.assets['linux-x64'].url, /engine-v2\.0\.0/);
-    const current = await snapshot(f.root);
-    await assert.rejects(f.invoke('verify', async url => {
-      const response = await transport(url);
-      if (!url.includes('/releases/')) return response;
-      const release = await response.json();
-      release.assets[0].digest = `sha256:${'b'.repeat(64)}`;
-      return Response.json(release);
-    }), /engine pin differ from the lock/);
-    assert.deepEqual(await snapshot(f.root), current);
-    result.assets['linux-x64'].sha256 = 'b'.repeat(64);
-    await f.write('skills/impeccable/scripts/sentinel-engine.json', encode(result));
-    await assert.rejects(f.invoke('check'), /Engine pins changed locally/);
-  }
-}));
-
 test('bot publishes one real Git commit and proposes a draft without merging', async () => fixture(async f => {
   const git = args => execFileSync('git', args, { cwd: f.root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
   git(['init', '-b', 'main']); git(['config', 'user.name', 'Fixture']); git(['config', 'user.email', 'fixture@example.test']);
@@ -237,11 +213,23 @@ test('bot publishes one real Git commit and proposes a draft without merging', a
   assert.match(await propose({ command, update: () => f.invoke('update') }), /Created draft/);
   assert.equal(git(['rev-list', '--count', 'main..HEAD']).trim(), '1');
   assert.match(git(['ls-remote', '--heads', 'origin']), /refs\/heads\/codex\/upstream-skills/);
-  assert.match(git(['show', '--format=%B', '--no-patch']), /chore\(deps\): update pinned upstream skills/);
   assert.ok(calls.some(call => call[0] === 'gh' && call.includes('--draft')));
   assert.ok(!calls.flat().some(arg => ['--force', '--force-with-lease', 'merge', 'review'].includes(arg)));
   await assert.rejects(propose({ command, update: () => assert.fail('must not update') }), /branch already exists/);
 }));
+
+test('the bot opens a draft that names each merge conflict', async () => {
+  let status = 0, body = '';
+  const command = (name, args) => {
+    if (name === 'git' && args[0] === 'status') return status++ ? ' M skills/a/SKILL.md\n' : '';
+    if (name === 'gh' && args[1] === 'list') return '[]';
+    if (name === 'gh' && args[1] === 'create') { body = args[args.indexOf('--body') + 1]; return 'https://example.test/pull/2\n'; }
+    return '';
+  };
+  const update = async () => { throw Object.assign(new Error('conflict'), { conflicts: ['skills/a/SKILL.md'] }); };
+  assert.match(await propose({ command, update }), /Created draft/);
+  assert.match(body, /conflict with Sentinel edits in `skills\/a\/SKILL.md`/);
+});
 
 test('an existing update PR is left untouched', async () => {
   const command = (name, args) => name === 'git' && args[0] === 'status' ? '' : '[{"number":1,"isCrossRepository":false}]';

@@ -1,185 +1,286 @@
 #!/usr/bin/env bash
-# Install or update Sentinel's managed rules, preserving surrounding text.
+# Install the Sentinel rules and skills for one or more coding agents.
 #
 # Usage:
-#   tools/install --target DIR [--hosts codex,claude,copilot,kiro]
-#   tools/install --global [--hosts codex,claude,copilot,kiro]
-#   tools/install [--check | --remove | --dry-run]
-#   tools/install --global --legacy --check  # inspect retired targets
-#   tools/install --global --legacy --remove # remove only retired blocks
+#   tools/install --global --hosts LIST [--skills LIST] [--no-rules] [--check | --remove]
+#   tools/install --project DIR --hosts LIST [--skills LIST] [--no-rules] [--check | --remove]
 #
-# With no scope flag, target this checkout. With no host flag, select all four.
-# T3 uses its configured provider's paths. Skills are optional and installed with
-# node tools/skills.mjs; rules installation never installs skills or hooks.
+# --hosts takes codex, claude, copilot, kiro and opencode, or "all".
+# --skills takes the profiles in skills/profiles.txt, or "none". The default is core.
+# The rules go into a managed block. Text outside the block stays. A skill folder
+# is replaced only when this installer or Sentinel v0.2.0 wrote it and nobody
+# changed it since.
+# tools/install.ps1 does the same on Windows.
 set -euo pipefail
 export LC_ALL=C
 
-SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
-REPO_ROOT=$(cd "$SCRIPT_DIR/.." && pwd)
-# shellcheck source=sentinel-lib.sh
-source "$SCRIPT_DIR/sentinel-lib.sh"
+ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
+PROFILES="$ROOT/skills/profiles.txt"
+BEGIN='<!-- AGENT-RULES:BEGIN do-not-edit-inside-this-block -->'
+END='<!-- AGENT-RULES:END -->'
+ALL_HOSTS=codex,claude,copilot,kiro,opencode
+MARKER=.sentinel-owned
+LEGACY=.sentinel-skills.json
 
-MANIFEST="$REPO_ROOT/MANIFEST.json"
-CORE="$REPO_ROOT/$(sentinel_manifest_core_dir "$MANIFEST")"
+die() { echo "install: $*" >&2; exit 2; }
 
-SCOPE="repo"
-ACTION="write"
-HOSTS="codex,claude,copilot,kiro"
-LEGACY=0
-TARGET_SET=0
-HOSTS_SET=0
-TARGET_DIR="$REPO_ROOT"   # which repo gets the repo-local entrypoints
-# Refuse more than one action flag rather than silently letting the last one win
-# (especially the destructive --remove). install.ps1 does the same, so the CLIs
-# behave identically.
-set_action() {
-  if [[ "$ACTION" != write ]]; then
-    echo "install: choose at most one of --check, --remove, --dry-run" >&2; exit 2
-  fi
-  ACTION=$1
-}
+scope='' dir='' hosts='' skills=core rules=1 action=write
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --global) SCOPE=global ;;
-    --hosts) shift; HOSTS=${1:?--hosts needs a comma-separated list}; HOSTS_SET=1 ;;
-    --hosts=*) HOSTS=${1#--hosts=}; HOSTS_SET=1 ;;
-    --legacy) LEGACY=1 ;;
-    --check) set_action check ;;
-    --dry-run) set_action dry ;;
-    --remove|--uninstall) set_action remove ;;
-    --target) TARGET_SET=1; shift; TARGET_DIR=$(cd "${1:?--target needs a directory}" 2>/dev/null && pwd) || { echo "install: --target directory not found: $1" >&2; exit 2; } ;;
-    --target=*) TARGET_SET=1; TARGET_DIR=$(cd "${1#--target=}" 2>/dev/null && pwd) || { echo "install: --target directory not found: ${1#--target=}" >&2; exit 2; } ;;
+    --global|--project)
+      [[ -z "$scope" ]] || die "choose one of --global or --project"
+      scope=${1#--}
+      if [[ "$scope" == project ]]; then
+        [[ -n "${2:-}" ]] || die "--project needs an existing directory"
+        dir=$(cd "$2" 2>/dev/null && pwd) || die "--project needs an existing directory"
+        shift
+      fi
+      ;;
+    --hosts) hosts=${2:-}; shift ;;
+    --skills) skills=${2:-}; shift ;;
+    --no-rules) rules=0 ;;
+    --check|--remove)
+      [[ "$action" == write ]] || die "choose one of --check or --remove"
+      action=${1#--}
+      ;;
     -h|--help) awk 'NR>1 && /^#/ {sub(/^# ?/,""); print; next} NR>1 {exit}' "$0"; exit 0 ;;
-    *) echo "install: unknown argument: $1" >&2; exit 2 ;;
+    *) die "unknown argument: $1" ;;
   esac
   shift
 done
+[[ -n "$scope" ]] || die "choose --global or --project DIR"
+[[ "$hosts" == all ]] && hosts=$ALL_HOSTS
+[[ -n "$hosts" ]] || die "--hosts needs a list, for example --hosts codex,claude"
+IFS=, read -r -a host_list <<< "$hosts"
+for h in "${host_list[@]}"; do
+  [[ ",$ALL_HOSTS," == *",$h,"* ]] || die "unknown host: $h (use $ALL_HOSTS or all)"
+done
+selected() { [[ ",$hosts," == *",$1,"* ]]; }
 
-if [[ "$SCOPE" == global && "$TARGET_SET" == 1 ]]; then
-  echo "install: --global and --target are mutually exclusive" >&2; exit 2
-fi
-sentinel_validate_hosts "$HOSTS" || { echo "install: hosts must be codex,claude,copilot or kiro" >&2; exit 2; }
-if [[ "$LEGACY" == 1 ]] && { [[ "$SCOPE" != global || "$HOSTS_SET" == 1 ]] || [[ "$ACTION" != check && "$ACTION" != remove ]]; }; then
-  echo "install: --legacy requires --global and --check or --remove, without --hosts" >&2; exit 2
-fi
+[[ -n "$skills" ]] || die "--skills needs a list of profiles, or none"
+[[ "$skills" == none ]] && skills=''
+# Word splitting keeps this loop safe for an empty list on bash 3.2 (macOS).
+for p in ${skills//,/ }; do
+  grep -q "^$p " "$PROFILES" 2>/dev/null || die "unknown skill profile: $p"
+done
+all_skills=$(awk '!/^#/ && NF == 2 { print $2 }' "$PROFILES" | sort -u)
+skill_list=$(awk -v want=",$skills," '!/^#/ && NF == 2 && index(want, "," $1 ",") { print $2 }' "$PROFILES" | sort -u)
 
-# Remove the managed block (markers included) from <target> into <out>,
-# preserving all surrounding user content. Nonzero on an unterminated block.
-remove_block() {
-  local target=$1 out=$2
+# Each line is "<block kind> <target file>". The path is last because it can
+# contain spaces. A project gets one copy of the rules in AGENTS.md. Claude Code
+# reads CLAUDE.md, so that file imports AGENTS.md.
+targets() {
+  if [[ "$scope" == global ]]; then
+    selected codex && echo "rules ${CODEX_HOME:-$HOME/.codex}/AGENTS.md"
+    selected claude && echo "rules ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/CLAUDE.md"
+    selected copilot && echo "rules ${COPILOT_HOME:-$HOME/.copilot}/copilot-instructions.md"
+    selected kiro && echo "rules $HOME/.kiro/steering/AGENTS.md"
+    selected opencode && echo "rules ${XDG_CONFIG_HOME:-$HOME/.config}/opencode/AGENTS.md"
+  else
+    echo "rules $dir/AGENTS.md"
+    selected claude && echo "import $dir/CLAUDE.md"
+  fi
+  return 0
+}
+
+# Codex, Copilot CLI and OpenCode read .agents/skills. Claude Code and Kiro
+# each read their own folder.
+skill_roots() {
+  local base=$HOME claude="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
+  if [[ "$scope" == project ]]; then base=$dir claude="$dir/.claude"; fi
+  if selected codex || selected copilot || selected opencode; then echo "$base/.agents/skills"; fi
+  selected claude && echo "$claude/skills"
+  selected kiro && echo "$base/.kiro/skills"
+  return 0
+}
+
+tmp=$(mktemp -d)
+trap 'rm -rf "$tmp"' EXIT
+{ echo "$BEGIN"; cat "$ROOT/rules/AGENTS.md"; echo "$END"; } > "$tmp/rules"
+printf '%s\n@AGENTS.md\n%s\n' "$BEGIN" "$END" > "$tmp/import"
+
+has_block() { [[ -f "$1" ]] && grep -q '^<!-- AGENT-RULES:BEGIN' "$1"; }
+
+# Write <target> with the block into <out>. Replace the first managed block and
+# drop duplicates, or append the block. Exit 3 means BEGIN without END.
+compose() {
+  if has_block "$1"; then
+    awk -v bf="$2" '
+      BEGIN { while ((getline line < bf) > 0) blk = blk line ORS }
+      /^<!-- AGENT-RULES:BEGIN/ { if (!done) { printf "%s", blk; done = 1 } skip = 1; next }
+      /^<!-- AGENT-RULES:END -->/ { if (skip) { skip = 0; next } }
+      skip { next }
+      { print }
+      END { if (skip) exit 3 }
+    ' "$1" > "$3"
+  else
+    if [[ -f "$1" ]]; then cat "$1"; echo; fi > "$3"
+    cat "$2" >> "$3"
+  fi
+}
+
+# Write <target> without managed blocks into <out>. Exit 3 means BEGIN without END.
+strip_block() {
   awk '
-    /^<!-- AGENT-RULES:BEGIN/   { skip = 1; next }
+    /^<!-- AGENT-RULES:BEGIN/ { skip = 1; next }
     /^<!-- AGENT-RULES:END -->/ { if (skip) { skip = 0; next } }
     skip { next }
     { print }
     END { if (skip) exit 3 }
-  ' "$target" > "$out" || return $?
+  ' "$1" > "$2"
 }
 
-targets() {
-  if [[ "$LEGACY" == 1 ]]; then
-    sentinel_legacy_adapter_targets
-  elif [[ "$SCOPE" == repo ]]; then
-    sentinel_repo_adapter_targets "$TARGET_DIR" "$HOSTS"
-  else
-    sentinel_global_adapter_targets "$HOSTS"
+sha256() {
+  if command -v sha256sum >/dev/null 2>&1; then sha256sum -- "$1" | cut -d' ' -f1
+  else shasum -a 256 -- "$1" | cut -d' ' -f1
   fi
 }
 
-blockfile=$(mktemp)
-sentinel_render_managed_block "$CORE" "$MANIFEST" "$REPO_ROOT/VERSION" > "$blockfile"
-trap 'rm -f "$blockfile"' EXIT
+# Print "<sha256>  <path>" for each file in a skill folder, sorted by path.
+manifest() {
+  (cd "$1" && find . -type f ! -name "$MARKER" | sed 's#^\./##' | sort | while IFS= read -r f; do
+    printf '%s  %s\n' "$(sha256 "$f")" "$f"
+  done)
+}
+
+# Sentinel v0.2.0 listed the folders that it installed in <root>/.sentinel-skills.json,
+# with the SHA-256 of each file. Print the names in that list.
+legacy_names() {
+  if [[ -f "$1/$LEGACY" ]]; then awk -F'"' '/^    "[^"]+": \{$/ { print $2 }' "$1/$LEGACY"; fi
+}
+
+# Print the v0.2.0 hashes of one listed folder in the format of manifest().
+legacy_manifest() {
+  awk -F'"' -v want="$2" '/^    "/ { cur = $2; next } /^      "/ && cur == want { print $2 "\t" $4 }' "$1/$LEGACY" |
+    sort | awk -F'\t' '{ print $2 "  " $1 }'
+}
+
+# Print the names of the folders in <root> that Sentinel installed.
+owned_names() {
+  local marker
+  for marker in "$1"/*/"$MARKER"; do
+    if [[ -f "$marker" ]]; then basename "$(dirname "$marker")"; fi
+  done
+  legacy_names "$1"
+}
+
+# Print the state of an installed skill folder: missing, unowned, changed, owned,
+# or legacy (installed by Sentinel v0.2.0 and not changed since).
+skill_state() {
+  local root name
+  root=$(dirname "$1") name=$(basename "$1")
+  if [[ ! -e "$1" ]]; then echo missing
+  elif [[ -f "$1/$MARKER" ]]; then
+    if [[ "$(manifest "$1")" == "$(cat "$1/$MARKER")" ]]; then echo owned; else echo changed; fi
+  elif ! legacy_names "$root" | grep -qxF "$name"; then echo unowned
+  elif [[ "$(manifest "$1")" == "$(legacy_manifest "$root" "$name")" ]]; then echo legacy
+  else echo changed
+  fi
+}
+
+copy_skill() {
+  local next
+  next=$(mktemp -d "$(dirname "$2")/.sentinel.XXXXXX")
+  chmod 755 "$next"
+  cp -R "$1/." "$next/"
+  manifest "$next" > "$next/$MARKER"
+  rm -rf "$2"
+  mv "$next" "$2"
+}
 
 status=0
-changed=0
-while IFS= read -r t; do
-  case "$ACTION" in
-    check)
-      if [[ -f "$t" ]] && grep -q '^<!-- AGENT-RULES:BEGIN' "$t"; then
-        out=$(mktemp)
-        if sentinel_compose_adapter "$t" "$blockfile" "$out"; then
-          if cmp -s "$t" "$out"; then echo "ok:      $t"; else echo "DRIFT:   $t"; status=1; fi
-        else
-          echo "MALFORMED: $t (AGENT-RULES:BEGIN without AGENT-RULES:END)"; status=1
-        fi
-        rm -f "$out"
-      else
-        if [[ "$LEGACY" == 0 ]]; then
-          echo "MISSING: $t (no managed block; run tools/install)"; status=1
-        else
-          echo "absent:  $t (advisory; run tools/install --global)"
-        fi
-      fi
-      ;;
-    remove)
-      if [[ -f "$t" ]] && grep -q '^<!-- AGENT-RULES:BEGIN' "$t"; then
-        out=$(mktemp "$(dirname "$t")/.sentinel.XXXXXX" 2>/dev/null || mktemp)
-        if remove_block "$t" "$out"; then
-          if grep -q '[^[:space:]]' "$out"; then
-            mv "$out" "$t"; echo "removed block: $t (kept surrounding content)"; changed=1
-          else
-            rm -f "$out" "$t"; echo "removed file:  $t (was Sentinel-only)"; changed=1
-          fi
-        else
-          rm -f "$out"
-          echo "install: $t has AGENT-RULES:BEGIN without AGENT-RULES:END; refusing to edit." >&2
-          status=1
-        fi
-      else
-        echo "absent:  $t (no managed block to remove)"
-      fi
-      ;;
-    dry)
-      out=$(mktemp)
-      if sentinel_compose_adapter "$t" "$blockfile" "$out"; then
-        if [[ ! -f "$t" ]] || ! cmp -s "$t" "$out"; then echo "would write: $t"; else echo "unchanged:   $t"; fi
-      else
-        echo "would REFUSE: $t (AGENT-RULES:BEGIN without AGENT-RULES:END -- fix markers)"; status=1
-      fi
-      rm -f "$out"
-      ;;
-    write)
-      mkdir -p "$(dirname "$t")"
-      # Temp in the target's dir so the final mv is atomic (no torn file on crash).
-      if ! out=$(mktemp "$(dirname "$t")/.sentinel.XXXXXX"); then
-        echo "install: cannot create temp file in $(dirname "$t")" >&2; status=1; continue
-      fi
-      if sentinel_compose_adapter "$t" "$blockfile" "$out"; then
-        if [[ -f "$t" ]] && cmp -s "$t" "$out"; then
-          echo "unchanged: $t"; rm -f "$out"
-        else
-          mv "$out" "$t"; echo "wrote:     $t"; changed=1
-        fi
-      else
-        rm -f "$out"
-        echo "install: $t has AGENT-RULES:BEGIN without AGENT-RULES:END; refusing to write" >&2
-        echo "         (it would silently drop your trailing content). Fix the markers." >&2
-        status=1
-      fi
-      ;;
-  esac
-done < <(targets)
 
-if [[ "$SCOPE" == global ]]; then
-  echo
-  if [[ -f "${CODEX_HOME:-$HOME/.codex}/AGENTS.override.md" ]]; then
-    echo "warning: Codex will load ${CODEX_HOME:-$HOME/.codex}/AGENTS.override.md"
-    echo "         before ${CODEX_HOME:-$HOME/.codex}/AGENTS.md; Sentinel is installed"
-    echo "         but may be shadowed for Codex until the override is reconciled."
-    echo
-  fi
-
+if [[ "$rules" == 1 ]]; then
+  while read -r kind target; do
+    out="$tmp/out"
+    case "$action" in
+      write)
+        if ! compose "$target" "$tmp/$kind" "$out"; then
+          echo "refused:   $target (AGENT-RULES:BEGIN without AGENT-RULES:END)" >&2; status=1; continue
+        fi
+        if [[ -f "$target" ]] && cmp -s "$target" "$out"; then echo "unchanged: $target"; continue; fi
+        mkdir -p "$(dirname "$target")"
+        next=$(mktemp "$(dirname "$target")/.sentinel.XXXXXX")
+        cp "$out" "$next" && mv "$next" "$target"
+        echo "wrote:     $target"
+        ;;
+      check)
+        if ! has_block "$target"; then echo "MISSING:   $target"; status=1
+        elif ! compose "$target" "$tmp/$kind" "$out"; then echo "MALFORMED: $target"; status=1
+        elif cmp -s "$target" "$out"; then echo "ok:        $target"
+        else echo "DRIFT:     $target"; status=1
+        fi
+        ;;
+      remove)
+        if ! has_block "$target"; then echo "absent:    $target"; continue; fi
+        if ! strip_block "$target" "$out"; then
+          echo "refused:   $target (AGENT-RULES:BEGIN without AGENT-RULES:END)" >&2; status=1; continue
+        fi
+        if grep -q '[^[:space:]]' "$out"; then
+          next=$(mktemp "$(dirname "$target")/.sentinel.XXXXXX")
+          cp "$out" "$next" && mv "$next" "$target"
+          echo "removed:   block in $target"
+        else
+          rm -f "$target"
+          echo "removed:   $target"
+        fi
+        ;;
+    esac
+  done < <(targets)
 fi
 
-case "$ACTION" in
-  check)
-    if [[ "$status" -eq 0 ]]; then echo "sentinel install: blocks up to date."; else echo "sentinel install: out of date (drift or missing); run tools/install." >&2; fi
-    ;;
-  write)
-    if [[ "$changed" -eq 1 ]]; then echo "sentinel install: done ($SCOPE)."; else echo "sentinel install: already up to date ($SCOPE)."; fi
-    ;;
-  remove)
-    if [[ "$changed" -eq 1 ]]; then echo "sentinel install: removed ($SCOPE)."; else echo "sentinel install: nothing to remove ($SCOPE)."; fi
-    ;;
-esac
+while read -r root; do
+  for name in $skill_list; do
+    dest="$root/$name"
+    state=$(skill_state "$dest")
+    case "$action:$state" in
+      *:unowned)
+        if [[ "$action" == remove ]]; then echo "skipped:   $dest (not installed by Sentinel)"
+        else echo "refused:   $dest (not installed by Sentinel; move it away first)" >&2; status=1
+        fi
+        ;;
+      *:changed) echo "refused:   $dest (changed after install)" >&2; status=1 ;;
+      write:missing)
+        mkdir -p "$root"; copy_skill "$ROOT/skills/$name" "$dest"; echo "installed: $dest" ;;
+      write:owned|write:legacy)
+        if [[ "$state" == owned && "$(manifest "$dest")" == "$(manifest "$ROOT/skills/$name")" ]]; then echo "unchanged: $dest"
+        else copy_skill "$ROOT/skills/$name" "$dest"; echo "updated:   $dest"
+        fi
+        ;;
+      check:missing) echo "MISSING:   $dest"; status=1 ;;
+      check:legacy) echo "LEGACY:    $dest (from Sentinel v0.2.0)"; status=1 ;;
+      check:owned)
+        if [[ "$(manifest "$dest")" == "$(manifest "$ROOT/skills/$name")" ]]; then echo "ok:        $dest"
+        else echo "DRIFT:     $dest"; status=1
+        fi
+        ;;
+      remove:missing) echo "absent:    $dest" ;;
+      remove:owned|remove:legacy) rm -rf "$dest"; echo "removed:   $dest" ;;
+    esac
+  done
+  # A skill that Sentinel no longer ships leaves the machine with the next run.
+  for name in $(owned_names "$root" | sort -u); do
+    grep -qxF "$name" <<< "$all_skills" && continue
+    dest="$root/$name"
+    case "$action:$(skill_state "$dest")" in
+      *:missing) ;;
+      check:*) echo "RETIRED:   $dest"; status=1 ;;
+      *:owned|*:legacy) rm -rf "$dest"; echo "removed:   $dest (retired)" ;;
+      *) echo "refused:   $dest (retired, but changed after install)" >&2; status=1 ;;
+    esac
+  done
+  # Remove the v0.2.0 list when each folder in it has a marker or is gone.
+  if [[ "$action" != check && -f "$root/$LEGACY" ]]; then
+    left=''
+    for name in $(legacy_names "$root"); do
+      if [[ -d "$root/$name" && ! -f "$root/$name/$MARKER" ]]; then left=1; fi
+    done
+    if [[ -z "$left" ]]; then rm -f "$root/$LEGACY"; echo "removed:   $root/$LEGACY"; fi
+  fi
+done < <(if [[ -n "$skill_list" ]]; then skill_roots; fi)
+
+codex_override="${CODEX_HOME:-$HOME/.codex}/AGENTS.override.md"
+if [[ "$rules" == 1 && "$scope" == global ]] && selected codex && [[ -f "$codex_override" ]]; then
+  echo "warning: Codex reads $codex_override instead of AGENTS.md in that directory."
+fi
 exit "$status"

@@ -1,101 +1,152 @@
 # Sentinel
 
-Shared coding rules and optional skills for Codex, Claude Code, GitHub Copilot
-CLI and Kiro. T3 Code uses its configured provider and native orchestration.
+Sentinel gives your coding agents one set of rules and a small set of skills.
+It supports Codex, Claude Code, GitHub Copilot CLI, Kiro and OpenCode.
 
-The rules set everyday behavior: stay within scope, verify claims, preserve
-work and write plainly. Skills handle specific jobs when you ask for them.
-Helix's delivery and document skills now live here.
+## Install
 
-## How to use (TLDR)
-
-Clone this repository and run commands from its root:
+Clone the repository and run the installer for your hosts.
 
 ```sh
 git clone https://github.com/luisgui1757/sentinel.git
 cd sentinel
-
-# Rules for one repository.
-tools/install --target /path/to/project --hosts codex
-
-# Optional skills for the same repository. Requires Node.js 22.19 or newer.
-node tools/skills.mjs --target /path/to/project --host codex --skills delivery,documents
-
-# Document/design skills: download and verify the pinned Impeccable engine once.
-node /path/to/project/.agents/skills/impeccable/scripts/sentinel-engine.mjs --setup
+tools/install --global --hosts codex,claude --skills core,ui
 ```
 
-Use `--global` instead of `--target` for a per-user installation. For rules on
-Windows, run `pwsh tools/install.ps1 -Target C:\path\to\project -Hosts codex`.
-The skills command is the same on Windows, macOS and Linux. Change `codex` to
-`claude`, `copilot` or `kiro` for your host; engine setup uses that host's installed
-skill path. [Host paths and setup](docs/install.md) cover the differences.
+On Windows, use PowerShell 7:
 
-Open a new agent session in your project. In Codex, try `$full-stop fix this bug`
-or `$doc-view ROADMAP.md`. In Claude Code, use `/full-stop` or `/doc-view`.
-To update, pull a reviewed Sentinel revision and repeat the install commands.
-Add `--check` to the rules and skills commands (`-Check` for PowerShell rules).
-Rerun the engine's `--setup` to verify its cached binary without another download.
+```powershell
+pwsh -File tools/install.ps1 -Global -Hosts codex,claude -Skills core,ui
+```
 
-Choose rules, skills or both. Installation preserves surrounding rules and
-refuses to replace edited or unowned skills. No hooks or model settings are
-installed. [Installation and migration](docs/install.md) covers preview, updates,
-removal, existing Helix links and Impeccable's pinned engine setup.
+Windows PowerShell 5.1 also works. Run
+`powershell -ExecutionPolicy Bypass -File tools\install.ps1` with the same
+options.
 
-## Choose a skill
+Start a new agent session after the install.
 
-Eight commands cover the main workflows:
-
-| Job | Commands |
+| Option | Use |
 |---|---|
-| Implement and independently review a change | `helix` |
-| Deliver a PR for your review | `full-stop` |
-| Deliver and merge after every gate passes | `full-send` |
-| Review a change or challenge a decision | `sol-loop`, `second-opinion` |
-| Read a Markdown document as HTML | `doc-view` |
-| Shorten or clean up writing | `tldr`, `unslop` |
+| `--hosts` / `-Hosts` | `codex`, `claude`, `copilot`, `kiro`, `opencode`, or `all` |
+| `--skills` / `-Skills` | `core`, `ui`, or both. The default is `core`. Use `none` to install only the rules. |
+| `--global` / `-Global` | Install into your user folder. |
+| `--project DIR` / `-Project DIR` | Install into one repository. |
+| `--no-rules` / `-NoRules` | Install only the skills. |
+| `--check` / `-Check` | Report the files that differ from this checkout. |
+| `--remove` / `-Remove` | Remove the rules and the skills that the installer wrote. |
 
-Four specialist commands are also callable:
+The rules go into a managed block. The installer keeps the text outside the
+block. It writes `.sentinel-owned` into each skill folder that it installs. It
+does not replace a folder that it did not write or that somebody changed. When
+Sentinel stops shipping a skill, the next run removes that folder, and
+`--check` reports it as `RETIRED`.
 
-| Job | Commands |
-|---|---|
-| Design or check an interface | `impeccable`, `beast-ui`, `frontend-design` |
-| Choose writer and reviewer models | `setup-helix` |
+The installer also takes over the skill folders of Sentinel v0.2.0 if nobody
+changed them. `--check` reports these folders as `LEGACY`.
 
-Use `$helix` in Codex or `/helix` in Claude Code. Other hosts expose skills
-through their own catalogs. See [the command guide](docs/how-to.md) for each
-skill's purpose and [host dispatch](skills/helix/references/dispatch.md) for
-cross-provider reviews. Filing, monitoring, takeover and modernization are
-internal procedures used by delivery workflows. Use Full-stop to continue an
-existing PR as well as to create one. Full-stop and Full-send share Helix's
-implementation and review process; their endpoints differ.
+## Where the files go
 
-## Where rules load
-
-| Host | Project | User |
+| Host | Rules | Skills |
 |---|---|---|
-| Codex | `AGENTS.md` | `$CODEX_HOME/AGENTS.md`, normally `~/.codex/AGENTS.md` |
-| Claude Code | `CLAUDE.md` | `$CLAUDE_CONFIG_DIR/CLAUDE.md`, normally `~/.claude/CLAUDE.md` |
-| GitHub Copilot CLI | `.github/copilot-instructions.md` | `~/.copilot/copilot-instructions.md` |
-| Kiro | `AGENTS.md` | `~/.kiro/steering/AGENTS.md` |
-| T3 Code | Its provider's files, including `AGENTS.md` | Its provider's configuration |
+| Codex | `~/.codex/AGENTS.md` | `~/.agents/skills` |
+| Claude Code | `~/.claude/CLAUDE.md` | `~/.claude/skills` |
+| Copilot CLI | `~/.copilot/copilot-instructions.md` | `~/.agents/skills` |
+| Kiro | `~/.kiro/steering/AGENTS.md` | `~/.kiro/skills` |
+| OpenCode | `~/.config/opencode/AGENTS.md` | `~/.agents/skills` |
 
-File installation is not proof that every agent session loaded the rules.
-Custom agents, overrides and trust settings can change that. See
-[host coverage](docs/tool-ingestion.md) and [verification limits](docs/limits.md).
+`CODEX_HOME`, `CLAUDE_CONFIG_DIR`, `COPILOT_HOME` and `XDG_CONFIG_HOME` change
+these folders. A project install writes the rules to `AGENTS.md`, and
+`CLAUDE.md` imports that file. Project skills go to `.agents/skills`,
+`.claude/skills` and `.kiro/skills`.
+
+## Rules
+
+`rules/AGENTS.md` holds the rules. They tell an agent to do these things:
+
+- Change files only when the user asks for a change.
+- Make the smallest complete change. Do not add layers, options or guards that
+  the task does not need.
+- Write no audit, findings, plan or handoff files.
+- Leave the agent instruction files to the user.
+- Add a test only when it can find a real regression.
+- Write all prose in ASD-STE100 Simplified Technical English. This does not
+  limit the reasoning of the agent. Ask for plain prose to stop it in a
+  session. To stop it in a repository, say so in its `AGENTS.md`.
+
+## Skills
+
+The `core` profile is for delivery and review. All of these skills except
+`untangle` come from [tstack](https://github.com/t3dotgg/tstack). Sentinel
+removes the T3 Code parts and adds commands for each CLI.
+
+| Skill | Say | Result |
+|---|---|---|
+| `full-stop` | "full stop" | The agent stops when the pull request is ready for you to merge. |
+| `sol-loop` | "sol loop" | GPT Sol reviews the change in a loop until both agents agree. |
+| `council` | "council" | Three models from three providers review until they agree, for 3 rounds by default. Each model runs at high effort by default. Name other models, efforts or limits in the request. |
+| `file-pr` | "file a PR" | The agent files a short pull request. |
+| `babysit-pr` | "babysit" | The agent watches CI and review bots and fixes real findings. |
+| `takeover` | "take over" | The agent finishes the work of another person and keeps their credit. |
+| `modernize` | "modernize" | The agent rebases an old pull request and asks if it still has a use. |
+| `leaving-pr-comments` | (automatic) | The agent marks the comments that it writes for you. |
+| `untangle` | "untangle" | The agent finds what a codebase does not need and proves each cut. |
+
+The repository keeps tstack's `full-send` skill, but the installer does not
+install it, because it merges without a person. `full-stop` reads a copy of
+it and stops before the merge.
+
+The `ui` profile is for interface work.
+
+| Skill | Use |
+|---|---|
+| `impeccable` | Design commands: craft, shape, critique, audit, layout, typeset, polish and more |
+| `beast-ui` | One quality pass before handoff: audit, layout, typeset, polish and optimize |
+| `frontend-design` | Creative direction for a new interface |
+| `doc-view` | A readable HTML view of a Markdown document |
+
+Start new interface work with `impeccable craft` or `frontend-design`. Use an
+Impeccable command for one fix. Run `beast-ui` before you hand off.
+`file-pr` runs beast-ui on an interface change if you installed the `ui`
+profile.
+
+To add the UI skills to one repository only:
+
+```sh
+tools/install --project ../web-app --hosts all --skills ui --no-rules
+```
+
+## Updates
+
+A bot compares tstack, Impeccable and Frontend-design with their pins each
+Monday. When an imported file changes, the bot opens a draft pull request with
+the new pins and the full diff. It merges each upstream change into the
+Sentinel edits of that file. After you merge the pull request, pull this
+repository and run the installer again.
+
+## Known limits
+
+- The installer does not prove that a session loaded the rules. A custom agent
+  can ignore the user files.
+- Codex reads `AGENTS.override.md` instead of `AGENTS.md` when both exist. The
+  installer gives a warning in that case.
+- `babysit-pr` waits with `pr-wait`, which needs Python 3 and the GitHub CLI.
+- OpenCode reads `~/.claude/skills` and `~/.agents/skills`. With Claude Code
+  and Codex on the same machine, OpenCode sees each skill two times. Set
+  `OPENCODE_DISABLE_CLAUDE_CODE=1` to make OpenCode ignore the Claude folders.
 
 ## Maintain
 
-Edit `core/` for rules and custom `skills/` for workflows. Regenerate rules with
-`tools/install`, then run `make gate`. Upstream imports arrive as draft PRs with
-exact pins and file diffs; nothing updates in installed copies automatically.
-See [upstream updates](docs/upstream.md). [CONTRIBUTING.md](CONTRIBUTING.md)
-lists checks and [ROADMAP.md](ROADMAP.md) tracks outstanding work.
+- `make test` runs the installer and import tests. CI also runs them on macOS
+  and Windows.
+- `make lint` checks the shell script, home paths and the STE prose.
+- `make check` compares the imported files with `upstream/lock.json`.
+- `node tools/upstream.mjs --update` imports the newest upstream revisions.
+  After a manual edit of `upstream/imports.json`, `--sync` imports again at the
+  pins.
+- To change an imported file, edit it and run `--sync`. The lock records the
+  edit, and `--update` merges later upstream changes into it. A conflict stops
+  the update with conflict markers in the file. Resolve them, then run
+  `--sync`.
 
-Privacy scans reject known private terms, home paths and secret patterns. They
-cannot identify every unknown secret. See the [threat model](docs/THREAT_MODEL.md).
-Required CI, CodeQL and human review remain in force; see
-[repository governance](docs/GOVERNANCE.md).
-
-Sentinel uses the [MIT license](LICENSE). Bundled skills retain their
-[third-party licenses and source credits](THIRD_PARTY.md).
+Sentinel uses the [MIT license](LICENSE). The imported skills keep their
+licenses. See [THIRD_PARTY.md](THIRD_PARTY.md).
