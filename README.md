@@ -78,7 +78,7 @@ file, the file keeps its mode. A project install writes the rules to `AGENTS.md`
 
 The `core` profile is for delivery and review. All of these skills except
 `untangle` come from [tstack](https://github.com/t3dotgg/tstack). Sentinel
-removes the T3 Code parts and adds commands for each CLI.
+keeps their T3 Code routes and adds a route for each other CLI.
 
 | Skill | Say | Result |
 |---|---|---|

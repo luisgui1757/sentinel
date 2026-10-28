@@ -11,9 +11,10 @@ high reasoning effort. If the user's instructions name council members, use
 those. Otherwise pick the latest flagship model from each provider, for
 example Claude Opus, GPT Sol, and Gemini Pro.
 
-Start one delegate per model in parallel. Use the harness's subagent tools
-when they can run the model. Otherwise start each delegate as a background
-command with a CLI that runs the model. Set `<effort>` to `high`, unless the
+In T3 Code, use `orchestrator_capabilities` to resolve the models, then
+`delegate_task` to start one delegate per model in parallel. Elsewhere, use
+the harness's subagent tools when they can run the model. Otherwise start each
+delegate as a background command with a CLI that runs the model. Set `<effort>` to `high`, unless the
 user names another effort:
 
 | CLI | Read-only command |

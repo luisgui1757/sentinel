@@ -18,8 +18,8 @@ covers the iOS and Android references from ehmo's
 `SCREENSHOT-LICENSE` covers `scripts/modern-screenshot.umd.js` from
 [modern-screenshot](https://github.com/qq15725/modern-screenshot).
 
-Sentinel removes the T3 Code parts from the tstack skills and adds commands
-for other CLIs. `pr-wait` runs on Windows, and it waits for the requested
+Sentinel keeps the T3 Code routes of the tstack skills and adds commands for
+the other CLIs. `pr-wait` runs on Windows, and it waits for the requested
 reviewers instead of named review bots. Council stops after 3 rounds by
 default. Council and sol-loop start each reviewer at high effort by default. The Impeccable skill has one
 added note about updates, and that note says that Sentinel added it.
