@@ -6,7 +6,7 @@ http.createServer(async (req, res) => {
   let body = '';
   for await (const part of req) body += part;
   const handler = routes.get(`${req.method} ${req.url}`);
-  if (!handler) { res.writeHead(404); return res.end(); }
+  if (typeof handler !== 'function') { res.writeHead(404); return res.end(); }
   const context = { headers: req.headers, order: body ? JSON.parse(body) : {} };
   for (const step of chain) await step(context);
   const result = await handler(context);
