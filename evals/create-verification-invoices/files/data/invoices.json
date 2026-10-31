@@ -1,0 +1,5 @@
+[
+  { "id": 1, "customer": "Acme", "amount": 1200, "status": "open" },
+  { "id": 2, "customer": "Globex", "amount": 450, "status": "paid" },
+  { "id": 3, "customer": "Initech", "amount": 980, "status": "open" }
+]
