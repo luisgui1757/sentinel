@@ -148,10 +148,28 @@ export function processesIn(dir) {
   return hits;
 }
 
+function shellWord(text) {
+  let out = '', i = 0;
+  while (i < text.length && !/\s/.test(text[i])) {
+    if (text[i] === "'") {
+      const end = text.indexOf("'", i + 1);
+      out += text.slice(i + 1, end < 0 ? text.length : end);
+      i = end < 0 ? text.length : end + 1;
+    } else if (text[i] === '"') {
+      i++;
+      while (i < text.length && text[i] !== '"') {
+        if (text[i] === '\\' && /["\\$`\n]/.test(text[i + 1])) { out += text[i + 1]; i += 2; } else out += text[i++];
+      }
+      i++;
+    } else if (text[i] === '\\') { out += text[i + 1] ?? ''; i += 2; } else out += text[i++];
+  }
+  return out;
+}
+
 export function shellParts(command) {
   let text = command;
-  const wrapped = text.match(/^\/\S+\s+-l?c\s+(['"])([\s\S]*)\1\s*$/);
-  if (wrapped) text = wrapped[1] === '"' ? wrapped[2].replace(/\\(["\\$`])/g, '$1') : wrapped[2].replaceAll(`'"'"'`, `'`);
+  const wrapper = text.match(/^\/\S+\s+-l?c\s+/);
+  if (wrapper) text = shellWord(text.slice(wrapper[0].length));
   text = text.replace(/(<<-?\s*(['"]?)(\w+)\2)([^\n]*)\n[\s\S]*?\n\s*\3(?=\s|$)/g, '$1$4');
   text = text.replace(/'[^']*'|"(?:\\.|[^"\\])*"/g, quoted => {
     const inner = quoted.slice(1, -1);

@@ -7,11 +7,12 @@ description: Trigger this if the user says 'council' or 'arena'.
 
 Bring in delegates to help with the user's request, usually for review or
 feedback. By default, use Claude Opus and GPT Sol, in their latest versions,
-one seat each, at high reasoning effort. If the user names members, use only
-those, one seat each. If the user asks for more seats than members, fill the
-extra seats with copies, in the order of the user's list. Report a named member
-that you cannot reach. If you can reach only one model family, report it. Do
-not substitute a model.
+one seat each, at high reasoning effort. Start a delegate for each seat, also
+for the model that you run on. If the user names members, use only those, one
+seat each. If the user asks for more seats than members, fill the extra seats
+with copies, in the order of the user's list. Report a named member that you
+cannot reach. If you can reach only one model family, report it. Do not
+substitute a model.
 
 In T3 Code, use `orchestrator_capabilities` to resolve the models, then
 `delegate_task` to start one delegate per seat in parallel. Elsewhere, use

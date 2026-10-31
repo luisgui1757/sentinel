@@ -223,7 +223,11 @@ Answer with JSON: {"pass": true or false, "reason": "one sentence"}.`;
 
 async function trial(ctx, testCase, target, arm, index) {
   if (ctx.stopped) return { case: testCase.name, target: target.id, arm, index, status: 'skipped', pass: false, error: ctx.stopped, seconds: 0 };
-  const box = await sandbox(ctx.auth());
+  let box;
+  try { box = await sandbox(ctx.auth()); } catch (error) {
+    ctx.stopped = error.message;
+    return { case: testCase.name, target: target.id, arm, index, status: 'skipped', pass: false, error: error.message, seconds: 0 };
+  }
   const outDir = path.join(ctx.results, testCase.name, target.id, `${arm}-${index}`);
   await fs.mkdir(outDir, { recursive: true });
   const started = Date.now();
@@ -267,6 +271,7 @@ async function trial(ctx, testCase, target, arm, index) {
     await fs.writeFile(path.join(outDir, 'result.json'), `${JSON.stringify(record, null, 2)}\n`);
     return record;
   } catch (error) {
+    if (/login expires/.test(error.message)) ctx.stopped = error.message;
     return { case: testCase.name, target: target.id, arm, index, status: 'error', pass: false, error: String(error.message).slice(0, 500), seconds: Math.round((Date.now() - started) / 1000) };
   } finally {
     if (!ctx.keep) await fs.rm(box.tmp, { recursive: true, force: true });
