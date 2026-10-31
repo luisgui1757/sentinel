@@ -20,6 +20,6 @@ check('formatMoney stays in the public API', out.format === '$21.65', detail);
 check('the discount codes still load', out.save10 === 900 && out.half === 501, detail);
 check('tests pass', sh('env', ['-u', 'OLD_TAX', 'node', '--test']).status === 0);
 check('removes legacyTotal', sh('git', ['grep', '-q', '--untracked', 'legacyTotal', '--', '*.js', '*.mjs']).status === 1);
-check('keeps one copy of roundCents', (read('src/round.js') === null) !== (read('src/util.js') === null));
+check('removes the duplicate roundCents', read('src/round.js') === null || read('src/util.js') === null);
 check('removes the unused left-pad dependency', !/left-pad/.test(read('package.json') ?? ''));
 report();

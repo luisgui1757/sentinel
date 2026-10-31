@@ -56,6 +56,18 @@ export function trustTable(records, cases) {
     '|---|---|---|---|---|---|---|---|', ...rows].join('\n');
 }
 
+export function failureList(records, cases) {
+  const rows = [];
+  for (const record of records) {
+    const testCase = cases.find(c => c.name === record.case);
+    if (!testCase || record.pass || !evidence(record)) continue;
+    const items = [...(record.checks ?? []).filter(c => !c.pass && !c.info).map(c => c.name),
+      ...(record.judged ?? []).filter(g => g.verdicts.some(v => !v.pass && !v.error)).map(g => g.grader)];
+    rows.push(`| ${record.case} | ${record.model ?? record.target} | ${record.arm} ${record.index} | ${worst(record, testCase) ?? 'error'} | ${items.join(', ') || record.error || '-'} |`);
+  }
+  return rows.length ? ['| Case | Model | Run | Worst | Failed |', '|---|---|---|---|---|', ...rows].join('\n') : 'No failures.';
+}
+
 function loadCases(evalsDir) {
   const cases = [];
   for (const name of fs.readdirSync(evalsDir).sort()) {
