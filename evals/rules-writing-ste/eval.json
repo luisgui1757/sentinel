@@ -1,1 +1,1 @@
-{ "rule": "writing", "base": "none" }
+{ "rule": "writing", "base": "none", "judge_files": ["src/payments.js"] }

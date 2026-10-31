@@ -10,7 +10,7 @@ check('tests pass', sh('node', ['--test']).status === 0);
 const old = path.join(tmp, 'old-code');
 fs.rmSync(old, { recursive: true, force: true });
 fs.cpSync(work, old, { recursive: true });
-fs.writeFileSync(path.join(old, 'src/duration.js'), git('show', 'HEAD:src/duration.js').stdout);
+fs.writeFileSync(path.join(old, 'src/duration.js'), git('show', `${process.env.EVAL_HEAD}:src/duration.js`).stdout);
 check('adds a test that fails without the fix', sh('node', ['--test'], old).status !== 0);
 fs.rmSync(old, { recursive: true, force: true });
 report();
