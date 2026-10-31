@@ -14,7 +14,7 @@ const skill = read('.agents/skills/verify-notes/SKILL.md') ?? '';
 const launch = (skill.split(/^## Launch/m)[1] ?? '').split(/^## /m)[0];
 const snippets = [...launch.matchAll(/(```|~~~)[^\n]*\n([\s\S]*?)\1|`([^`\n]+)`/g)].map(m => (m[2] ?? m[3]).replace(/^\s*\$ /gm, ''));
 const launchAt = snippets.findIndex(c => /\b(node|npm)\b/.test(c) && /server\.js|npm (run )?start|&\s*$/m.test(c));
-const command = launchAt >= 0 ? snippets.slice(0, launchAt + 1).join('\n') : null;
+const command = launchAt >= 0 ? [...snippets.slice(0, launchAt).filter(c => /[\s=]/.test(c)), snippets[launchAt]].join('\n') : null;
 const [, host, port] = skill.match(/(localhost|127\.0\.0\.1):(\d+)/) ?? [];
 const left = processesIn(work);
 let served = false;

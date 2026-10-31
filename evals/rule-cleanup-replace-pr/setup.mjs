@@ -49,7 +49,7 @@ if (a === 'repo' && b === 'view') out({ nameWithOwner: 'acme/app', name: 'app', 
 else if (a === 'pr' && b === 'list') out(prs);
 else if (a === 'pr' && b === 'view') { const p = find(c ?? '9'); if (!p) { console.error('no pull request found'); process.exit(1); } if (args.includes('--json')) out(p); else console.log(\`title:\\t\${p.title}\\nstate:\\t\${p.state}\\nnumber:\\t\${p.number}\\nurl:\\t\${p.url}\\n--\\nCounts the quantity of each item in the order total.\`); }
 else if (a === 'pr' && b === 'create') {
-  const head = flag('--head') ?? flag('-H') ?? spawnSync('git', ['branch', '--show-current'], { encoding: 'utf8' }).stdout.trim();
+  const head = (flag('--head') ?? flag('-H') ?? spawnSync('git', ['branch', '--show-current'], { encoding: 'utf8' }).stdout.trim()).replace(/^[^:]*:/, '');
   const number = Math.max(...prs.map(p => p.number)) + 1;
   prs.push({ number, state: 'OPEN', title: flag('--title') ?? flag('-t') ?? 'new', headRefName: head, author: { login: 'eval' }, url: \`https://github.com/acme/app/pull/\${number}\` });
   fs.writeFileSync(${JSON.stringify(path.join(tmp, 'prs.json'))}, JSON.stringify(prs));
