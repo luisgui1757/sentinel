@@ -1,1 +1,1 @@
-{ "skill": "statechart", "timeout": 1800, "requires": ["mise"], "judge_files": ["RENEWAL.md"] }
+{ "skill": "statechart", "timeout": 1800, "requires": ["mise"], "judge_files": ["RENEWAL.md"], "without_skills": ["create-formal-verification-skill", "maintain-formal-verification-skill", "statechart"] }

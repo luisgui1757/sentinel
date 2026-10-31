@@ -1,6 +1,6 @@
 ---
 name: create-verification-skill
-description: "Generate a project-local verification skill that drives your app the way a user does, in any language, framework, or platform: a UI, CLI, API, or service. Use when a project has no scripted way to prove that a feature works, or when the user asks for a verification or control skill for a repo."
+description: "Use when the user asks for a repeatable way for agents to run an app and prove that its features work, or when a project has no scripted way to prove a feature. Generates a project-local verification skill that drives the app the way a user does: a UI, CLI, API, or service."
 ---
 
 # Create a verification skill

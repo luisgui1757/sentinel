@@ -1,1 +1,1 @@
-{ "skill": "create-verification-skill", "timeout": 1800, "judge_trace": true }
+{ "skill": "create-verification-skill", "timeout": 1800, "judge_trace": true, "without_skills": ["create-verification-skill", "maintain-verification-skill"] }

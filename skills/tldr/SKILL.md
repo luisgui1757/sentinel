@@ -1,6 +1,6 @@
 ---
 name: tldr
-description: Makes a long text short and keeps each fact that the reader needs to decide or act. The length follows the number of these facts, not a word count. Use when the user asks for a TLDR, a summary or a short version, or says that a reply or a document is too long.
+description: "Use when the user asks for a TLDR, a summary or a short version, or says that a reply or a document is too long. Makes the text short and keeps each fact that the reader needs to decide or act. The length follows the number of these facts, not a word count."
 ---
 
 # TLDR
@@ -24,6 +24,8 @@ or does:
 - Each number, date, limit and name that the reader needs to act.
 - Each condition, risk and uncertainty.
 - Each check that did not run.
+- For each decision, each option with its cost and its limit.
+- For each risk, what breaks and what removes the risk.
 
 A detail that only supports a unit is not a unit. Put it in the line of its
 unit, or remove it.
@@ -39,7 +41,8 @@ unit, or remove it.
 ## 3. Remove the rest
 
 Remove narration, background, repeated text, examples that repeat a point,
-hedges and praise. Remove the steps that led to a result when the result is
+hedges and praise. Remove offers of more work. Remove a number that only explains
+a unit, such as the data size behind a slow step. Remove the steps that led to a result when the result is
 enough to act. Do not add your own notes or analysis. Summarize the source
 only.
 
@@ -58,5 +61,7 @@ the writing rules of the session.
 ## Check
 
 Before you reply, compare the result with your list of units. If a unit is
-not in the result, add it. If the result is longer than a third of the
-source, remove the lines that change no decision.
+not in the result, add it. Check that the source supports each claim of the
+result, with the same strength. Count the words of the source and of the
+result. If the result is longer than a third of the source, remove the lines
+that change no decision, and count again.

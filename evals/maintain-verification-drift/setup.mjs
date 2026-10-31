@@ -66,3 +66,6 @@ git('add', '-A'); git('commit', '-qm', 'Let users delete a note');
 next = next.replace("    const text = JSON.parse(body || '{}').text;", "    const text = Buffer.from(JSON.parse(body || '{}').text ?? '', 'ascii').toString('ascii') === JSON.parse(body || '{}').text ? JSON.parse(body || '{}').text : null;\n    if (text === null) { res.writeHead(500); return res.end(); }");
 write('server.js', next);
 git('add', '-A'); git('commit', '-qm', 'Normalize note text');
+next = next.replace('process.env.PORT ?? 3000', 'process.env.NOTES_PORT ?? 3000');
+write('server.js', next);
+git('add', '-A'); git('commit', '-qm', 'Read the port from NOTES_PORT');

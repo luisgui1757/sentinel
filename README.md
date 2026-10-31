@@ -65,6 +65,7 @@ file, the file keeps its mode. A project install writes the rules to `AGENTS.md`
 `rules/AGENTS.md` holds the rules. They tell an agent to do these things:
 
 - Change files only when the user asks for a change.
+- Read the skill whose description fits the task before the task starts.
 - Make the smallest complete change. Do not add layers, options or guards that
   the task does not need.
 - Write no audit, findings, plan or handoff files.

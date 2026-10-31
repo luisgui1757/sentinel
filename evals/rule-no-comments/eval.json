@@ -1,1 +1,1 @@
-{ "rule": "no-comments" }
+{ "rule": "no-comments", "base": "b2f3cb7" }

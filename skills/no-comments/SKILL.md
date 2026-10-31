@@ -21,7 +21,10 @@ repository only when the user asks for it.
   line or a build tag.
 - A lint or type suppression whose rule is wrong for that line, or is only
   about style.
-- Doc comments that define the contract of a public API.
+- Doc comments that define the contract of a public API, in the doc format of
+  the language. Examples are JSDoc, a Python docstring and a Go comment right
+  above an exported name. In JavaScript, a plain `//` line above a function is
+  not a doc comment.
 - A limit that an external system forces, such as a vendor, a platform, a
   protocol or a dependency, with a link to the issue, the spec or the docs.
 

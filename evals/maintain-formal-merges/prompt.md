@@ -2,4 +2,4 @@
 tags: [formal]
 ---
 
-We merged some changes to the lease last week. Bring our formal check back in line with the code, and tell me what it finds. Do not fix the lease yet.
+We merged some changes to the lease and the quota last week. Bring our formal checks back in line with the code, and tell me what they find. Do not fix the code yet.

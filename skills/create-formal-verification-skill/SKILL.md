@@ -1,6 +1,6 @@
 ---
 name: create-formal-verification-skill
-description: "Generate a project-local skill that formally verifies the code where a bug costs the most and tests reach the least, in any language, with whichever verification tool fits. Use when concurrency, retries, state machines, parsers, or unsafe code need more than tests, or when the user asks to model-check a race or prove an invariant."
+description: "Use when the user asks to prove an invariant, to model-check concurrent code, retries or a state machine, or to set up a formal check that agents can run again. Generates a project-local skill that formally verifies the code where a bug costs the most and tests reach the least, in any language, with whichever verification tool fits."
 ---
 
 # Create a formal verification skill

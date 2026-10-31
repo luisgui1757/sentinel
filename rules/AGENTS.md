@@ -15,6 +15,7 @@ the repository come first.
 
 ## Changes
 
+- Before you start a task, read the skill whose description fits the task.
 - Read the code before you change it. Use the patterns that the project
   already has.
 - Make the smallest change that solves the full task. Fix the case that
@@ -26,7 +27,10 @@ the repository come first.
 - Do not add comments to code. When code needs a comment to be clear, rename
   or restructure it.
 - Keep only license headers, tool directives, doc comments of a public API,
-  and a link to the issue or spec of an external limit.
+  and a link to the issue or spec of an external limit. A doc comment follows
+  the doc format of the language. Examples are JSDoc, a Python docstring and a
+  Go comment right above an exported name. In JavaScript, a plain `//` line
+  above a function is not a doc comment.
 - Keep a true warning about our code until a test, a type or a lint rule
   enforces it.
 - In each file that you change, remove the comments that break this rule.

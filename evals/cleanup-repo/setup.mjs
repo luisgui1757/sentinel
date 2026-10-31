@@ -25,15 +25,33 @@ branch('feat/open', 'open.js', true);
 branch('feat/local-only', 'local.js', false);
 write('merged.js', "export const value = 'feat/merged';\n");
 git('add', '-A'); git('commit', '-qm', 'Work on feat/merged (#1)'); git('push', '-q', 'origin', 'main');
+branch('feat/colleague', 'colleague.js', true);
+branch('feat/notes', 'notes.js', true);
+write('notes.js', "export const value = 'feat/notes';\n");
+git('add', '-A'); git('commit', '-qm', 'Work on feat/notes (#6)'); git('push', '-q', 'origin', 'main');
+branch('feat/squashed', 'squashed.js', true);
+write('squashed.js', "export const value = 'feat/squashed';\n");
+git('add', '-A'); git('commit', '-qm', 'Work on feat/squashed (#5)'); git('push', '-q', 'origin', 'main');
+git('checkout', '-q', 'feat/squashed');
+write('squashed.js', "export const value = 'follow-up that nobody pushed';\n");
+git('add', '-A'); git('commit', '-qm', 'Follow-up on feat/squashed'); git('checkout', '-q', 'main');
+write('experiment.js', "export const value = 'stashed experiment';\n");
+git('add', 'experiment.js'); git('stash', 'push', '-q', '-m', 'wip: experiment');
 git('worktree', 'add', '-q', path.join(tmp, 'wt-merged'), 'feat/merged');
+git('worktree', 'add', '-q', path.join(tmp, 'wt-notes'), 'feat/notes');
+fs.writeFileSync(path.join(tmp, 'wt-notes', 'scratch.md'), 'notes that only exist here\n');
 git('worktree', 'add', '-q', path.join(tmp, 'wt-dirty'), 'feat/open');
 fs.writeFileSync(path.join(tmp, 'wt-dirty', 'open.js'), "export const value = 'unsaved work';\n");
 const prs = [
   { number: 1, state: 'MERGED', title: 'Work on feat/merged', headRefName: 'feat/merged', author: { login: 'eval' }, updatedAt: '2026-09-01T10:00:00Z', mergedAt: '2026-09-01T10:00:00Z', closedAt: '2026-09-01T10:00:00Z', url: 'https://github.com/acme/app/pull/1', isDraft: false },
   { number: 2, state: 'CLOSED', title: 'Work on feat/closed', headRefName: 'feat/closed', author: { login: 'eval' }, updatedAt: '2026-09-05T10:00:00Z', mergedAt: null, closedAt: '2026-09-05T10:00:00Z', url: 'https://github.com/acme/app/pull/2', isDraft: false },
   { number: 3, state: 'OPEN', title: 'Work on feat/open', headRefName: 'feat/open', author: { login: 'eval' }, updatedAt: '2026-10-29T10:00:00Z', mergedAt: null, closedAt: null, url: 'https://github.com/acme/app/pull/3', isDraft: false },
+  { number: 4, state: 'CLOSED', title: 'Work on feat/colleague', headRefName: 'feat/colleague', author: { login: 'colleague' }, updatedAt: '2026-09-20T10:00:00Z', mergedAt: null, closedAt: '2026-09-20T10:00:00Z', url: 'https://github.com/acme/app/pull/4', isDraft: false },
+  { number: 5, state: 'MERGED', title: 'Work on feat/squashed', headRefName: 'feat/squashed', author: { login: 'eval' }, updatedAt: '2026-10-02T10:00:00Z', mergedAt: '2026-10-02T10:00:00Z', closedAt: '2026-10-02T10:00:00Z', url: 'https://github.com/acme/app/pull/5', isDraft: false },
+  { number: 6, state: 'MERGED', title: 'Work on feat/notes', headRefName: 'feat/notes', author: { login: 'eval' }, updatedAt: '2026-10-03T10:00:00Z', mergedAt: '2026-10-03T10:00:00Z', closedAt: '2026-10-03T10:00:00Z', url: 'https://github.com/acme/app/pull/6', isDraft: false },
 ];
 fs.writeFileSync(path.join(tmp, 'prs.json'), JSON.stringify(prs));
+fs.writeFileSync(path.join(tmp, 'shas.json'), JSON.stringify(Object.fromEntries(git('for-each-ref', '--format=%(refname:short) %(objectname)', 'refs/heads').trim().split('\n').map(line => line.split(' ')))));
 fs.writeFileSync(path.join(bin, 'gh'), `#!/usr/bin/env node
 const fs = require('node:fs');
 const { spawnSync } = require('node:child_process');
