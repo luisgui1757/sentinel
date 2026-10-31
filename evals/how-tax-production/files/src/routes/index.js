@@ -1,3 +1,3 @@
 import { createOrder } from '../handlers/createOrder.js';
 
-export const routes = { 'POST /orders': createOrder };
+export const routes = new Map([['POST /orders', createOrder]]);
