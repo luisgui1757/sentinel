@@ -20,7 +20,7 @@ for (const line of text.replace(/```[\s\S]*?```/g, '').split('\n')) {
   if (/^\s*([-*+]|\d+\.)\s/.test(line) || !unit || (!/^\s/.test(line) && unit.item)) { unit = { item: /^\s*([-*+]|\d+\.)\s/.test(line), text: '' }; units.push(unit); }
   unit.text += ` ${line.trim()}`;
 }
-const sentences = body => body.replace(/^\s*([-*+]|\d+\.)\s+/, '').replace(/`[^`]*`/g, 'code').replace(/^\s*\*\*([^*]+)\*\*\s*/, (label, text) => /:\s*$/.test(text) || /^\d+\.\s/.test(text) || text.split(/\s+/).length <= 6 ? '' : label).replace(/\*\*/g, '').split(/[.!?](?:\s|$)/).filter(part => part.trim()).length;
+const sentences = body => body.replace(/^\s*([-*+]|\d+\.)\s+/, '').replace(/`[^`]*`/g, 'code').replace(/^\s*\*\*([^*]+)\*\*\s*/, (label, text) => /:\s*$/.test(text) || /^\d+\.\s/.test(text) ? '' : label).replace(/\*\*/g, '').split(/[.!?](?:\s|$)/).filter(part => part.trim()).length;
 const long = units.filter(u => sentences(u.text) > 3);
 check('each paragraph has 3 sentences or fewer', !long.length, long.map(u => u.text.trim().slice(0, 80)).join(' | '));
 report();
