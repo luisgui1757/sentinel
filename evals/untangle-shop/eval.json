@@ -1,0 +1,1 @@
+{"skill": "untangle", "timeout": 1200, "judge_trace": true, "critical": ["total keeps its result", "OLD_TAX still switches the tax rate", "formatMoney stays in the public API", "the discount codes still load"], "minor": ["removes the unused left-pad dependency"]}
