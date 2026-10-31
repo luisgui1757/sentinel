@@ -47,8 +47,8 @@ unit, or remove it.
 Remove narration, background, repeated text, examples that repeat a point,
 hedges and praise. Remove offers of more work. Remove a number that only
 explains a unit, such as the line count behind a slow test. Remove the steps
-that led to a result when the result is enough to act. Do not add your own notes or analysis. Summarize the source
-only.
+that led to a result when the result is enough to act. Do not add your own
+notes or analysis. Summarize the source only.
 
 ## 4. Write the result
 
