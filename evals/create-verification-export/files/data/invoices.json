@@ -1,0 +1,7 @@
+[
+  { "id": "INV-1", "customer": "Acme", "amount": 1200 },
+  { "id": "INV-2", "customer": "Globex", "amount": 450 },
+  { "id": "INV-3", "customer": "Initech", "amount": 980 },
+  { "id": "INV-4", "customer": "Umbrella", "amount": 75 },
+  { "id": "INV-5", "customer": "Hooli", "amount": 3100 }
+]

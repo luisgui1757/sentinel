@@ -15,6 +15,7 @@ the repository come first.
 
 ## Changes
 
+- Before you start a task, read the skill whose description fits the task.
 - Read the code before you change it. Use the patterns that the project
   already has.
 - Make the smallest change that solves the full task. Fix the case that
@@ -26,7 +27,10 @@ the repository come first.
 - Do not add comments to code. When code needs a comment to be clear, rename
   or restructure it.
 - Keep only license headers, tool directives, doc comments of a public API,
-  and a link to the issue or spec of an external limit.
+  and a link to the issue or spec of an external limit. A doc comment follows
+  the doc format of the language. Examples are JSDoc, a Python docstring and a
+  Go comment right above an exported name. In JavaScript, a plain `//` line
+  above a function is not a doc comment.
 - Keep a true warning about our code until a test, a type or a lint rule
   enforces it.
 - In each file that you change, remove the comments that break this rule.
@@ -41,8 +45,10 @@ the repository come first.
   documentation.
 - Before you end a task, remove the temporary files, worktrees, branches and
   stashes that you made for it. This rule is your permission.
-- Delete a branch after its PR merges or closes. Keep a branch with commits
-  that are on no remote, and report it.
+- Delete a branch after its PR merges or closes, locally and on the remote.
+  This includes the branch of a PR that you close. Keep the remote branch of a
+  PR that another person closed. Keep a branch with commits that are on no
+  remote, and report it.
 - Keep a worktree with uncommitted changes, and report it. Do not remove the
   worktree that you run in.
 - When you replace a PR that you opened, close the old PR with a link to the

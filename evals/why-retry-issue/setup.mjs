@@ -37,7 +37,7 @@ const prs = [
   pr(41, 'Lower retries to keep order sync fast', 'Each retry adds about 400 ms. With 3 retries, order sync stays under 2 seconds at p99.'),
   pr(55, 'Raise MAX_RETRIES to 6 for the flaky network', 'The network is flaky. More retries help. Latency no longer matters here, because order sync now runs in a background queue.'),
   pr(57, 'Revert "Raise MAX_RETRIES to 6 for the flaky network"', 'Reverts #55.', [
-    ['ops-oncall', 'Rolling this back. Details in #49.'],
+    ['ops-oncall', 'Rolling this back.'],
   ]),
   pr(58, 'Add order sync', 'Adds order sync.'),
   pr(60, 'Tidy constants', 'Renames a variable.'),
@@ -77,6 +77,9 @@ else if (a === 'pr' && b === 'list') out(prs);
 else if (a === 'issue' && b === 'list') out(issues);
 else if (a === 'api') {
   const m = (b ?? '').match(/(pulls|issues)\\/(\\d+)(\\/comments)?/);
+  const query = decodeURIComponent((b ?? '').split('q=')[1] ?? '').toLowerCase().split(/[\\s+]+/).filter(w => w && !w.includes(':'));
+  if (!m && /search\\/issues/.test(b ?? '')) { out({ total_count: issues.length, items: issues.filter(p => query.some(w => JSON.stringify(p).toLowerCase().includes(w))).map(p => ({ number: p.number, title: p.title, body: p.body, state: 'closed', html_url: p.url })) }); process.exit(0); }
+  if (!m && /\\/issues(\\?|$)/.test(b ?? '')) { out(issues.map(p => ({ number: p.number, title: p.title, body: p.body, state: 'closed', html_url: p.url }))); process.exit(0); }
   const p = m && find(m[2]);
   if (!p) { console.error('Not Found'); process.exit(1); }
   out(m[3] ? p.comments.map(x => ({ user: { login: x.author.login }, body: x.body, created_at: x.createdAt })) : { number: p.number, title: p.title, body: p.body, user: { login: 'dev' } });

@@ -15,7 +15,11 @@ Roles: \`admin\` (full access), \`admin_viewer\` (read only), \`editor\` (can wr
 Role and permission changes take effect at once.
 
 A customer gets at most one overdue reminder per run, for all overdue invoices together.
-Deleted customers (\`deletedAt\` set) must not get email.
+Deleted customers (\`deletedAt\` set) must not get email. Deleted customers keep their refunds: deletion only stops email.
+
+A renewal keeps the original billing day. In a shorter month, it falls on the last day of that month.
+The grace period starts at the first failed charge and lasts 3 days. A later failure does not extend it.
+The ledger stores a refund as a negative amount.
 `);
 write('src/store.js', `export function memoryStore(permissions) {
   return {
@@ -67,12 +71,30 @@ export async function remindOverdue(customers, now, send) {
   return notifyAll(reminders, reminder => send(reminder.email, \`Invoice \${reminder.invoice} is overdue\`));
 }
 `);
+write('src/renewal.js', `const DAY = 86400000;
+
+export function nextRenewal(anchorDay, from) {
+  const date = new Date(from);
+  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + 1, anchorDay)).toISOString().slice(0, 10);
+}
+
+export function recordFailure(subscription, at) {
+  subscription.graceStart = at;
+}
+
+export const inGrace = (subscription, now) => subscription.graceStart !== null && now - subscription.graceStart < 3 * DAY;
+
+export const refundEntry = (invoice, amount) => ({ invoice, type: 'refund', amount: Math.abs(amount) });
+
+export const canRefund = customer => customer.balance > 0;
+`);
 write('test/billing.test.js', `import test from 'node:test';
 import assert from 'node:assert/strict';
 import { memoryStore } from '../src/store.js';
 import { permissionsFor, canWrite } from '../src/permissions.js';
 import { invoicesPage, largestInvoices } from '../src/invoices.js';
 import { notifyAll, remindOverdue } from '../src/notify.js';
+import { nextRenewal, recordFailure, inGrace, refundEntry, canRefund } from '../src/renewal.js';
 
 test('permissions come from the store', async () => assert.deepEqual(await permissionsFor(7, 9, memoryStore({ '7:9': ['read'] })), ['read']));
 test('editors and admins can write', () => assert.ok(canWrite('editor') && canWrite('admin') && !canWrite('viewer')));
@@ -89,5 +111,9 @@ test('overdue invoices get a reminder', async () => {
   await remindOverdue(customers, 20, async (to, text) => sent.push([to, text]));
   assert.deepEqual(sent, [['a@x.io', 'Invoice 1 is overdue']]);
 });
+test('renewal keeps the billing day', () => assert.equal(nextRenewal(15, '2027-01-15'), '2027-02-15'));
+test('a failed charge starts grace', () => { const sub = { graceStart: null }; recordFailure(sub, 0); assert.ok(inGrace(sub, 1000)); });
+test('a refund entry has its type', () => assert.equal(refundEntry('INV-1', 500).type, 'refund'));
+test('a customer with a balance can get a refund', () => assert.ok(canRefund({ balance: 10 })));
 `);
 git('add', '-A'); git('commit', '-qm', 'Add permissions, invoice pages and notifications');

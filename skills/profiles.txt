@@ -6,7 +6,6 @@ core council
 core create-verification-skill
 core file-pr
 core full-stop
-core how
 core leaving-pr-comments
 core maintain-verification-skill
 core modernize
@@ -24,3 +23,4 @@ ui beast-ui
 ui doc-view
 ui frontend-design
 ui impeccable
+explain how

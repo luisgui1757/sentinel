@@ -1,1 +1,1 @@
-{ "skill": "sol-loop", "timeout": 2400, "requires": ["codex"] }
+{ "skill": "sol-loop", "timeout": 2400, "requires": ["codex"], "without_skills": ["sol-loop", "council"] }

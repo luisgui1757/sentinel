@@ -116,6 +116,8 @@ async function sandbox(auth) {
   return { tmp, home, bin, work, env };
 }
 
+const allProfiles = [...new Set(readFileSync(path.join(root, 'skills/profiles.txt'), 'utf8').split('\n').filter(line => line && !line.startsWith('#')).map(line => line.split(' ')[0]))].join(',');
+
 async function prepare(testCase, target, arm, box, baseRules) {
   if (existsSync(path.join(testCase.dir, 'files'))) await fs.cp(path.join(testCase.dir, 'files'), box.work, { recursive: true });
   const git = (...args) => spawnSync('git', args, { cwd: box.work, env: box.env });
@@ -125,11 +127,11 @@ async function prepare(testCase, target, arm, box, baseRules) {
   } else {
     git('init', '-q'); git('add', '-A'); git('commit', '-qm', 'Initial commit');
   }
-  const install = spawnSync(path.join(root, 'tools/install'), ['--global', '--hosts', target.host, '--skills', 'core,formal,ui'], { env: box.env, encoding: 'utf8' });
+  const install = spawnSync(path.join(root, 'tools/install'), ['--global', '--hosts', target.host, '--skills', allProfiles], { env: box.env, encoding: 'utf8' });
   if (install.status !== 0) throw new Error(`install failed: ${install.stderr}`);
   const skills = target.host === 'claude' ? path.join(box.home, '.claude/skills') : path.join(box.home, '.agents/skills');
   const rulesFile = target.host === 'claude' ? path.join(box.home, '.claude/CLAUDE.md') : path.join(box.home, '.codex/AGENTS.md');
-  if (arm === 'without' && testCase.skill) await fs.rm(path.join(skills, testCase.skill), { recursive: true, force: true });
+  if (arm === 'without') for (const skill of testCase.without_skills ?? (testCase.skill ? [testCase.skill] : [])) await fs.rm(path.join(skills, skill), { recursive: true, force: true });
   if (arm === 'without' && testCase.rule) {
     const current = await fs.readFile(path.join(root, 'rules/AGENTS.md'), 'utf8');
     const text = await fs.readFile(rulesFile, 'utf8');
@@ -232,7 +234,7 @@ async function trial(ctx, testCase, target, arm, index) {
   await fs.mkdir(outDir, { recursive: true });
   const started = Date.now();
   try {
-    await prepare(testCase, target, arm, box, ctx.baseRules);
+    await prepare(testCase, target, arm, box, testCase.rule ? ctx.baseRulesFor(testCase) : null);
     const head = spawnSync('git', ['rev-parse', 'HEAD'], { cwd: box.work, encoding: 'utf8' }).stdout.trim();
     const command = agentCommand(target, testCase.prompt, box.work);
     const traceFile = path.join(outDir, 'trace.jsonl');
@@ -297,12 +299,21 @@ async function main() {
   const judges = config.judges.filter(j => !opts.judges || opts.judges.includes(j.host));
   const cases = await loadCases(opts.cases);
   if (!cases.some(testCase => targetsFor(testCase).length)) throw new Error('No targets selected');
-  const baseRules = spawnSync('git', ['show', `${opts.base}:rules/AGENTS.md`], { cwd: root, encoding: 'utf8' });
-  if (baseRules.status !== 0) throw new Error(`Cannot read rules/AGENTS.md at ${opts.base}`);
+  const rulesAt = new Map();
+  const baseRulesFor = testCase => {
+    const ref = testCase.base ?? opts.base;
+    if (!rulesAt.has(ref)) {
+      const rules = spawnSync('git', ['show', `${ref}:rules/AGENTS.md`], { cwd: root, encoding: 'utf8' });
+      if (rules.status !== 0) throw new Error(`Cannot read rules/AGENTS.md at ${ref}`);
+      rulesAt.set(ref, rules.stdout);
+    }
+    return rulesAt.get(ref);
+  };
+  for (const testCase of cases) if (testCase.rule) baseRulesFor(testCase);
   const stamp = new Date().toISOString().replace(/[:.]/g, '-');
   const results = path.join(evalsDir, 'results', stamp);
   await fs.mkdir(results, { recursive: true });
-  const ctx = { results, baseRules: baseRules.stdout, judges, keep: opts.keep, auth: () => ({ claude: claudeToken(), codex: codexAuth() }) };
+  const ctx = { results, baseRulesFor, judges, keep: opts.keep, auth: () => ({ claude: claudeToken(), codex: codexAuth() }) };
   ctx.auth();
   const limit = semaphore(opts.jobs);
   const records = [];

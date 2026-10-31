@@ -1,1 +1,1 @@
-{ "skill": "create-formal-verification-skill", "timeout": 1800 }
+{ "skill": "create-formal-verification-skill", "timeout": 1800, "without_skills": ["create-formal-verification-skill", "maintain-formal-verification-skill", "statechart"] }
