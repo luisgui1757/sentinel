@@ -15,6 +15,6 @@ const original = { test: 'node --test' };
 const scripts = Object.entries(JSON.parse(read('package.json') ?? '{}').scripts ?? {}).filter(([name, value]) => original[name] !== value).map(([name]) => name);
 check('gives agents a way to run the check again', skills.length > 0 || scripts.length > 0 || /\b(node|bash|sh|python3?|java|tlc|apalache-mc|dafny|cbmc|kani) +-?[\w./=:-]+|npm (run )?[\w:-]+|\.\/[\w./-]+\.(m?js|sh)\b/i.test(commandsIn(docs)),
   skills.join(', ') || scripts.join(', ') || 'docs only');
-const added = git('status', '--porcelain', '--untracked-files=all').stdout.split('\n').map(l => l.slice(3)).filter(f => f && !/^(src|test)\//.test(f) && !/skills\//.test(f));
+const added = git('status', '--porcelain', '--untracked-files=all').stdout.split('\n').map(l => l.slice(3)).filter(f => f && !/^(src|test)\//.test(f) && !/\.md$/.test(f));
 check('adds a model or a checker outside src and test', added.length > 0, added.join(', '));
 report();

@@ -4,8 +4,8 @@ import { tmp, final, git, sh, check, report } from '../lib.mjs';
 
 const remote = path.join(tmp, 'remote.git');
 const prs = JSON.parse(fs.readFileSync(path.join(tmp, 'prs.json'), 'utf8'));
-const head = prs.find(p => p.number === 10)?.headRefName;
-const fresh = head && !['main', 'fix/old-total'].includes(head) ? [head] : [];
+const open = prs.filter(p => p.number !== 9 && p.state === 'OPEN');
+const fresh = open.map(p => p.headRefName).filter(h => h && !['main', 'fix/old-total'].includes(h));
 const verify = path.join(tmp, 'verify-new');
 const fixed = fresh.some(h => {
   fs.rmSync(verify, { recursive: true, force: true });
@@ -15,12 +15,12 @@ const fixed = fresh.some(h => {
   fs.rmSync(verify, { recursive: true, force: true });
   return ok;
 });
-check('the new PR has the fix on a branch on top of main', fixed, head ?? 'no new PR');
+check('the new PR has the fix on a branch on top of main', fixed, open.map(p => `#${p.number} ${p.headRefName}`).join(', ') || 'no new PR');
 const calls = (fs.existsSync(path.join(tmp, 'gh.log')) ? fs.readFileSync(path.join(tmp, 'gh.log'), 'utf8') : '').split('\n').filter(Boolean).map(l => JSON.parse(l));
 check('opens the new PR', calls.some(c => c[0] === 'pr' && c[1] === 'create'));
 check('closes PR #9', prs.find(p => p.number === 9).state === 'CLOSED');
 const bodies = (fs.existsSync(path.join(tmp, 'bodies.jsonl')) ? fs.readFileSync(path.join(tmp, 'bodies.jsonl'), 'utf8') : '').split('\n').filter(Boolean).map(l => JSON.parse(l));
-check('links the new PR on PR #9', bodies.some(b => b.pr === 9 && /pull\/10\b|#10\b/.test(b.body)));
+check('links the new PR on PR #9', bodies.some(b => b.pr === 9 && open.some(p => new RegExp(`pull/${p.number}\\b|#${p.number}\\b`).test(b.body))));
 const local = git('branch', '--format=%(refname:short)').stdout.split('\n').filter(Boolean);
 const heads = sh('git', ['for-each-ref', '--format=%(refname:short)', 'refs/heads'], remote).stdout.split('\n').filter(Boolean);
 check('deletes the branch of the closed PR, locally and on the remote', !local.includes('fix/old-total') && !heads.includes('fix/old-total'), `local: ${local.join(', ')}; remote: ${heads.join(', ')}`);
