@@ -27,6 +27,8 @@ the repository come first.
   or restructure it.
 - Keep only license headers, tool directives, doc comments of a public API,
   and a link to the issue or spec of an external limit.
+- Keep a true warning about our code until a test, a type or a lint rule
+  enforces it.
 - In each file that you change, remove the comments that break this rule.
 - Do not add a lint or type suppression to hide a real fault.
 - Do not create files that the task does not need. Do not write audit, review,

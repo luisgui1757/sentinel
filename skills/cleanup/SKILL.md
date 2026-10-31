@@ -27,7 +27,7 @@ use the state of the PR to find merged work, not only `git branch --merged`.
 
 | Item | Safe to remove when | Keep and report when |
 |---|---|---|
-| Worktree | Its branch has a merged or closed PR, or the default branch contains it, and it has no changes to tracked files. | It has changes to tracked files or an open PR, or a session uses it now. |
+| Worktree | Its branch has a merged or closed PR, or the default branch contains it, and `git status --porcelain` in it prints nothing. | `git status --porcelain` in it prints a line, which includes untracked files, or it has an open PR, or a session uses it now. |
 | Local branch | Its PR merged or closed, or the default branch contains it, and each of its commits is on the remote. | It has commits that are on no remote. |
 | Remote branch | Its PR merged, or its PR closed and you are the author. | It has an open PR or no PR, or another person closed it. |
 | Pull request | Never in this skill. | It had no update for 30 days, or a newer PR replaces it. |
@@ -39,9 +39,8 @@ a path by hand.
 
 ## 3. Remove the safe items
 
-- Worktree: `git worktree remove <path>`. If only untracked files stop it,
-  name the files in the report, then use `--force`. Then run
-  `git worktree prune`.
+- Worktree: `git worktree remove <path>`, then `git worktree prune`. Do not
+  use `--force`.
 - Local branch: record its SHA, then run `git branch -D <name>`.
 - Remote branch: `git push origin --delete <name>`.
 - Stale tracking refs: `git fetch --prune origin`.

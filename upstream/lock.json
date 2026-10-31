@@ -720,7 +720,7 @@
       "source": "pstack",
       "path": "pstack/skills/create-verification-skill/SKILL.md",
       "sha256": "d353973547bf8ad8977eca645f4cd4feaed0d32f4b43d1448f906b0a76c4d694",
-      "local": "545407259801c62a9d9a46927d5fbf96a8f145d0fd2b87710cf5e1d2786ca9d7",
+      "local": "ed8bb629398c00b57df7f8983f8853863ed28b1d5210c7b71f01eb24cd18c6bc",
       "executable": false
     },
     "skills/create-verification-skill/references/feature-map-example/README.md": {
@@ -752,7 +752,7 @@
       "source": "pstack",
       "path": "pstack/skills/create-formal-verification-skill/SKILL.md",
       "sha256": "30ef0ac27612ecd16fdc081112113221d673053cef3f8603db11932193861211",
-      "local": "cc5adefdd120e9a9fee32424a4b660c0494dfc2fcad68162bdf3e1ba698b63d9",
+      "local": "e74da58d779bef8551bda0cc3369e2984bd55ae0733672447c359d86d3d7018f",
       "executable": false
     },
     "skills/maintain-formal-verification-skill/SKILL.md": {

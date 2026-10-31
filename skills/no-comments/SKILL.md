@@ -42,8 +42,8 @@ Read the code that it points at before you decide.
 - If the claim is false today, remove the comment.
 - If the claim is about an external limit, keep it with a link.
 - If the claim is true and about our code, keep the comment. Propose a test, a
-  type or a lint rule that enforces it. Remove the comment when the user
-  accepts the proposal.
+  type or a lint rule that enforces it. Remove the comment only when that test,
+  type or lint rule is in the code and enforces the claim.
 
 ## Steps
 
