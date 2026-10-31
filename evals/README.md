@@ -87,6 +87,9 @@ earlier runs of the same day, with 1 to 3 runs for each arm.
 | `why` | Trusted | 2/5 | 0/9 · 0/9 |
 | `tldr` | Use with care | 2/5 | 0/15 · 0/15 |
 | `untangle` | See the note | 0/5 | see the note |
+| `full-stop` | Trusted | 5/5 | 0/15 · 0/15 |
+| `modernize` | Trusted | 2/5 | 0/9 · 1/9 |
+| `file-pr` | Trusted | 4/5 | 0/13 · 0/13 |
 | `how` | Low value | 1/5 | 0/5 · 1/5 |
 | No-comments rule | Trusted | 5/5 | 0/13 · 0/13 |
 | Proof rule: reproduce the bug | Trusted | 3/5 | 0/15 · 0/15 |
@@ -102,7 +105,16 @@ earlier runs of the same day, with 1 to 3 runs for each arm.
   each check, but its report did not name the parts that it kept, in 3 of 3
   runs (major).
 - **tldr:** Opus, Haiku and Luna drop a fact in half the runs or more, with and
-  without the skill.
+  without the skill. After the review by Fable, tldr keeps who holds a doubt,
+  and Opus went from 0/3 to 1/3 and Sol from 2/3 to 3/3 with the skill.
+- **Rules after the review by Fable:** with the rules, the proof probe went
+  from 1/3 to 3/3 on Opus, and the review probe from 1/3 to 2/3. Nothing got
+  worse on Opus or Sol.
+- **full-stop:** it never merged, never turned on auto-merge and never pushed
+  to `main`. Without it, no model opened a PR for a "full stop" request.
+- **file-pr:** no run put the local path from a commit message into the PR
+  text, with or without the skill. The gain is in the title style of the
+  repository and the line that names the model and the harness.
 - **Cleanup rule:** one Haiku run claimed an edit to the PR text that the log
   does not show.
 - **Review rule:** one Opus run said that it left no temporary files, and it
