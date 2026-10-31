@@ -66,6 +66,4 @@ the writing rules of the session.
 
 Before you reply, compare the result with your list of units. If a unit is
 not in the result, add it. Check that the source supports each claim of the
-result, with the same strength. Count the words of the source and of the
-result. If the result is longer than a third of the source, remove the lines
-that change no decision, and count again.
+result, with the same strength. Remove each line that changes no decision.
