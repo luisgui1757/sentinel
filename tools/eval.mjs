@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import fs from 'node:fs/promises';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
@@ -60,6 +60,19 @@ function toolLog(out) {
   for (const call of pending.values()) lines.push(`${call}\n(no result)`);
   const log = lines.join('\n\n');
   return log.length > 60000 ? `${log.slice(0, 30000)}\n[... ${log.length - 60000} characters of the log are left out here ...]\n${log.slice(-30000)}` : log || '(no tool calls)';
+}
+
+function sessionLog(home) {
+  const dir = path.join(home, '.codex', 'sessions');
+  if (!existsSync(dir)) return '';
+  return readdirSync(dir, { recursive: true }).filter(file => file.endsWith('.jsonl')).map(file => {
+    const lines = readFileSync(path.join(dir, file), 'utf8').split('\n').filter(Boolean).map(line => { try { return JSON.parse(line); } catch { return {}; } });
+    const model = lines.find(l => l.type === 'turn_context')?.payload?.model ?? 'unknown';
+    const replies = lines.filter(l => l.type === 'response_item' && l.payload?.type === 'message' && l.payload?.role === 'assistant')
+      .map(l => (l.payload.content ?? []).map(c => c.text ?? '').join(''));
+    const last = replies.at(-1) ?? '(no reply)';
+    return `[codex session] model ${model}, ${replies.length} replies, last reply:\n${last.length > 300 ? `${last.slice(0, 300)} [cut]` : last}`;
+  }).join('\n\n');
 }
 
 async function loadCases(filter) {
@@ -278,7 +291,7 @@ async function trial(ctx, testCase, target, arm, index) {
     const diff = head ? spawnSync('git', ['diff', head], { cwd: box.work, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }).stdout : '';
     const commands = executions(agent.out);
     const runs = testCase.judge_trace ? commands.map(r => `$ ${r.command.slice(0, 600)}\n${r.output.slice(0, 3000)}`).join('\n\n').slice(-20000) : '';
-    const allRuns = toolLog(agent.out);
+    const allRuns = [toolLog(agent.out), sessionLog(box.home)].filter(Boolean).join('\n\n');
     const judged = [];
     if (!trace.error) {
       const checksPass = checks.every(c => c.pass || c.info);
