@@ -31,6 +31,8 @@ Preconditions:
 - **CLI entry.** Create a second note. Run `control-notes cli -- notes create --title "CLI note" --body "Created from terminal" --format json`. Exit code `0` and stdout contain the new note ID and title.
 - **Proof.** Reopen both saved notes from `All notes`. Run `control-notes browser snapshot --aria --path artifacts/create-note/list.aria.txt` and `control-notes browser screenshot --path artifacts/create-note/list.png`. The artifacts show `Release checklist` and `CLI note`.
 
+Status: passing
+
 ## Gotchas
 
 - Pressing `n` while a textbox has focus types the character instead of opening a new editor.

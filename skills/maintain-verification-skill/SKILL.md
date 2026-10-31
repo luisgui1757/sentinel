@@ -1,6 +1,6 @@
 ---
 name: maintain-verification-skill
-description: "Keep a project's verification skill and feature map true to the app: read the source of each feature, drive every feature live, and ship at most one PR of proven fixes. Use after app changes, or when the user asks to check, audit or update a verify skill."
+description: "Keep a project's verification skill true to the app, and its feature map true to what the app promises: read the source of each feature, drive every feature live, and ship at most one PR of proven fixes. Use after app changes, or when the user asks to check, audit or update a verify skill."
 ---
 
 # Maintain a verification skill
@@ -31,8 +31,13 @@ Only edit the verification skill's own directory (its SKILL.md, features/, and a
 
 4. **Live pass.** Required even when source looks clean. The coordinator owns all driving; follow the verification skill's own launch model — one long-lived instance driven serially for servers and UIs, or a fresh isolated session per drive for short-lived CLIs (the skill's Launch section decides, not this one). Exercise every feature at least once, and hold three invariants the whole pass, whatever the failure: (1) never drive an instance you haven't health-checked since it last did something surprising — doctor before first drive, doctor on each fresh session where sessions are the unit, doctor again after any failed drive, and where doctor can't see the failure (a wedged UI state on a healthy process), reset to a known state or relaunch rather than hoping; (2) evidence captured so far survives every cleanup, checked at its named location, not assumed; (3) nothing a drive started outlives that drive's usefulness — failed-iteration residue is cleaned whether the session is stuck, exited, or shared (for a shared instance, clean the residue, not the instance). A doctor failure caused by skill drift is drift: fix it under edit scope and retry once — restart whatever the fix invalidated, nothing more — before calling the pass `blocked`. A feature that can't be reached is `verified-unreachable` only with the concrete prerequisite (auth, entitlement, OS, external state) and the route attempted; if the map omits that prerequisite, that's drift. Any harness fix from triage gets re-driven live before it ships. Final teardown happens after the last drive of the run — including those re-proofs — so nothing outlives the run (evidence stays, per the skill).
 
-5. **Triage.** Wrong or missing user-POV description → doc drift, fix it. Working behavior the harness can't drive → harness gap, fix it; a harness fix follows the same helpers rule as generation (scripts executable, invocation documented in the skill body). App behavior that's actually broken → product gap; record it for the user, keep it out of this PR.
+5. **Triage.** For each difference between the map and the app, decide which it is, and cite the code or the commit:
+   - **Harness gap:** the feature works, but the launch, doctor, drive or check steps no longer reach it. Fix the harness. A harness fix follows the same helpers rule as generation (scripts executable, invocation documented in the skill body).
+   - **Doc drift:** the map tells wrongly how to reach or use a feature, and what the app promises did not change. Fix the description.
+   - **The promise changed on purpose:** a commit message, a test, a doc or a changelog says that the new behavior is intended. Update the expected result, and cite that evidence in your notes.
+   - **The promise may be broken:** nothing says that the change is intended. This is a product gap. Keep the expected result, set the journey's `Status:` to `failing since <commit>: <what the app does>`, and report it to the user. Keep the product fix out of this PR.
+   A change in what the app does is not evidence that the promise changed. Never change an expected result only to make a journey pass.
 
 6. **Ship or stop.** For changed: one PR of proven corrections, re-read every changed file first. For clean or blocked: no PR, report the outcome and the coverage honestly.
 
-Give concise run notes (features covered, unreachable prerequisites, confirmed drift, outcome) in your reply. Do not write them to a file.
+Give concise run notes (features covered, unreachable prerequisites, confirmed drift, promises changed on purpose with their evidence, journeys now failing, outcome) in your reply. Do not write them to a file.

@@ -36,6 +36,8 @@ Preconditions:
 - **CLI miss.** Search for an absent value. Run `control-notes cli -- notes search "volcano" --format json`. Exit code `0` and stdout are `[]`.
 - **Proof.** Capture the populated result state. Run `control-notes browser snapshot --aria --path artifacts/search/results.aria.txt` and `control-notes browser screenshot --path artifacts/search/results.png`. Both artifacts identify Notes, the query, and `Quarterly plan`.
 
+Status: passing
+
 ## Gotchas
 
 - Pressing `/` while the editor or searchbox has focus inserts text instead of opening search.

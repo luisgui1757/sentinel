@@ -245,7 +245,7 @@ async function trial(ctx, testCase, target, arm, index) {
     spawnSync('git', ['add', '-A', '-N'], { cwd: box.work });
     let checks = [];
     if (existsSync(path.join(testCase.dir, 'check.mjs'))) {
-      const check = spawnSync('node', [path.join(testCase.dir, 'check.mjs')], { cwd: testCase.dir, encoding: 'utf8', timeout: 300000,
+      const check = spawnSync('node', [path.join(testCase.dir, 'check.mjs')], { cwd: testCase.dir, encoding: 'utf8', timeout: (testCase.check_timeout ?? 300) * 1000,
         env: { ...box.env, EVAL_WORK: box.work, EVAL_FINAL: finalFile, EVAL_TRACE: traceFile, EVAL_HOME: box.home, EVAL_TMP: box.tmp, EVAL_HOST: target.host, EVAL_HEAD: head } });
       try { checks = JSON.parse(check.stdout).checks; } catch { checks = [{ name: 'check.mjs', pass: false, detail: (check.stderr || check.stdout).slice(0, 500) }]; }
     }

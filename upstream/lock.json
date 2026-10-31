@@ -720,32 +720,35 @@
       "source": "pstack",
       "path": "pstack/skills/create-verification-skill/SKILL.md",
       "sha256": "d353973547bf8ad8977eca645f4cd4feaed0d32f4b43d1448f906b0a76c4d694",
-      "local": "92e2a324628dd2041d937bde9e322db9b91748594fbe475bba17456f1b2b152d",
+      "local": "3068553998a3684ee823db5883d22412ec7cf0d6dfe26321eb654690c415ff5e",
       "executable": false
     },
     "skills/create-verification-skill/references/feature-map-example/README.md": {
       "source": "pstack",
       "path": "pstack/skills/create-verification-skill/references/feature-map-example/README.md",
       "sha256": "cb7bd782cf89968a4ba3d58a5151db837430db92d19a6f52a906973b77b516ba",
+      "local": "bf6c762988bfbe1e26179c074ebbce57879b1474641897db49edff82eb9e3a7f",
       "executable": false
     },
     "skills/create-verification-skill/references/feature-map-example/create-note.md": {
       "source": "pstack",
       "path": "pstack/skills/create-verification-skill/references/feature-map-example/create-note.md",
       "sha256": "644a44c74f35d38c2feb7cd05a0121fdebbb623e8dc376c185b565a581d1ccf7",
+      "local": "fb2f284871fe00c86911804de8f86024012eb34bc4f72b0c21c61140f577c174",
       "executable": false
     },
     "skills/create-verification-skill/references/feature-map-example/search.md": {
       "source": "pstack",
       "path": "pstack/skills/create-verification-skill/references/feature-map-example/search.md",
       "sha256": "6e87b9e7f2791a7776ba1bb83f371cd285c306c67f19d245cc4dd6ca3015c823",
+      "local": "e682d61699dffddf384837046c0c7c7592b750db9517deddc7c1b6ba32deb448",
       "executable": false
     },
     "skills/maintain-verification-skill/SKILL.md": {
       "source": "pstack",
       "path": "pstack/skills/maintain-verification-skill/SKILL.md",
       "sha256": "515c0eaa054b3f6be1b1fb06f2c2f173c80fddb58bbcac57576f89c479bc68e8",
-      "local": "e80a9d66d6073b26fb2a5cb3b3f258a50b59762933db0d422ca775d2305d6b36",
+      "local": "a00a24335c78b2b7487be6652483603a1957850caad37d0ef970a9f7cb5459e2",
       "executable": false
     },
     "skills/create-formal-verification-skill/SKILL.md": {
@@ -772,7 +775,7 @@
       "source": "pstack",
       "path": "pstack/skills/statechart/SKILL.md",
       "sha256": "010b7b4532406739b1c3a426d1a45f02bb618a42561fc96b3976e064a7f8384d",
-      "local": "92b05970992e5213c094a76c27efef43ace860b5248862f5a6dffc9abf23c834",
+      "local": "aaa0032bca4857dd04d307e0a251cc766c9409bba33e49e4d5a4e69a83e47971",
       "executable": false
     },
     "skills/statechart/references/render.md": {

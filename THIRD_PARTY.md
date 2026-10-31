@@ -34,6 +34,12 @@ of each host. `create-verification-skill` reports a checkout that does not
 start and changes no product code. `maintain-verification-skill` treats copies
 in several folders as one skill and gives its notes in the reply.
 
+Both verification skills keep a `Status:` line for each journey. The create
+skill indexes each feature and adds one check command. It breaks one feature to
+prove that the check can fail. The maintain skill changes an expected result
+only with evidence that the promise changed on purpose. `statechart` reports a
+replayed violation as a bug.
+
 Council runs Claude Opus and GPT Sol by default, one seat each. It uses only
 the members that the user names. It fills extra seats with copies in the order
 of the user's list, and it checks the `PATH` for each CLI. It has a design

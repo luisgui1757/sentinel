@@ -36,7 +36,7 @@ Each feature file starts with an H1 title and one paragraph describing the user-
 
 1. `Sub-features` lists short IDs with one line for each behavior.
 2. `How to get to it (user POV)` lists every user entry point.
-3. `Driving it with <harness>` starts with `Preconditions:` and uses labeled bullets that pair each user action with an exact command and observable result.
+3. `Driving it with <harness>` starts with `Preconditions:`, uses labeled bullets that pair each user action with an exact command and observable result, and ends with a `Status:` line: `passing`, or `failing since <commit>: <what the app does>`.
 4. `Gotchas` lists traps that can waste or invalidate a verification run.
 
 Keep implementation details out of the map. Name only user paths, stable handles, required state, commands, and observable proof.
@@ -45,3 +45,4 @@ Keep implementation details out of the map. Name only user paths, stable handles
 
 - [Create a note](./create-note.md) covers browser and CLI creation, cancellation, persistence, and cleanup.
 - [Search notes](./search.md) covers toolbar, keyboard, and CLI search with matching, empty, and clear states.
+- Export notes: `unmapped`. Reached with `notes export --format md`. It has no feature file yet.
