@@ -26,6 +26,8 @@ or does:
 - Each check that did not run.
 - For each decision, each option with its cost and its limit.
 - For each risk, what breaks and what removes the risk.
+- For each change that the reader must make, the exact change, such as
+  "change its connection string and client library", not only "fix the export".
 
 A detail that only supports a unit is not a unit. Put it in the line of its
 unit, or remove it.
@@ -37,6 +39,8 @@ unit, or remove it.
 - Never remove a unit or make it shorter to meet a word count.
 - Keep numbers, names, identifiers, code and quotations exactly.
 - Keep each statement of uncertainty. Do not make a guess sound like a fact.
+- Keep the strength of each recommendation. A slight preference stays a slight
+  preference.
 
 ## 3. Remove the rest
 

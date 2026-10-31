@@ -66,19 +66,33 @@ description: Prove that at most one worker holds the lease. Use after each chang
 
 Run \`node verify/lease-model.mjs\`. It prints \`OK\` and exits 0, or prints \`VIOLATION\` with the order of steps and exits 1.
 `);
+write('src/quota-store.js', `export function memoryQuotaStore() {
+  const holders = new Map();
+  return {
+    claimIfBelow: async (name, worker, max) => {
+      const set = holders.get(name) ?? new Set();
+      if (set.has(worker) || set.size >= max) return false;
+      set.add(worker);
+      holders.set(name, set);
+      return true;
+    },
+    release: async (name, worker) => holders.get(name)?.delete(worker) ?? false,
+  };
+}
+`);
 write('src/quota.js', `export class Quota {
   constructor(store, max) {
     this.store = store;
     this.max = max;
   }
 
-  async take() {
-    return this.store.incrementIfBelow('used', this.max);
+  async take(worker) {
+    return this.store.claimIfBelow('quota', worker, this.max);
   }
 }
 `);
 write('verify/quota-model.mjs', `const max = 1;
-const start = { used: 0, pc: [0, 0] };
+const start = { used: 0, held: [false, false], pc: [0, 0] };
 const key = s => JSON.stringify(s);
 
 function steps(state) {
@@ -86,7 +100,7 @@ function steps(state) {
   for (const w of [0, 1]) {
     if (state.pc[w] > 0) continue;
     const s = structuredClone(state);
-    if (s.used < max) s.used += 1;
+    if (s.used < max && !s.held[w]) { s.used += 1; s.held[w] = true; }
     s.pc[w] = 1;
     next.push({ worker: w, step: 'take', state: s });
   }
@@ -97,8 +111,8 @@ const seen = new Set([key(start)]);
 const queue = [{ state: start, path: [] }];
 while (queue.length) {
   const { state, path } = queue.shift();
-  if (state.used < 0 || state.used > max) {
-    console.log('VIOLATION: used is outside 0..max');
+  if (state.used !== state.held.filter(Boolean).length || state.used > max) {
+    console.log('VIOLATION: more claims than holders, or more than max');
     console.log(path.join(' -> '));
     process.exit(1);
   }
@@ -108,16 +122,16 @@ while (queue.length) {
     queue.push({ state: s, path: [...path, \`worker \${worker}: \${step}\`] });
   }
 }
-console.log(\`OK: \${seen.size} states, used stays in 0..max\`);
+console.log(\`OK: \${seen.size} states, each claim has one holder and at most max\`);
 `);
 write('.agents/skills/formal-quota/SKILL.md', `---
 name: formal-quota
-description: Prove that the quota never goes below 0 or above its maximum. Use after each change to src/quota.js or to the store that it uses.
+description: Prove that the quota never gives out more slots than its maximum, and that each slot has one holder. Use after each change to src/quota.js or to src/quota-store.js.
 ---
 
 # Formal check of the quota
 
-\`verify/quota-model.mjs\` models \`Quota\` for two workers and a maximum of 1. Each worker takes one atomic step, \`take\`, which is \`store.incrementIfBelow('used', max)\` in \`src/quota.js\`. The model explores every order of steps and checks that \`used\` stays in 0..max.
+\`verify/quota-model.mjs\` models \`Quota\` for two workers and a maximum of 1. Each worker takes one atomic step, \`take\`, which is \`store.claimIfBelow('quota', worker, max)\` in \`src/quota.js\`. \`src/quota-store.js\` gives a slot only to a worker that has none, while fewer than max slots are taken. The model explores every order of steps and checks that each claim has one holder and that at most max slots are taken.
 
 Run \`node verify/quota-model.mjs\`. It prints \`OK\` and exits 0, or prints \`VIOLATION\` with the order of steps and exits 1.
 `);
@@ -140,12 +154,12 @@ write('src/lease.js', `export class Lease {
 }
 `);
 git('add', '-A'); git('commit', '-qm', 'Use plain get and set in the lease store');
-write('src/quota.js', fs.readFileSync(path.join(work, 'src/quota.js'), 'utf8').replace(`    return this.store.incrementIfBelow('used', this.max);
-  }`, `    return this.store.incrementIfBelow('used', this.max);
+write('src/quota.js', fs.readFileSync(path.join(work, 'src/quota.js'), 'utf8').replace(`    return this.store.claimIfBelow('quota', worker, this.max);
+  }`, `    return this.store.claimIfBelow('quota', worker, this.max);
   }
 
-  async refund() {
-    return this.store.decrementIfAbove('used', 0);
+  async refund(worker) {
+    return this.store.release('quota', worker);
   }`));
 git('add', '-A'); git('commit', '-qm', 'Let a worker give back its quota slot');
 write('src/lease.js', fs.readFileSync(path.join(work, 'src/lease.js'), 'utf8').replace(`  async release(worker) {

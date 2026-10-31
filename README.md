@@ -28,7 +28,7 @@ Start a new agent session after the install.
 | Option | Use |
 |---|---|
 | `--hosts` / `-Hosts` | `codex`, `claude`, `copilot`, `kiro`, `opencode`, or `all` |
-| `--skills` / `-Skills` | `core`, `formal`, `ui`, or a list. The default is `core`. Use `none` to install only the rules. |
+| `--skills` / `-Skills` | `core`, `formal`, `ui`, `explain`, or a list. The default is `core`. Use `none` to install only the rules. |
 | `--global` / `-Global` | Install into your user folder. |
 | `--project DIR` / `-Project DIR` | Install into one repository. |
 | `--no-rules` / `-NoRules` | Install only the skills. |
@@ -98,7 +98,6 @@ agent can also load each skill when its description fits the task.
 | `untangle` | "untangle" | The agent finds what a codebase does not need and proves each cut. |
 | `cleanup` | "clean up the branches" | The agent removes merged worktrees and branches and reports the others. |
 | `no-comments` | "remove the comments" | The agent removes comments that code can replace, and keeps the others with a reason. |
-| `how` | "how does X work" | The agent reads the code and explains it, with the files that it read. |
 | `why` | "why is X like this" | The agent searches git, pull requests and your MCP servers, and gives the reason with a confidence level. |
 | `tldr` | "tldr" | A short version that keeps each fact that you need to decide or act. |
 | `technical-writing` | "simplify this", "STE" | Docs, PR text and rewrites in simple technical English, without AI patterns. |
@@ -131,6 +130,12 @@ as locks, retries, queues and protocols. These skills are from pstack.
 `statechart` needs Node 22.18 or later, Bun or Deno. On the first run, it
 installs Java and TLC with mise and needs the network. Set `TLA2TOOLS` and
 `JAVA` to use your own copies. It does not run on Windows outside WSL.
+
+The `explain` profile holds `how`: say "how does X work", and the agent
+explains the code with the files that it read. In the evals, strong models
+explained the code as well without it, and it starts 1 to 5 subagents for
+each question. Install it with `--skills core,explain` if you want its
+delegated explanations.
 
 The `ui` profile is for interface work.
 

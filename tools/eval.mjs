@@ -116,6 +116,8 @@ async function sandbox(auth) {
   return { tmp, home, bin, work, env };
 }
 
+const allProfiles = [...new Set(readFileSync(path.join(root, 'skills/profiles.txt'), 'utf8').split('\n').filter(line => line && !line.startsWith('#')).map(line => line.split(' ')[0]))].join(',');
+
 async function prepare(testCase, target, arm, box, baseRules) {
   if (existsSync(path.join(testCase.dir, 'files'))) await fs.cp(path.join(testCase.dir, 'files'), box.work, { recursive: true });
   const git = (...args) => spawnSync('git', args, { cwd: box.work, env: box.env });
@@ -125,7 +127,7 @@ async function prepare(testCase, target, arm, box, baseRules) {
   } else {
     git('init', '-q'); git('add', '-A'); git('commit', '-qm', 'Initial commit');
   }
-  const install = spawnSync(path.join(root, 'tools/install'), ['--global', '--hosts', target.host, '--skills', 'core,formal,ui'], { env: box.env, encoding: 'utf8' });
+  const install = spawnSync(path.join(root, 'tools/install'), ['--global', '--hosts', target.host, '--skills', allProfiles], { env: box.env, encoding: 'utf8' });
   if (install.status !== 0) throw new Error(`install failed: ${install.stderr}`);
   const skills = target.host === 'claude' ? path.join(box.home, '.claude/skills') : path.join(box.home, '.agents/skills');
   const rulesFile = target.host === 'claude' ? path.join(box.home, '.claude/CLAUDE.md') : path.join(box.home, '.codex/AGENTS.md');

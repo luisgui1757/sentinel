@@ -6,7 +6,7 @@ import { spawnSync } from 'node:child_process';
 const work = process.argv[2];
 const git = (...args) => { const r = spawnSync('git', args, { cwd: work, encoding: 'utf8' }); if (r.status) throw new Error(r.stderr); };
 const write = (file, text) => { fs.mkdirSync(path.dirname(path.join(work, file)), { recursive: true }); fs.writeFileSync(path.join(work, file), text); };
-const source = fs.readFileSync(path.join(import.meta.dirname, '../create-verification-http/files/server.js'), 'utf8');
+const source = fs.readFileSync(path.join(import.meta.dirname, 'server.js'), 'utf8');
 git('init', '-q');
 write('AGENTS.md', '# Notes API\n\nUse the verify-notes skill to prove a change.\n');
 write('package.json', '{ "name": "notes-api", "type": "module", "scripts": { "start": "node server.js" } }\n');
