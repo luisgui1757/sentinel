@@ -1,0 +1,1 @@
+{ "name": "lease", "type": "module", "scripts": { "test": "node --test" } }

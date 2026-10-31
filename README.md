@@ -28,7 +28,7 @@ Start a new agent session after the install.
 | Option | Use |
 |---|---|
 | `--hosts` / `-Hosts` | `codex`, `claude`, `copilot`, `kiro`, `opencode`, or `all` |
-| `--skills` / `-Skills` | `core`, `ui`, or both. The default is `core`. Use `none` to install only the rules. |
+| `--skills` / `-Skills` | `core`, `formal`, `ui`, or a list. The default is `core`. Use `none` to install only the rules. |
 | `--global` / `-Global` | Install into your user folder. |
 | `--project DIR` / `-Project DIR` | Install into one repository. |
 | `--no-rules` / `-NoRules` | Install only the skills. |
@@ -69,6 +69,10 @@ file, the file keeps its mode. A project install writes the rules to `AGENTS.md`
   the task does not need.
 - Write no audit, findings, plan or handoff files.
 - Leave the agent instruction files to the user.
+- Add no comments to code, except the few that code cannot replace. Remove the
+  other comments in each file that the agent changes.
+- Remove the temporary files, worktrees, branches and stashes of a task before
+  the task ends.
 - Add a test only when it can find a real regression.
 - Write all prose in ASD-STE100 Simplified Technical English. This does not
   limit the reasoning of the agent. Ask for plain prose to stop it in a
@@ -76,25 +80,52 @@ file, the file keeps its mode. A project install writes the rules to `AGENTS.md`
 
 ## Skills
 
-The `core` profile is for delivery and review. All of these skills except
-`untangle` come from [tstack](https://github.com/t3dotgg/tstack). Sentinel
-keeps their T3 Code routes and adds a route for each other CLI.
+The `core` profile is for delivery, review, understanding and writing. An
+agent can also load each skill when its description fits the task.
 
 | Skill | Say | Result |
 |---|---|---|
 | `full-stop` | "full stop" | The agent stops when the pull request is ready for you to merge. |
 | `sol-loop` | "sol loop" | GPT Sol reviews the change in a loop until both agents agree. |
-| `council` | "council" | Three models from three providers review until they agree, for 3 rounds by default. Each model runs at high effort by default. Name other models, efforts or limits in the request. |
+| `council` | "council" | Claude Opus and GPT Sol review until they agree, for 3 rounds by default. Each model runs at high effort by default. Name other models, efforts or limits in the request. |
+| `council` | "arena", or a design request to the council | Each model writes its own plan. A judge scores the plans without model names. The agent merges the best parts into one plan. |
 | `file-pr` | "file a PR" | The agent files a short pull request. |
 | `babysit-pr` | "babysit" | The agent watches CI and review bots and fixes real findings. |
 | `takeover` | "take over" | The agent finishes the work of another person and keeps their credit. |
 | `modernize` | "modernize" | The agent rebases an old pull request and asks if it still has a use. |
 | `leaving-pr-comments` | (automatic) | The agent marks the comments that it writes for you. |
 | `untangle` | "untangle" | The agent finds what a codebase does not need and proves each cut. |
+| `cleanup` | "clean up the branches" | The agent removes merged worktrees and branches and reports the others. |
+| `no-comments` | "remove the comments" | The agent removes comments that code can replace, and keeps the others with a reason. |
+| `how` | "how does X work" | The agent reads the code and explains it, with the files that it read. |
+| `why` | "why is X like this" | The agent searches git, pull requests and your MCP servers, and gives the reason with a confidence level. |
+| `tldr` | "tldr" | A short version that keeps each fact that you need to decide or act. |
+| `technical-writing` | "simplify this", "STE" | Docs, PR text and rewrites in simple technical English, without AI patterns. |
+| `create-verification-skill` | "make a verification skill" | The agent writes a project skill that starts the app and proves features the way a user does. |
+| `maintain-verification-skill` | "check the verify skill" | The agent drives each feature again and fixes the skill where the app changed. |
+
+Sources: `untangle`, `cleanup`, `no-comments` and `tldr` are from
+Sentinel. `how`, `why`, `technical-writing` and the verification skills are
+from [pstack](https://github.com/cursor/plugins/tree/main/pstack). The other
+skills are from [tstack](https://github.com/t3dotgg/tstack). Sentinel keeps
+the T3 Code routes of tstack and adds a route for each other CLI.
 
 The repository keeps tstack's `full-send` skill, but the installer does not
 install it, because it merges without a person. `full-stop` reads a copy of
 it and stops before the merge.
+
+The `formal` profile is for code where events can occur in many orders, such
+as locks, retries, queues and protocols. These skills are from pstack.
+
+| Skill | Use |
+|---|---|
+| `create-formal-verification-skill` | A project skill that proves a rule of the code with a model checker or a prover |
+| `maintain-formal-verification-skill` | Bring the model back in line with the code after the code changes |
+| `statechart` | Check a TLA+ model with TLC and draw it as a Mermaid chart, with the shortest path to each state that breaks a rule |
+
+`statechart` needs Node 22.18 or later, Bun or Deno. On the first run, it
+installs Java and TLC with mise and needs the network. Set `TLA2TOOLS` and
+`JAVA` to use your own copies. It does not run on Windows outside WSL.
 
 The `ui` profile is for interface work.
 
@@ -118,7 +149,7 @@ tools/install --project ../web-app --hosts all --skills ui --no-rules
 
 ## Updates
 
-A bot compares tstack, Impeccable and Frontend-design with their pins each
+A bot compares tstack, pstack, Impeccable and Frontend-design with their pins each
 Monday. When an imported file changes, the bot opens a draft pull request with
 the new pins and the full diff. It merges each upstream change into the
 Sentinel edits of that file. After you merge the pull request, pull this
@@ -131,6 +162,8 @@ repository and run the installer again.
 - Codex reads `AGENTS.override.md` instead of `AGENTS.md` when both exist. The
   installer gives a warning in that case.
 - `babysit-pr` waits with `pr-wait`, which needs Python 3 and the GitHub CLI.
+- A Kiro custom agent loads a skill only when its `resources` list names the
+  skill with `skill://`.
 - OpenCode reads `~/.claude/skills` and `~/.agents/skills`. With Claude Code
   and Codex on the same machine, OpenCode sees each skill two times. Set
   `OPENCODE_DISABLE_CLAUDE_CODE=1` to make OpenCode ignore the Claude folders.
@@ -141,6 +174,13 @@ repository and run the installer again.
   and Windows.
 - `make lint` checks the shell script, home paths and the STE prose.
 - `make check` compares the imported files with `upstream/lock.json`.
+- `make eval` runs the cases in `evals/` with Claude Code and Codex. Each case
+  runs with and without its skill or rule, in a new temporary home folder with
+  a fresh install. The runs use your logins and count against your plan.
+  `evals/targets.json` lists the models and efforts. Pass options with
+  `ARGS`, for example `make eval ARGS="--case tldr --targets opus-5.5-medium"`.
+  Results go to `evals/results/`, which git ignores. `evals/README.md`
+  explains the cases and gives the last results for each skill.
 - `node tools/upstream.mjs --update` imports the newest upstream revisions.
   After a manual edit of `upstream/imports.json`, `--sync` imports again at the
   pins.

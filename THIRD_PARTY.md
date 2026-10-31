@@ -8,6 +8,7 @@ the SHA-256 of each imported file. A file that Sentinel changed also has a
 | Skills | Source | License |
 |---|---|---|
 | babysit-pr, council, file-pr, full-send, full-stop, leaving-pr-comments, modernize, sol-loop, takeover | [t3dotgg/tstack](https://github.com/t3dotgg/tstack) | MIT |
+| how, why, technical-writing, create-verification-skill, maintain-verification-skill, create-formal-verification-skill, maintain-formal-verification-skill, statechart | [cursor/plugins](https://github.com/cursor/plugins/tree/main/pstack) (pstack) | MIT |
 | impeccable | [pbakaus/impeccable](https://github.com/pbakaus/impeccable) | Apache 2.0, with `NOTICE.md` |
 | frontend-design | [anthropics/skills](https://github.com/anthropics/skills/tree/main/skills/frontend-design) | Apache 2.0 |
 
@@ -24,5 +25,16 @@ reviewers instead of named review bots. Council stops after 3 rounds by
 default. Council and sol-loop start each reviewer at high effort by default. The Impeccable skill has one
 added note about updates, and that note says that Sentinel added it.
 
-Sentinel wrote beast-ui, doc-view and untangle. Beast-ui runs the Impeccable playbooks in
+`technical-writing` holds the pstack `unslop` skill as `unslop.md`, and adds a
+section to rewrite existing text. Sentinel removes `disable-model-invocation`
+from the pstack skills and writes new descriptions, so that agents can load
+them. It replaces the Cursor model routes with the subagents of the host and
+the project skill folders of each host.
+
+Council runs Claude Opus and GPT Sol by default and has a design mode.
+
+Sentinel wrote beast-ui, cleanup, doc-view, no-comments, tldr and untangle.
+The keep list of no-comments comes from the Comment Sicko agent of pstack.
+
+Beast-ui runs the Impeccable playbooks in
 a fixed order. Doc-view uses Impeccable, Frontend-design and Beast-ui.

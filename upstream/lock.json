@@ -1,12 +1,13 @@
 {
   "version": 1,
   "inputs": {
-    "upstream/imports.json": "101663e41f033a74b0d3b13a41340f13325e56862226f309eeadc477305068b8"
+    "upstream/imports.json": "3a5bda543aeb469dc444843c3aa52aad921e444f05a93bd142760639f1c5b44a"
   },
   "sources": {
     "tstack": "7de017b3fc9d50c03cf3ecb98fb71e0ca65a78bd",
     "impeccable": "414603bf14c7a344edb466bb1f85690c77ce8b7d",
-    "frontend-design": "dbd4588f9e1033efb41dad4bef2f7947c8993d44"
+    "frontend-design": "dbd4588f9e1033efb41dad4bef2f7947c8993d44",
+    "pstack": "4dd1d05818d19792e7cd6e818f1667f95f7e1dbe"
   },
   "files": {
     "skills/babysit-pr/SKILL.md": {
@@ -27,7 +28,7 @@
       "source": "tstack",
       "path": "skills/council/SKILL.md",
       "sha256": "da8b4166f19defb2b6916e8f8fe30fa93b8bd2eabaf870ba87e9accaa038e2b8",
-      "local": "0ac789230b5648882edc2c467b4cd8e475c7967663a93baa999f257234d0eb63",
+      "local": "3811d89dd1b75d28da564f821b8e2297961c0d8646949a01d345e75c8fea496a",
       "executable": false
     },
     "skills/file-pr/SKILL.md": {
@@ -560,6 +561,398 @@
       "source": "frontend-design",
       "path": "skills/frontend-design/SKILL.md",
       "sha256": "d91970639e9f5c37682ac7ab60094d35f1c7c1f38d731bd56396563aee10c1d3",
+      "executable": false
+    },
+    "skills/how/LICENSE": {
+      "source": "pstack",
+      "path": "pstack/LICENSE",
+      "sha256": "bc957ca6bee02792566a1a028d105e02e247c6e77cf057061674273da77b200e",
+      "executable": false
+    },
+    "skills/why/LICENSE": {
+      "source": "pstack",
+      "path": "pstack/LICENSE",
+      "sha256": "bc957ca6bee02792566a1a028d105e02e247c6e77cf057061674273da77b200e",
+      "executable": false
+    },
+    "skills/technical-writing/LICENSE": {
+      "source": "pstack",
+      "path": "pstack/LICENSE",
+      "sha256": "bc957ca6bee02792566a1a028d105e02e247c6e77cf057061674273da77b200e",
+      "executable": false
+    },
+    "skills/create-verification-skill/LICENSE": {
+      "source": "pstack",
+      "path": "pstack/LICENSE",
+      "sha256": "bc957ca6bee02792566a1a028d105e02e247c6e77cf057061674273da77b200e",
+      "executable": false
+    },
+    "skills/maintain-verification-skill/LICENSE": {
+      "source": "pstack",
+      "path": "pstack/LICENSE",
+      "sha256": "bc957ca6bee02792566a1a028d105e02e247c6e77cf057061674273da77b200e",
+      "executable": false
+    },
+    "skills/create-formal-verification-skill/LICENSE": {
+      "source": "pstack",
+      "path": "pstack/LICENSE",
+      "sha256": "bc957ca6bee02792566a1a028d105e02e247c6e77cf057061674273da77b200e",
+      "executable": false
+    },
+    "skills/maintain-formal-verification-skill/LICENSE": {
+      "source": "pstack",
+      "path": "pstack/LICENSE",
+      "sha256": "bc957ca6bee02792566a1a028d105e02e247c6e77cf057061674273da77b200e",
+      "executable": false
+    },
+    "skills/statechart/LICENSE": {
+      "source": "pstack",
+      "path": "pstack/LICENSE",
+      "sha256": "bc957ca6bee02792566a1a028d105e02e247c6e77cf057061674273da77b200e",
+      "executable": false
+    },
+    "skills/how/SKILL.md": {
+      "source": "pstack",
+      "path": "pstack/skills/how/SKILL.md",
+      "sha256": "08a00079bb15b4258874ac3ff62d4ca7e94350ffedb521d0fd296dc9dd21904e",
+      "local": "1dfb4acf44a5bb79ad2d5e5f8c758cdac03e0fb29db36d05b2f91f0cb60b8338",
+      "executable": false
+    },
+    "skills/how/references/explainer-prompt.md": {
+      "source": "pstack",
+      "path": "pstack/skills/how/references/explainer-prompt.md",
+      "sha256": "ddb89cebefc24e2b54517a331aedfe045b6971e101f45c71b8cef4cccff45bff",
+      "executable": false
+    },
+    "skills/how/references/explorer-prompt.md": {
+      "source": "pstack",
+      "path": "pstack/skills/how/references/explorer-prompt.md",
+      "sha256": "6300128385ee940fd42ecb84b0e623435440a2dc283eae54ee4a52ba56947ba1",
+      "executable": false
+    },
+    "skills/why/SKILL.md": {
+      "source": "pstack",
+      "path": "pstack/skills/why/SKILL.md",
+      "sha256": "144d42e7712723d763e607bc0a969e5f1cdf83ec7228519d87677cc534571bed",
+      "local": "faca9fea9af1c839268ae3f0d15c0e14a1efd0de0b93797d628214dc85562f77",
+      "executable": false
+    },
+    "skills/why/references/epistemics.md": {
+      "source": "pstack",
+      "path": "pstack/skills/why/references/epistemics.md",
+      "sha256": "d54a2361b2d5973bc3fe2edf62f446d87935974d4b40d47f23b9529f956ca758",
+      "executable": false
+    },
+    "skills/why/references/investigator-prompt.md": {
+      "source": "pstack",
+      "path": "pstack/skills/why/references/investigator-prompt.md",
+      "sha256": "c44afba186f899094f3694e6c9d6de5d14ff7c4ce28b787a9f50fc789c9a7fc3",
+      "executable": false
+    },
+    "skills/why/references/source-playbook.md": {
+      "source": "pstack",
+      "path": "pstack/skills/why/references/source-playbook.md",
+      "sha256": "9ae9dcb9d09111c9facc68510331c5aba4aed9b1b057314ff1fc0e166ad3993a",
+      "executable": false
+    },
+    "skills/why/references/sources/code-archaeology.md": {
+      "source": "pstack",
+      "path": "pstack/skills/why/references/sources/code-archaeology.md",
+      "sha256": "a4a3970e9db448054aed676f3f7feeee667b4b69f0bd57c8fd72b751be687cc7",
+      "executable": false
+    },
+    "skills/why/references/sources/databricks.md": {
+      "source": "pstack",
+      "path": "pstack/skills/why/references/sources/databricks.md",
+      "sha256": "236ede7aab6454662a992db088a5393537a5233a4c26719c93188f9e174488f6",
+      "executable": false
+    },
+    "skills/why/references/sources/datadog.md": {
+      "source": "pstack",
+      "path": "pstack/skills/why/references/sources/datadog.md",
+      "sha256": "b139faac5dc11b8f26c8255dce6033c1a6ac143b038d3dd103f2034c5dbec9cd",
+      "executable": false
+    },
+    "skills/why/references/sources/incident-postmortem.md": {
+      "source": "pstack",
+      "path": "pstack/skills/why/references/sources/incident-postmortem.md",
+      "sha256": "bf2661f1a81c37700884a45b77d6289be0c802b065febced31990e6564510839",
+      "executable": false
+    },
+    "skills/why/references/sources/linear.md": {
+      "source": "pstack",
+      "path": "pstack/skills/why/references/sources/linear.md",
+      "sha256": "01304e7f1badfcfb78babbb0edcadeb3cc8dd3f713793420cdff24ba190f907c",
+      "executable": false
+    },
+    "skills/why/references/sources/notion.md": {
+      "source": "pstack",
+      "path": "pstack/skills/why/references/sources/notion.md",
+      "sha256": "3bcfa695c49dfad4ac036d5d7181c12585f55ac04f1936198d16ab75a2788997",
+      "executable": false
+    },
+    "skills/why/references/sources/sentry.md": {
+      "source": "pstack",
+      "path": "pstack/skills/why/references/sources/sentry.md",
+      "sha256": "2d4f83048eac1df530b399e2aed75dd7c9c18577b7665420aaeb96d0ceb0b702",
+      "executable": false
+    },
+    "skills/why/references/sources/slack.md": {
+      "source": "pstack",
+      "path": "pstack/skills/why/references/sources/slack.md",
+      "sha256": "3bc6309f5c7b26ace3b919dbd7f7b048861dd2020f910fe24f656cc74b3b661c",
+      "executable": false
+    },
+    "skills/why/references/synthesizer-prompt.md": {
+      "source": "pstack",
+      "path": "pstack/skills/why/references/synthesizer-prompt.md",
+      "sha256": "11c62671aa7b7a6e3d36929ffe2b59bf95e6ca664eee4d93e6ee527dd3390ddb",
+      "executable": false
+    },
+    "skills/technical-writing/SKILL.md": {
+      "source": "pstack",
+      "path": "pstack/skills/technical-writing/SKILL.md",
+      "sha256": "61fe9c424a798ebf36ad94941f87be049cb8827bdf86d21474a0dde37b513c43",
+      "local": "f0f798eb2107ded63fd61d5662b394e76ac56798af79bd2b02e15abc189855af",
+      "executable": false
+    },
+    "skills/create-verification-skill/SKILL.md": {
+      "source": "pstack",
+      "path": "pstack/skills/create-verification-skill/SKILL.md",
+      "sha256": "d353973547bf8ad8977eca645f4cd4feaed0d32f4b43d1448f906b0a76c4d694",
+      "local": "545407259801c62a9d9a46927d5fbf96a8f145d0fd2b87710cf5e1d2786ca9d7",
+      "executable": false
+    },
+    "skills/create-verification-skill/references/feature-map-example/README.md": {
+      "source": "pstack",
+      "path": "pstack/skills/create-verification-skill/references/feature-map-example/README.md",
+      "sha256": "cb7bd782cf89968a4ba3d58a5151db837430db92d19a6f52a906973b77b516ba",
+      "executable": false
+    },
+    "skills/create-verification-skill/references/feature-map-example/create-note.md": {
+      "source": "pstack",
+      "path": "pstack/skills/create-verification-skill/references/feature-map-example/create-note.md",
+      "sha256": "644a44c74f35d38c2feb7cd05a0121fdebbb623e8dc376c185b565a581d1ccf7",
+      "executable": false
+    },
+    "skills/create-verification-skill/references/feature-map-example/search.md": {
+      "source": "pstack",
+      "path": "pstack/skills/create-verification-skill/references/feature-map-example/search.md",
+      "sha256": "6e87b9e7f2791a7776ba1bb83f371cd285c306c67f19d245cc4dd6ca3015c823",
+      "executable": false
+    },
+    "skills/maintain-verification-skill/SKILL.md": {
+      "source": "pstack",
+      "path": "pstack/skills/maintain-verification-skill/SKILL.md",
+      "sha256": "515c0eaa054b3f6be1b1fb06f2c2f173c80fddb58bbcac57576f89c479bc68e8",
+      "local": "e80a9d66d6073b26fb2a5cb3b3f258a50b59762933db0d422ca775d2305d6b36",
+      "executable": false
+    },
+    "skills/create-formal-verification-skill/SKILL.md": {
+      "source": "pstack",
+      "path": "pstack/skills/create-formal-verification-skill/SKILL.md",
+      "sha256": "30ef0ac27612ecd16fdc081112113221d673053cef3f8603db11932193861211",
+      "local": "cc5adefdd120e9a9fee32424a4b660c0494dfc2fcad68162bdf3e1ba698b63d9",
+      "executable": false
+    },
+    "skills/maintain-formal-verification-skill/SKILL.md": {
+      "source": "pstack",
+      "path": "pstack/skills/maintain-formal-verification-skill/SKILL.md",
+      "sha256": "0c96f54293542d3818b68754562b338073958781a9684454611dca37592e2d2c",
+      "local": "df9edb909498a7cc50f56adf0c69aebbf0c0a314ec0b29269f82681b67524090",
+      "executable": false
+    },
+    "skills/technical-writing/unslop.md": {
+      "source": "pstack",
+      "path": "pstack/skills/unslop/SKILL.md",
+      "sha256": "ccab208e315ce05e2fab8eeee2f7879f1289b5c6844840b2d307adf31c79144f",
+      "executable": false
+    },
+    "skills/statechart/SKILL.md": {
+      "source": "pstack",
+      "path": "pstack/skills/statechart/SKILL.md",
+      "sha256": "010b7b4532406739b1c3a426d1a45f02bb618a42561fc96b3976e064a7f8384d",
+      "local": "d19be756705ca81aa89601ab92afd3db81ca513a6a1a5de787dfd68079440aaa",
+      "executable": false
+    },
+    "skills/statechart/references/render.md": {
+      "source": "pstack",
+      "path": "pstack/skills/statechart/references/render.md",
+      "sha256": "8cca446eb0c8f87f2ef7b97c4b149f59aacdc153134b4217c4bcde09b10ac3c4",
+      "executable": false
+    },
+    "skills/statechart/scripts/backends/cfg.ts": {
+      "source": "pstack",
+      "path": "pstack/skills/statechart/scripts/backends/cfg.ts",
+      "sha256": "aea4d8766d214e7fa08f4881f1037319655e75eb56652e1b6d5d4f13a162e3e1",
+      "executable": false
+    },
+    "skills/statechart/scripts/backends/mermaid.ts": {
+      "source": "pstack",
+      "path": "pstack/skills/statechart/scripts/backends/mermaid.ts",
+      "sha256": "75704b2704a9399a39479ff704a580d5b9a1d0fede01fe771df28bf799b434b6",
+      "executable": false
+    },
+    "skills/statechart/scripts/backends/plain-text.ts": {
+      "source": "pstack",
+      "path": "pstack/skills/statechart/scripts/backends/plain-text.ts",
+      "sha256": "e2bedb855eb3806ec3fe7a7bfa49baa309fb4cf0da425b5fe1e0686268ce255a",
+      "executable": false
+    },
+    "skills/statechart/scripts/backends/report.ts": {
+      "source": "pstack",
+      "path": "pstack/skills/statechart/scripts/backends/report.ts",
+      "sha256": "730b4048578ab0468e1581f16fec60b246e321161effb68e481efb373f0f2501",
+      "executable": false
+    },
+    "skills/statechart/scripts/frontends/config.ts": {
+      "source": "pstack",
+      "path": "pstack/skills/statechart/scripts/frontends/config.ts",
+      "sha256": "5eeab1e755f20a2c83b408c6503fdc9c6b10c971d8dedad3f912bd15f9763daf",
+      "executable": false
+    },
+    "skills/statechart/scripts/frontends/dot.ts": {
+      "source": "pstack",
+      "path": "pstack/skills/statechart/scripts/frontends/dot.ts",
+      "sha256": "4eef9ec848557dcd01ca8dbbec75b71c0653c1b73583108bafbb6f559f6d677b",
+      "executable": false
+    },
+    "skills/statechart/scripts/frontends/marks.ts": {
+      "source": "pstack",
+      "path": "pstack/skills/statechart/scripts/frontends/marks.ts",
+      "sha256": "eb0120e61a4004a435c7b7c46916da9dc8b2fa8696ed0d3eb64dc953fed3ab11",
+      "executable": false
+    },
+    "skills/statechart/scripts/frontends/messages.ts": {
+      "source": "pstack",
+      "path": "pstack/skills/statechart/scripts/frontends/messages.ts",
+      "sha256": "36bfc6fb3ffa86897661efb2aa67bd95b55a4da9a3e952831f6e0668826b4b92",
+      "executable": false
+    },
+    "skills/statechart/scripts/frontends/spec.ts": {
+      "source": "pstack",
+      "path": "pstack/skills/statechart/scripts/frontends/spec.ts",
+      "sha256": "450cdfc8d0577a96818ca3697efebbbf70b530a4ba7e3eee03cf1ba8d3f1a0fd",
+      "executable": false
+    },
+    "skills/statechart/scripts/frontends/trace.ts": {
+      "source": "pstack",
+      "path": "pstack/skills/statechart/scripts/frontends/trace.ts",
+      "sha256": "7d083cf89b81c41556fc3fd5f07019886e0f6783c632475e7181ac4b81887367",
+      "executable": false
+    },
+    "skills/statechart/scripts/frontends/value.ts": {
+      "source": "pstack",
+      "path": "pstack/skills/statechart/scripts/frontends/value.ts",
+      "sha256": "7c54be394b7a10f60591858a0f08fb1e8dc0941df1f38ede07fbe7719ff56da0",
+      "executable": false
+    },
+    "skills/statechart/scripts/frontends/verdict.ts": {
+      "source": "pstack",
+      "path": "pstack/skills/statechart/scripts/frontends/verdict.ts",
+      "sha256": "0d0a9d6b6d6da5a7c48851b86d9d041f22982404dda6288795a1715138d7008b",
+      "executable": false
+    },
+    "skills/statechart/scripts/frontends/view.ts": {
+      "source": "pstack",
+      "path": "pstack/skills/statechart/scripts/frontends/view.ts",
+      "sha256": "2c0af8939321c5aaed4b6ecac8ce6a98d0e6774d8bd15d4b02fe4f406b8c9620",
+      "executable": false
+    },
+    "skills/statechart/scripts/passes/annotate.ts": {
+      "source": "pstack",
+      "path": "pstack/skills/statechart/scripts/passes/annotate.ts",
+      "sha256": "dc8eeee09c3a9a0c060f32fb1d554e01bd80e5265751cdeb041ef3e19561b92a",
+      "executable": false
+    },
+    "skills/statechart/scripts/passes/label.ts": {
+      "source": "pstack",
+      "path": "pstack/skills/statechart/scripts/passes/label.ts",
+      "sha256": "b5ef402369c5e7846be1fd39165e95cbfe715fc36eb9331a0401b26523c539c9",
+      "executable": false
+    },
+    "skills/statechart/scripts/passes/lift.ts": {
+      "source": "pstack",
+      "path": "pstack/skills/statechart/scripts/passes/lift.ts",
+      "sha256": "8977dddc6c93bb2e3914d5b50760eb66876107ba51e2b8cf9e18611b4c40c89c",
+      "executable": false
+    },
+    "skills/statechart/scripts/passes/loop-check.ts": {
+      "source": "pstack",
+      "path": "pstack/skills/statechart/scripts/passes/loop-check.ts",
+      "sha256": "07d459385849aa35834040bf34e279c39baba68244ec9da17c57703a6ee8e2d4",
+      "executable": false
+    },
+    "skills/statechart/scripts/passes/paths.ts": {
+      "source": "pstack",
+      "path": "pstack/skills/statechart/scripts/passes/paths.ts",
+      "sha256": "9af1066b007ef86cb05c5e278eef09f090f1e46eb91d356e5146edbd4fee4ec7",
+      "executable": false
+    },
+    "skills/statechart/scripts/passes/reach.ts": {
+      "source": "pstack",
+      "path": "pstack/skills/statechart/scripts/passes/reach.ts",
+      "sha256": "b52b38f926814937b733221b40bd31075a69a2fb91ecbce2164752a8684bc5d6",
+      "executable": false
+    },
+    "skills/statechart/scripts/passes/region-check.ts": {
+      "source": "pstack",
+      "path": "pstack/skills/statechart/scripts/passes/region-check.ts",
+      "sha256": "8a6e0618740a14bb7048f6563b4324958177f4685d4d6d90364cc6245b1498b4",
+      "executable": false
+    },
+    "skills/statechart/scripts/passes/regions.ts": {
+      "source": "pstack",
+      "path": "pstack/skills/statechart/scripts/passes/regions.ts",
+      "sha256": "d740ebfdbb5ec7b4984412a635a596b43af7a77b8bcb49a1463c8afa75299f72",
+      "executable": false
+    },
+    "skills/statechart/scripts/ir.ts": {
+      "source": "pstack",
+      "path": "pstack/skills/statechart/scripts/ir.ts",
+      "sha256": "5602beca4e4ac08421cfa07e4da989f0e75439f1d136cc923226909e771dc7ff",
+      "executable": false
+    },
+    "skills/statechart/scripts/package.json": {
+      "source": "pstack",
+      "path": "pstack/skills/statechart/scripts/package.json",
+      "sha256": "2c36842f391275b0f343a38947560adee155fab4a744eacef1e595e9f07c4e3d",
+      "executable": false
+    },
+    "skills/statechart/scripts/pipeline.ts": {
+      "source": "pstack",
+      "path": "pstack/skills/statechart/scripts/pipeline.ts",
+      "sha256": "8aa8d9295ab6762f7f2ffae91a0aee98b1a1314747c875edba4598fdab8ed543",
+      "executable": false
+    },
+    "skills/statechart/scripts/run.ts": {
+      "source": "pstack",
+      "path": "pstack/skills/statechart/scripts/run.ts",
+      "sha256": "f330e0a3b0a9f8181c2e52252c4a47db3f0a64f79a7cca5490263e33a5f13c72",
+      "executable": false
+    },
+    "skills/statechart/scripts/statechart": {
+      "source": "pstack",
+      "path": "pstack/skills/statechart/scripts/statechart",
+      "sha256": "aeffb7077850fd4c225e3d18049ca6ed7b988cf48e88cd8463526a7feaa74d13",
+      "executable": true
+    },
+    "skills/statechart/scripts/statechart.ts": {
+      "source": "pstack",
+      "path": "pstack/skills/statechart/scripts/statechart.ts",
+      "sha256": "1c653f05d0cd0f3298455701f36e3d7d1f837f93e6e642f7c20afb5d613c2d12",
+      "executable": false
+    },
+    "skills/statechart/scripts/tsconfig.json": {
+      "source": "pstack",
+      "path": "pstack/skills/statechart/scripts/tsconfig.json",
+      "sha256": "6bb2af53f7b251328e6117cd4fb761468dc4d4b96085d31a19304ccb73c32cc1",
+      "executable": false
+    },
+    "skills/statechart/scripts/worker.ts": {
+      "source": "pstack",
+      "path": "pstack/skills/statechart/scripts/worker.ts",
+      "sha256": "1f18ed5ef806982e05e8a40fc217e88257700b28b63cb4acbd647872f85f782b",
       "executable": false
     }
   }

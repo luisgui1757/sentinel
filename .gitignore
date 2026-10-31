@@ -6,3 +6,6 @@
 
 # Local agent state.
 .claude/
+
+# Eval results and traces.
+evals/results/

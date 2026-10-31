@@ -1,0 +1,1 @@
+{ "skill": "statechart", "timeout": 1800, "requires": ["mise"], "judge_files": ["RENEWAL.md"] }
