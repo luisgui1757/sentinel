@@ -4,8 +4,9 @@ These cases measure whether a skill or a rule changes what an agent does. Each
 case runs two times on each target model:
 
 - **with**: a fresh install of all skills and the current rules.
-- **without**: the same install without the skill of the case. For a rule
-  case, the rules from `origin/main` replace the current rules.
+- **without**: the same install without the skill of the case, or without
+  the skills in `without_skills`. For a rule case, the rules from the `base`
+  commit of the case, or from `origin/main`, replace the current rules.
 
 Run `make eval` from the repo root. See the root `README.md` for the options.
 
@@ -31,118 +32,123 @@ that a skill has no effect.
 
 ### Conclusion
 
-- Five skills help on most models: `council` (design mode), `sol-loop`,
-  `no-comments`, `cleanup` and `maintain-verification-skill`.
-- `technical-writing` and the no-comments rule help on the GPT models. Opus
-  and Haiku keep old comments with or without the rule.
-- `how`, `create-verification-skill`, `create-formal-verification-skill`,
-  `statechart` and the cleanup rule show no gain: each model did these tasks
-  without them. They do no harm, and a harder task can still show a gain.
-- Haiku did not load 6 of the skills. For Haiku, those results measure the
-  description of the skill, not its steps.
-- Council copies against mixed models: one strong model found each planted
-  bug, so the review case cannot tell them apart.
+- 11 skills and rules help on at least 2 of 5 models. `council`, `cleanup`,
+  `no-comments`, the no-comments rule and the cleanup rule help on 5 of 5.
+  `technical-writing` helps on 4.
+- `sol-loop` and `maintain-formal-verification-skill` help on 3 models.
+  `why`, `create-formal-verification-skill` and `statechart` help on 2.
+- `maintain-verification-skill` helps on Terra. On Luna, it helped in one run
+  and tied in the next.
+- `tldr` helps on Sol only. Two changes to its text did not make it help on
+  the other models.
+- `create-verification-skill` and `how` show no gain: each model did the task
+  without them. `how` is now in the optional `explain` profile.
+- A council of 3 strong models found almost each planted bug, with copies or
+  with mixed models. The review case cannot tell them apart.
 
-Runs of 30 and 31 October 2026. Each cell gives the passes **with** · **without**
-the skill. "(not loaded)" means that the **with** arm did not read the skill.
+Runs of 31 October 2026, at xhigh effort. Each cell gives the passes **with**
+· **without** the skill. Haiku loaded each skill in these runs.
+
+### Changes to the method
+
+The first runs had ties that the method caused, not the models:
+
+- The **without** arm now removes the whole family of the skill
+  (`without_skills`). Before, a related skill gave the same help.
+- A rule case now takes the old rules from a fixed commit (`base`). Before,
+  `origin/main` already had the new rules after a merge.
+- Both arms install all profiles, and a rule tells the agent to read the skill
+  that fits the task. Before, Haiku did not load 6 of the skills.
+- Harder cases replace the cases where each model passed both arms. We fixed
+  the checks that failed correct work.
+- The examples in a skill must not contain facts of its own case.
 
 ### Guide
 
 | Skill | Result at xhigh | Use |
 | --- | --- | --- |
-| `council` (design mode) | Gain on Opus, Sol, Terra and Haiku. The one Luna run did not name its base plan, and step 6 does not ask for it yet. | Use it. |
-| `sol-loop` | Gain on Opus, Sol, Terra and Luna. Haiku fails both arms: it declined a finding without a reason. | Use it. |
-| `no-comments` | Gain on 5 of 5 models. | Use it. |
-| No-comments rule | Gain on Sol, Terra and Luna. Opus and Haiku fail both arms: they keep the old comments. | Works on GPT models only. |
-| `technical-writing` | Gain on Sol and Terra, small gain on Luna. Opus ties: both arms make advice into orders. Haiku did not load it. | Use it with GPT models. |
-| `tldr` | Gain on Sol. The other models fail both arms: the summary is longer than a third of the source, drops a trade-off, or adds a claim. | Gain on Sol only. |
-| `cleanup` | Gain on Opus and Terra, and on all 3 models at medium. Sol, Haiku and Luna pass both arms. | Use it. |
-| `maintain-verification-skill` | Gain on Terra and Haiku, small gain on Luna. Opus and Sol pass both arms. | Use it. |
-| `maintain-formal-verification-skill` | Gain on Terra, and on Sol and Terra at medium. The others pass both arms. | Some gain. |
-| `why` | Gain on Luna. The others pass both arms. Haiku did not load it. | No measured gain on the stronger models. |
+| `council` (design mode) | Gain on 5 of 5. | Use it. |
+| `cleanup` | Gain on 5 of 5. | Use it. |
+| `no-comments` | Gain on 5 of 5. | Use it. |
+| No-comments rule | Gain on 5 of 5. | Use it. |
+| Cleanup rule | Gain on 5 of 5. | Use it. |
+| `technical-writing` | Gain on Opus, Haiku, Sol and Terra. Luna ties. | Use it. |
+| `sol-loop` | Gain on Opus, Sol and Luna. Haiku and Terra fail both arms: the report leaves a finding open, or does not show the finding that it fixed. | Use it. |
+| `maintain-formal-verification-skill` | Gain on Sol, Terra and Luna. Opus and Haiku pass both arms. | Use it. |
+| `why` | Gain on Haiku and Luna. Opus, Sol and Terra pass both arms. | Use it. |
+| `create-formal-verification-skill` | Gain on Opus and Luna. Haiku, Sol and Terra pass both arms. | Use it. |
+| `statechart` | Gain on Opus, small gain on Terra. Sol passes both arms and Luna ties. Haiku fails both arms: it calls a real bug a decision. | Some gain. |
+| `maintain-verification-skill` | Gain on Terra. Luna gained in one run and tied in the next. Opus, Haiku and Sol pass both arms. | Some gain. |
+| `tldr` | Gain on Sol. Opus and Haiku fail both arms: the summary is longer than 35% of the source. Luna and Terra drop facts. | Gain on Sol only. |
+| `create-verification-skill` | No gain. Sol passes 2 of 3 with it and 3 of 3 without it. The others pass both arms. | No measured gain. |
 | `how` | All models pass both arms. | No measured gain. |
-| `create-verification-skill` | All models pass both arms. Haiku did not load it. | No measured gain. |
-| `create-formal-verification-skill` | All models pass both arms. Haiku did not load it. | No measured gain. |
-| `statechart` | All models pass both arms. Haiku did not load it. | No measured gain. |
-| Cleanup rule | All models pass both arms. | No measured gain. |
 | Triggers | `cleanup`, `council` and `tldr` stay unloaded for a question that only looks like their task. | Correct. |
 
 "No measured gain" means that the model did the task of the case without the
 skill. A harder case can still show a gain.
 
-The `council-design` row comes from a rerun with the final council text.
-
 ### xhigh
 
 | Case | opus-5.5-xhigh | gpt-6.1-sol-xhigh | gpt-6.1-terra-xhigh | haiku-5.5-xhigh | gpt-6-luna-xhigh |
 |---|---|---|---|---|---|
-| cleanup-repo | 2/3 · 0/3 | 1/1 · 1/1 | 3/3 · 0/3 | 1/1 · 1/1 | 1/1 · 1/1 |
-| council-design | 3/3 · 0/3 | 3/3 · 0/3 | 3/3 · 0/3 | 3/3 · 0/3 | 0/1 · 0/1 |
-| create-formal-lease | 1/1 · 1/1 | 1/1 · 1/1 | 1/1 · 1/1 | 1/1 · 1/1 (not loaded) | 1/1 · 1/1 |
-| create-verification-http | 1/1 · 1/1 | 1/1 · 1/1 | 1/1 · 1/1 | 1/1 · 1/1 (not loaded) | 1/1 · 1/1 |
+| cleanup-repo | 3/3 · 0/3 | 3/3 · 0/3 | 3/3 · 0/3 | 2/2 · 0/3 (1 error) | 3/3 · 0/3 |
+| council-design | 3/3 · 0/3 | 3/3 · 0/3 | 3/3 · 0/3 | 3/3 · 0/3 | 3/3 · 0/3 |
+| create-formal-lease | 3/3 · 0/3 | 1/1 · 1/1 | 1/1 · 1/1 | 1/1 · 1/1 | 3/3 · 0/3 |
+| create-verification-export | 1/1 · 1/1 | 2/3 · 3/3 | 1/1 · 1/1 | 1/1 · 1/1 | 1/1 · 1/1 |
 | how-tax-production | 1/1 · 1/1 | 1/1 · 1/1 | 1/1 · 1/1 | 1/1 · 1/1 | 1/1 · 1/1 |
-| maintain-formal-merges | 1/1 · 1/1 | 1/1 · 1/1 | 3/3 · 0/3 | 1/1 · 1/1 | 1/1 · 1/1 |
-| maintain-verification-drift | 1/1 · 1/1 | 1/1 · 1/1 | 3/3 · 0/3 | 3/3 · 1/3 | 1/3 · 0/3 |
+| maintain-formal-merges | 1/1 · 1/1 | 2/3 · 0/3 | 3/3 · 0/3 | 1/1 · 1/1 | 3/3 · 1/3 |
+| maintain-verification-drift | 1/1 · 1/1 | 1/1 · 1/1 | 3/3 · 0/3 | 1/1 · 1/1 | 0/1 · 0/1 |
 | neg-cleanup-question | 1/1 | 1/1 | 1/1 | 1/1 | 1/1 |
 | neg-council-review | 1/1 | 1/1 | 1/1 | 1/1 | 1/1 |
 | neg-tldr-explain | 1/1 | 1/1 | 1/1 | 1/1 | 1/1 |
-| no-comments-claims | 3/3 · 1/3 | 3/3 · 0/3 | 3/3 · 0/3 | 3/3 · 0/3 | 3/3 · 0/3 |
-| rule-cleanup-release-fix | 1/1 · 1/1 | 1/1 · 1/1 | 1/1 · 1/1 | 1/1 · 1/1 | 1/1 · 1/1 |
-| rule-no-comments | 0/1 · 0/1 | 3/3 · 0/3 | 3/3 · 0/3 | 0/1 · 0/1 | 3/3 · 0/3 |
-| sol-loop-pagination | 3/3 · 0/3 | 3/3 · 0/3 | 3/3 · 0/3 | 0/1 · 0/1 | 2/3 · 0/3 |
-| statechart-renewal-support | 1/1 · 1/1 | 1/1 · 1/1 | 1/1 · 1/1 | 1/1 · 1/1 (not loaded) | 1/1 · 1/1 |
-| technical-writing-rewrite | 1/3 · 1/3 | 3/3 · 1/3 | 3/3 · 0/3 | 0/1 · 0/1 (not loaded) | 1/3 · 0/3 |
-| tldr-long-reply | 0/1 · 0/1 | 3/3 · 0/3 | 0/1 · 0/1 | 0/1 · 0/1 (not loaded) | 0/1 · 0/1 |
-| why-retry-issue | 1/1 · 1/1 | 1/1 · 1/1 | 1/1 · 1/1 | 1/1 · 1/1 (not loaded) | 3/3 · 0/3 |
+| no-comments-claims | 3/3 · 1/3 | 3/3 · 0/3 | 2/3 · 0/3 | 3/3 · 0/3 | 3/3 · 0/3 |
+| rule-cleanup-replace-pr | 3/3 · 0/3 | 3/3 · 0/3 | 3/3 · 0/3 | 3/3 · 0/3 | 2/3 · 0/3 |
+| rule-no-comments | 3/3 · 0/3 | 3/3 · 0/3 | 3/3 · 0/3 | 3/3 · 0/3 | 3/3 · 0/3 |
+| sol-loop-pagination | 3/3 · 0/3 | 3/3 · 0/3 | 0/1 · 0/1 | 0/1 · 0/1 | 2/3 · 0/3 |
+| statechart-order-drift | 3/3 · 0/3 | 1/1 · 1/1 | 3/3 · 2/3 | 0/1 · 0/1 | 2/3 · 2/3 |
+| technical-writing-rewrite | 3/3 · 1/3 | 3/3 · 1/3 | 3/3 · 0/3 | 2/3 · 0/3 | 2/3 · 2/3 |
+| tldr-long-reply | 0/1 · 0/1 | 3/3 · 0/3 | 0/1 · 0/1 | 0/1 · 0/1 | 0/1 · 0/1 |
+| why-retry-issue | 1/1 · 1/1 | 1/1 · 1/1 | 1/1 · 1/1 | 3/3 · 0/3 | 3/3 · 0/3 |
 
-### medium
+Three Luna cells come from a rerun after three check fixes:
+`create-formal-lease`, `rule-cleanup-replace-pr` and
+`maintain-verification-drift`.
+In the run before the fixes, Luna had 2/3 · 0/3 on
+`maintain-verification-drift`.
 
-Opus 5.5, Sol 6.1 and Terra 6.1 at medium, for reference. `sol-loop-pagination`
-did not run at medium. The medium `council-design` row used the council text
-from before its seat rules.
-
-| Case | opus-5.5-medium | gpt-6.1-sol-medium | gpt-6.1-terra-medium |
-|---|---|---|---|
-| cleanup-repo | 3/3 · 1/3 | 3/3 · 1/3 | 3/3 · 0/3 |
-| council-design | 2/3 · 0/3 | 3/3 · 0/3 | 3/3 · 0/3 |
-| create-formal-lease | 3/3 · 2/3 | 1/1 · 1/1 | 1/1 · 1/1 |
-| create-verification-http | 1/1 · 1/1 | 1/1 · 1/1 | 1/1 · 1/1 |
-| how-tax-production | 1/1 · 1/1 (not loaded) | 1/1 · 1/1 | 1/1 · 1/1 |
-| maintain-formal-merges | 1/1 · 1/1 | 3/3 · 0/3 | 3/3 · 0/3 |
-| maintain-verification-drift | 1/1 · 1/1 | 1/1 · 1/1 | 2/3 · 0/3 |
-| neg-cleanup-question | 1/1 | 1/1 | 1/1 |
-| neg-council-review | 1/1 | 1/1 | 1/1 |
-| neg-tldr-explain | 1/1 | 1/1 | 1/1 |
-| no-comments-claims | 3/3 · 2/3 | 2/3 · 0/3 | 3/3 · 0/3 |
-| rule-cleanup-release-fix | 1/1 · 1/1 | 1/1 · 1/1 | 1/1 · 1/1 |
-| rule-no-comments | 0/1 · 0/1 | 3/3 · 0/3 | 3/3 · 0/3 |
-| statechart-renewal-support | 1/1 · 1/1 | 1/1 · 1/1 | 1/1 · 1/1 |
-| technical-writing-rewrite | 0/1 · 0/1 (not loaded) | 3/3 · 1/3 | 3/3 · 0/3 |
-| tldr-long-reply | 0/1 · 0/1 | 3/3 · 0/3 | 1/3 · 0/3 |
-| why-retry-issue | 1/1 · 1/1 (not loaded) | 1/1 · 1/1 | 1/1 · 1/1 |
+The runs at medium effort used the first method and older cases. Git history
+has their table.
 
 ### Council composition
 
-`review-billing-bugs` asks for a plain review of a branch with 9 planted bugs.
-Each model reviewed it alone 4 times at high effort, with one judge for each
-bug. A council finds a bug when one of its members finds it. Each council below
-is the union over all combinations of member reviews from this pool.
+`review-billing-bugs` asks for a plain review of a branch with 12 planted bugs.
+The branch also has one correct function that looks like a bug. Each model reviewed it alone
+4 times at high effort. One judge checked each bug. A council finds a bug when
+one of its members finds it. Each council below is the union over all
+combinations of member reviews from this pool.
 
-| Model alone | Bugs found, mean of 4 (of 9) | Seconds for each review |
-| --- | --- | --- |
-| Opus 5.5 | 9.00 | 82 |
-| Sol 6.1 | 9.00 | 100 |
-| Astra 6 | 8.75 | 103 |
-| Terra 6.1 | 8.50 | 75 |
+| Model alone | Bugs found, mean of 4 (of 12) | Seconds for each review | False alarms |
+| --- | --- | --- | --- |
+| Opus 5.5 | 11.75 | 143 | 0 of 4 |
+| Sol 6.1 | 11.75 | 159 | 0 of 4 |
+| Terra 6.1 | 11.50 | 117 | 0 of 4 |
+| Astra 6 | 11.00 | 150 | 0 of 4 |
 
-Each council found 9 of 9 bugs in each combination. The councils were Astra +
-Sol + Opus, Terra + Opus, Terra + Opus + Terra, Terra + Opus + Opus, Terra +
-Opus + Sol, Opus x3, Sol x3 and Opus + Sol. So this case does not separate
-copies from mixed models: one strong member finds each bug.
+| Council | Combinations | Bugs found, mean (of 12) | Combinations that found all 12 |
+| --- | --- | --- | --- |
+| Astra + Sol + Opus | 64 | 12.00 | 64 |
+| Terra + Opus + Sol | 64 | 12.00 | 64 |
+| Terra + Opus + Terra | 24 | 12.00 | 24 |
+| Terra + Opus + Opus | 24 | 12.00 | 24 |
+| Opus + Sol | 16 | 12.00 | 16 |
+| Opus x3, Sol x3, Terra x3 | 4 each | 12.00 | 4 each |
+| Terra + Opus | 16 | 11.94 | 15 |
+| Astra x3 | 4 | 11.75 | 3 |
 
-The only misses were on the two bugs that need the rules in the README: the
-stale cache and the limit of one reminder. A case that separates the
-compositions needs more bugs of that kind.
+So this case does not separate copies from mixed models. Three seats of one
+strong model find each bug, and so do two different strong models. The misses
+were on two bugs that need the rules in the README: the stale cache and the
+grace period.
 
 ## Case format
 

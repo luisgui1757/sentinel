@@ -104,9 +104,10 @@ agent can also load each skill when its description fits the task.
 | `create-verification-skill` | "make a verification skill" | The agent writes a project skill that starts the app and proves features the way a user does. |
 | `maintain-verification-skill` | "check the verify skill" | The agent drives each feature again and fixes the skill where the app changed. |
 
-In the evals at xhigh, `council`, `sol-loop`, `no-comments`, `cleanup` and
-`maintain-verification-skill` changed the result on most models. `how`, `why`
-and the `create-*` skills showed no gain. See [evals/README.md](evals/README.md).
+At xhigh, `council`, `cleanup`, `no-comments`, `technical-writing` and the
+rules for comments and cleanup changed the result on 4 or 5 models. `sol-loop`, `why` and the formal skills changed it on 2
+or 3 models. `tldr` helped on GPT Sol only. `create-verification-skill` and
+`how` showed no gain. See [evals/README.md](evals/README.md).
 
 Sources: `untangle`, `cleanup`, `no-comments` and `tldr` are from
 Sentinel. `how`, `why`, `technical-writing` and the verification skills are
@@ -133,8 +134,8 @@ installs Java and TLC with mise and needs the network. Set `TLA2TOOLS` and
 
 The `explain` profile holds `how`: say "how does X work", and the agent
 explains the code with the files that it read. In the evals, strong models
-explained the code as well without it, and it starts 1 to 5 subagents for
-each question. Install it with `--skills core,explain` if you want its
+explained the code as well without it. It starts 1 to 5 subagents for each
+question. Install it with `--skills core,explain` if you want its
 delegated explanations.
 
 The `ui` profile is for interface work.
