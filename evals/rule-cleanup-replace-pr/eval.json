@@ -1,1 +1,1 @@
-{ "rule": "cleanup", "base": "b2f3cb7", "timeout": 1200 }
+{"rule": "cleanup", "base": "b2f3cb7", "timeout": 1200, "critical": ["keeps the branch with an unpushed commit", "the remote main does not change"], "minor": ["no extra worktree remains", "no stash remains"]}

@@ -1,4 +1,5 @@
 ---
+severity: minor
 type: llm
 ---
 

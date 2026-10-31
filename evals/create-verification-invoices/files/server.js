@@ -12,7 +12,8 @@ const save = invoices => fs.writeFileSync(invoicesFile, JSON.stringify(invoices,
 function runExport(job) {
   const invoices = load();
   fs.mkdirSync(exportDir, { recursive: true });
-  const lines = ['id,customer,amount,status', ...invoices.map(invoice => `${invoice.id},${invoice.customer},${invoice.amount},${invoice.status}`)];
+  const cell = value => /[",\n]/.test(String(value)) ? `"${String(value).replace(/"/g, '""')}"` : String(value);
+  const lines = ['id,customer,amount,status', ...invoices.map(invoice => [invoice.id, invoice.customer, invoice.amount, invoice.status].map(cell).join(','))];
   fs.writeFileSync(path.join(exportDir, `${job.id}.csv`), lines.join('\n') + '\n');
   job.status = 'complete';
 }
@@ -34,7 +35,7 @@ http.createServer(async (req, res) => {
   if (req.method === 'GET' && url.pathname === '/invoices') return send(res, 200, load());
   if (req.method === 'POST' && url.pathname === '/invoices') {
     const input = await readBody(req);
-    if (!input || typeof input.customer !== 'string' || !Number.isInteger(input.amount) || input.amount <= 0) return send(res, 400, { error: 'customer and a positive whole amount are required' });
+    if (!input || typeof input.customer !== 'string' || !input.customer.trim() || !Number.isInteger(input.amount) || input.amount <= 0) return send(res, 400, { error: 'customer and a positive whole amount are required' });
     const invoices = load();
     const invoice = { id: Math.max(0, ...invoices.map(i => i.id)) + 1, customer: input.customer, amount: input.amount, status: 'open' };
     invoices.push(invoice);

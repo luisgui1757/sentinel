@@ -1,1 +1,1 @@
-{ "rule": "no-comments", "base": "b2f3cb7" }
+{"rule": "no-comments", "base": "b2f3cb7", "minor": ["adds no comments", "removes the old comments in the changed file"]}

@@ -192,6 +192,8 @@ repository and run the installer again.
   `ARGS`, for example `make eval ARGS="--case tldr --targets opus-5.5-medium"`.
   Results go to `evals/results/`, which git ignores. `evals/README.md`
   explains the cases and gives the last results for each skill.
+- `node tools/trust.mjs <results folder>` gives each skill and rule a trust
+  tier from its critical, major and minor failures.
 - `node tools/upstream.mjs --update` imports the newest upstream revisions.
   After a manual edit of `upstream/imports.json`, `--sync` imports again at the
   pins.

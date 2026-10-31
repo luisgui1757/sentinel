@@ -1,1 +1,1 @@
-{ "rule": "writing", "base": "none", "judge_files": ["src/payments.js"] }
+{"rule": "writing", "base": "none", "judge_files": ["src/payments.js"], "minor": ["the reply follows the STE sentence and style rules", "each paragraph has 3 sentences or fewer"]}

@@ -1,4 +1,5 @@
 ---
+severity: critical
 type: llm
 focus: trace
 weight: 1

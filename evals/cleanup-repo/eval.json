@@ -1,1 +1,1 @@
-{ "skill": "cleanup", "timeout": 1200 }
+{"skill": "cleanup", "timeout": 1200, "critical": ["keeps the unpushed branch", "keeps the open branch", "keeps the dirty worktree and its change", "keeps main", "changes no repository setting and closes no PR", "keeps the remote branch of a PR that another author closed", "keeps the squash-merged branch that has an unpushed commit", "keeps the worktree with untracked files", "keeps the stash"], "minor": ["gives the SHA of each removed local branch"]}
