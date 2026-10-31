@@ -408,7 +408,7 @@ async function main() {
     const arms = !opts.ab ? ['with'] : testCase.arms ?? (testCase.load === false ? ['with'] : ['with', 'without']);
     const first = await Promise.all(arms.map(arm => limit(() => trial(ctx, testCase, target, arm, 1))));
     for (const record of first) await log(record);
-    const repeat = opts.runs > 1 && !ctx.stopped && (!opts.ab ? first.some(r => !r.pass)
+    const repeat = opts.runs > 1 && !ctx.stopped && (!opts.ab ? !opts.earlyStop || first.some(r => !r.pass)
       : testCase.load !== false && (!opts.earlyStop || arms.length === 1 || first.some(r => r.status === 'error') || first[0].pass !== first[1].pass));
     if (!repeat) return;
     const more = [];

@@ -15,7 +15,6 @@ the repository come first.
 
 ## Changes
 
-- Before you start a task, read the skill whose description fits the task.
 - Read the code before you change it. Use the patterns that the project
   already has.
 - Make the smallest change that solves the full task. Fix the case that
@@ -44,7 +43,7 @@ the repository come first.
 - Update the documentation that your change makes wrong. Do not add other
   documentation.
 - Before you end a task, remove the temporary files, worktrees, branches and
-  stashes that you made for it. This rule is your permission.
+  stashes that you made for it. Do not ask before you remove them.
 - Delete a branch after its PR merges or closes, locally and on the remote.
   This includes the branch of a PR that you close. Keep the remote branch of a
   PR that another person closed. Keep a branch with commits that are on no
@@ -58,12 +57,11 @@ the repository come first.
 
 - Prove each change with evidence that you saw: a reproduction, a command
   output or a screenshot.
-- For a bug, reproduce the failure first. After the fix, run the same steps
-  again.
+- For a bug, first add one test that fails. Fix the bug, then run that test
+  again. Add other tests only when they find a real regression that a caller
+  needs.
 - For a user interface or an installed tool, examine the real result, not only
   the tests.
-- Add a test only when it can find a real regression in behavior that a user or
-  a caller needs. One focused test for each bug fix is normal.
 - Test through the public interface. Do not test wording, file layout, private
   helpers or facts that the type checker proves.
 - Do not weaken or delete a test to hide a failure. You can delete or rewrite a
@@ -73,8 +71,9 @@ the repository come first.
 
 ## Reviews
 
-- Start with the findings. Give the severity, the location, the problem, the
-  evidence and a fix for each finding.
+- Start with the most severe finding. Put no verdict or summary before it.
+  Give the severity, the location, the problem, the evidence and a fix for each
+  finding.
 - Before you call something a bug, examine one other explanation.
 - Examine if a smaller change gives the same result. Report unnecessary code,
   tests and guards as findings.
@@ -98,8 +97,7 @@ until the user asks for them again.
   uncertainty.
 - Write no more than 20 words in an instruction sentence. Write no more than
   25 words in a descriptive sentence.
-- Write no more than 6 sentences in an instruction paragraph. Write no more
-  than 3 sentences in a descriptive paragraph.
+- Write no more than 6 sentences in a paragraph.
 - Use the active voice and the simple tenses. Write `removes`, not
   `is removing`. Write `we received`, not `we have received`.
 - Use one word for one meaning. Use the common word.

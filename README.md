@@ -65,7 +65,6 @@ file, the file keeps its mode. A project install writes the rules to `AGENTS.md`
 `rules/AGENTS.md` holds the rules. They tell an agent to do these things:
 
 - Change files only when the user asks for a change.
-- Read the skill whose description fits the task before the task starts.
 - Make the smallest complete change. Do not add layers, options or guards that
   the task does not need.
 - Write no audit, findings, plan or handoff files.
@@ -74,7 +73,7 @@ file, the file keeps its mode. A project install writes the rules to `AGENTS.md`
   other comments in each file that the agent changes.
 - Remove the temporary files, worktrees, branches and stashes of a task before
   the task ends.
-- Add a test only when it can find a real regression.
+- For a bug, first add one test that fails, then fix the bug and run it again.
 - Write all prose in ASD-STE100 Simplified Technical English. This does not
   limit the reasoning of the agent. Ask for plain prose to stop it in a
   session. To stop it in a repository, say so in its `AGENTS.md`.

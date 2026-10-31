@@ -38,7 +38,9 @@ unit, or remove it.
   when one line says both with no loss.
 - Never remove a unit or make it shorter to meet a word count.
 - Keep numbers, names, identifiers, code and quotations exactly.
-- Keep each statement of uncertainty. Do not make a guess sound like a fact.
+- Keep each statement of uncertainty, and keep who holds it. The doubt of one
+  person does not become the doubt of everyone. Do not make a guess sound like
+  a fact, or a suggestion sound like an order.
 - Keep the strength of each recommendation. A slight preference stays a slight
   preference.
 
