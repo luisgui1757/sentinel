@@ -26,12 +26,18 @@ default. Council and sol-loop start each reviewer at high effort by default. The
 added note about updates, and that note says that Sentinel added it.
 
 `technical-writing` holds the pstack `unslop` skill as `unslop.md`, and adds a
-section to rewrite existing text. Sentinel removes `disable-model-invocation`
-from the pstack skills and writes new descriptions, so that agents can load
-them. It replaces the Cursor model routes with the subagents of the host and
-the project skill folders of each host.
+section to rewrite existing text in STE with `ste-lint`. Sentinel removes
+`disable-model-invocation` from the pstack skills and writes new descriptions,
+so that agents can load them. It replaces the Cursor model routes with the
+subagents of the host, and the `.cursor` folders with the project skill folders
+of each host. `create-verification-skill` reports a checkout that does not
+start and changes no product code. `maintain-verification-skill` treats copies
+in several folders as one skill and gives its notes in the reply.
 
-Council runs Claude Opus and GPT Sol by default and has a design mode.
+Council runs Claude Opus and GPT Sol by default, one seat each. It uses only
+the members that the user names. It fills extra seats with copies in the order
+of the user's list, and it checks the `PATH` for each CLI. It has a design
+mode.
 
 Sentinel wrote beast-ui, cleanup, doc-view, no-comments, tldr and untangle.
 The keep list of no-comments comes from the Comment Sicko agent of pstack.

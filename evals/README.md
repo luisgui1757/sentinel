@@ -29,6 +29,20 @@ that a skill has no effect.
 
 ## Results
 
+### Conclusion
+
+- Five skills help on most models: `council` (design mode), `sol-loop`,
+  `no-comments`, `cleanup` and `maintain-verification-skill`.
+- `technical-writing` and the no-comments rule help on the GPT models. Opus
+  and Haiku keep old comments with or without the rule.
+- `how`, `create-verification-skill`, `create-formal-verification-skill`,
+  `statechart` and the cleanup rule show no gain: each model did these tasks
+  without them. They do no harm, and a harder task can still show a gain.
+- Haiku did not load 6 of the skills. For Haiku, those results measure the
+  description of the skill, not its steps.
+- Council copies against mixed models: one strong model found each planted
+  bug, so the review case cannot tell them apart.
+
 Runs of 30 and 31 October 2026. Each cell gives the passes **with** · **without**
 the skill. "(not loaded)" means that the **with** arm did not read the skill.
 

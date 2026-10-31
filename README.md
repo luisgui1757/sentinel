@@ -104,6 +104,10 @@ agent can also load each skill when its description fits the task.
 | `create-verification-skill` | "make a verification skill" | The agent writes a project skill that starts the app and proves features the way a user does. |
 | `maintain-verification-skill` | "check the verify skill" | The agent drives each feature again and fixes the skill where the app changed. |
 
+In the evals at xhigh, `council`, `sol-loop`, `no-comments`, `cleanup` and
+`maintain-verification-skill` changed the result on most models. `how`, `why`
+and the `create-*` skills showed no gain. See [evals/README.md](evals/README.md).
+
 Sources: `untangle`, `cleanup`, `no-comments` and `tldr` are from
 Sentinel. `how`, `why`, `technical-writing` and the verification skills are
 from [pstack](https://github.com/cursor/plugins/tree/main/pstack). The other
