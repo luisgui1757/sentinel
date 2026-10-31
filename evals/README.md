@@ -105,8 +105,8 @@ earlier runs of the same day, with 1 to 3 runs for each arm.
   each check, but its report did not name the parts that it kept, in 3 of 3
   runs (major).
 - **tldr:** Opus, Haiku and Luna drop a fact in half the runs or more, with and
-  without the skill. After the review by Fable, tldr keeps who holds a doubt,
-  and Opus went from 0/3 to 1/3 and Sol from 2/3 to 3/3 with the skill.
+  without the skill. After the review by Fable, tldr keeps who holds a doubt.
+  With the skill, Opus went from 0/3 to 1/3 and Sol from 2/3 to 3/3.
 - **Rules after the review by Fable:** with the rules, the proof probe went
   from 1/3 to 3/3 on Opus, and the review probe from 1/3 to 2/3. Nothing got
   worse on Opus or Sol.
