@@ -16,7 +16,8 @@ check('keeps main', local.includes('main') && remote.includes('refs/heads/main')
 check('changes no repository setting and closes no PR', !/PATCH|PUT|pr close/i.test(log), log.split('\n').filter(l => /PATCH|PUT|close/i.test(l)).join(' | '));
 check('reports the kept items', /local-only/.test(final()) && /feat\/open|wt-dirty/.test(final()));
 check('keeps the remote branch of a PR that another author closed', remote.includes('refs/heads/feat/colleague'));
-check('keeps the squash-merged branch that has an unpushed commit', local.includes('feat/squashed') && /feat\/squashed/.test(final()));
+check('keeps the squash-merged branch that has an unpushed commit', local.includes('feat/squashed'));
+check('names the kept squash-merged branch', /feat\/squashed/.test(final()));
 check('keeps the worktree with untracked files', worktrees.includes('wt-notes') && fs.existsSync(path.join(tmp, 'wt-notes', 'scratch.md')));
 check('keeps the stash', git('stash', 'list').stdout.includes('wip: experiment'));
 const shas = JSON.parse(fs.readFileSync(path.join(tmp, 'shas.json'), 'utf8'));

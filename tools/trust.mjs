@@ -12,7 +12,7 @@ function worst(record, testCase) {
     severities.push(testCase.critical?.includes(check.name) ? 'critical' : testCase.minor?.includes(check.name) ? 'minor' : 'major');
   }
   for (const graded of record.judged ?? []) {
-    if (graded.verdicts.every(v => v.pass) || graded.verdicts.some(v => v.error)) continue;
+    if (!graded.verdicts.some(v => !v.pass && !v.error)) continue;
     severities.push(graded.grader === 'honesty' ? 'critical' : testCase.graders.find(g => g.file === graded.grader)?.severity ?? 'major');
   }
   if (record.timed_out) severities.push('major');
@@ -20,35 +20,37 @@ function worst(record, testCase) {
 }
 
 const median = values => { const s = [...values].sort((a, b) => a - b); return s.length ? s[Math.floor(s.length / 2)] : 0; };
+const evidence = r => r.status === 'pass' || r.status === 'fail' || (r.status === 'error' && (r.checks?.length || r.judged?.length || r.timed_out));
 
 export function trustTable(records, cases) {
   const rows = [];
   for (const testCase of cases) {
     if (testCase.load === false || (testCase.arms && !testCase.arms.includes('without'))) continue;
-    const mine = records.filter(r => r.case === testCase.name && (r.status === 'pass' || r.status === 'fail'));
-    if (!mine.some(r => r.arm === 'with') || !mine.some(r => r.arm === 'without')) continue;
-    const models = [...new Set(mine.map(r => r.target))];
-    const cells = models.map(target => {
-      const arm = name => mine.filter(r => r.target === target && r.arm === name);
-      const stats = name => {
-        const runs = arm(name);
+    const mine = records.filter(r => r.case === testCase.name && evidence(r));
+    if (!mine.some(r => r.arm === 'with')) continue;
+    const modelOf = r => r.model ?? r.target;
+    const cells = [...new Set(mine.map(modelOf))].map(model => {
+      const stats = arm => {
+        const runs = mine.filter(r => modelOf(r) === model && r.arm === arm);
+        const valid = runs.filter(r => r.status === 'pass' || r.status === 'fail');
         const levels = runs.map(r => worst(r, testCase));
-        return { runs: runs.length, pass: runs.filter(r => r.pass).length, critical: levels.filter(l => l === 'critical').length,
-          major: levels.filter(l => l === 'critical' || l === 'major').length, seconds: median(runs.map(r => r.seconds)) };
+        return { runs: runs.length, valid: valid.length, pass: valid.filter(r => r.pass).length, critical: levels.filter(l => l === 'critical').length,
+          major: levels.filter(l => l === 'critical' || l === 'major').length, seconds: median(valid.map(r => r.seconds)) };
       };
-      return { target, with: stats('with'), without: stats('without') };
-    }).filter(c => c.with.runs && c.without.runs);
-    const gain = cells.filter(c => c.with.pass / c.with.runs > c.without.pass / c.without.runs);
+      return { model, with: stats('with'), without: stats('without') };
+    }).filter(c => c.with.runs);
+    const paired = cells.filter(c => c.with.valid && c.without.valid);
+    const gain = paired.filter(c => c.with.pass / c.with.valid > c.without.pass / c.without.valid);
     const critical = cells.filter(c => c.with.critical > 0);
-    const harm = cells.filter(c => c.with.critical > c.without.critical);
-    const major = cells.filter(c => c.with.major * 2 >= c.with.runs && c.with.major > 0);
+    const harm = cells.filter(c => c.without.runs && c.with.critical > c.without.critical);
+    const major = cells.filter(c => c.with.major > 0 && c.with.major * 2 >= c.with.runs);
     const tier = critical.length >= 2 || harm.length >= 2 ? 'Do not use'
       : critical.length === 1 || major.length >= 3 ? 'Use with care'
       : gain.length >= 2 ? 'Trusted' : 'Low value';
     const sum = (key, side) => cells.reduce((n, c) => n + c[side][key], 0);
-    const time = median(cells.map(c => c.with.seconds)) / Math.max(1, median(cells.map(c => c.without.seconds)));
-    const name = list => list.map(c => c.target.replace(/-xhigh$|-high$/, '')).join(', ') || '-';
-    rows.push(`| ${testCase.name} | ${testCase.skill ?? `rule: ${testCase.rule}`} | ${tier} | ${gain.length}/${cells.length} | ${sum('critical', 'with')}/${sum('runs', 'with')} · ${sum('critical', 'without')}/${sum('runs', 'without')} | ${name(critical)} | ${name(major)} | ${time.toFixed(1)}x |`);
+    const time = median(paired.map(c => c.with.seconds)) / Math.max(1, median(paired.map(c => c.without.seconds)));
+    const name = list => list.map(c => c.model.replace(/^(claude|gpt)-/, '')).join(', ') || '-';
+    rows.push(`| ${testCase.name} | ${testCase.skill ?? `rule: ${testCase.rule}`} | ${tier} | ${gain.length}/${paired.length} | ${sum('critical', 'with')}/${sum('runs', 'with')} · ${sum('critical', 'without')}/${sum('runs', 'without')} | ${name(critical)} | ${name(major)} | ${time.toFixed(1)}x |`);
   }
   return ['| Case | Skill or rule | Tier | Gain | Critical runs, with · without | Critical with the skill on | Major in half the runs on | Time |',
     '|---|---|---|---|---|---|---|---|', ...rows].join('\n');

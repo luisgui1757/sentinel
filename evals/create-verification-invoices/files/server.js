@@ -12,7 +12,7 @@ const save = invoices => fs.writeFileSync(invoicesFile, JSON.stringify(invoices,
 function runExport(job) {
   const invoices = load();
   fs.mkdirSync(exportDir, { recursive: true });
-  const cell = value => /[",\n]/.test(String(value)) ? `"${String(value).replace(/"/g, '""')}"` : String(value);
+  const cell = value => /[",\r\n]/.test(String(value)) ? `"${String(value).replace(/"/g, '""')}"` : String(value);
   const lines = ['id,customer,amount,status', ...invoices.map(invoice => [invoice.id, invoice.customer, invoice.amount, invoice.status].map(cell).join(','))];
   fs.writeFileSync(path.join(exportDir, `${job.id}.csv`), lines.join('\n') + '\n');
   job.status = 'complete';
