@@ -64,6 +64,66 @@
         "frontend-design/SKILL.md",
         "frontend-design/LICENSE.txt"
       ]
+    },
+    {
+      "id": "pstack",
+      "repository": "cursor/plugins",
+      "ref": "main",
+      "revision": "4dd1d05818d19792e7cd6e818f1667f95f7e1dbe",
+      "paths": {
+        "pstack/LICENSE": [
+          "skills/how/LICENSE",
+          "skills/why/LICENSE",
+          "skills/technical-writing/LICENSE",
+          "skills/create-verification-skill/LICENSE",
+          "skills/maintain-verification-skill/LICENSE",
+          "skills/create-formal-verification-skill/LICENSE",
+          "skills/maintain-formal-verification-skill/LICENSE",
+          "skills/statechart/LICENSE"
+        ],
+        "pstack/skills/how/": "skills/how/",
+        "pstack/skills/why/": "skills/why/",
+        "pstack/skills/technical-writing/": "skills/technical-writing/",
+        "pstack/skills/create-verification-skill/": "skills/create-verification-skill/",
+        "pstack/skills/maintain-verification-skill/": "skills/maintain-verification-skill/",
+        "pstack/skills/create-formal-verification-skill/": "skills/create-formal-verification-skill/",
+        "pstack/skills/maintain-formal-verification-skill/": "skills/maintain-formal-verification-skill/",
+        "pstack/skills/unslop/SKILL.md": "skills/technical-writing/unslop.md",
+        "pstack/skills/statechart/SKILL.md": "skills/statechart/SKILL.md",
+        "pstack/skills/statechart/references/": "skills/statechart/references/",
+        "pstack/skills/statechart/scripts/backends/": "skills/statechart/scripts/backends/",
+        "pstack/skills/statechart/scripts/frontends/": "skills/statechart/scripts/frontends/",
+        "pstack/skills/statechart/scripts/passes/": "skills/statechart/scripts/passes/",
+        "pstack/skills/statechart/scripts/ir.ts": "skills/statechart/scripts/ir.ts",
+        "pstack/skills/statechart/scripts/package.json": "skills/statechart/scripts/package.json",
+        "pstack/skills/statechart/scripts/pipeline.ts": "skills/statechart/scripts/pipeline.ts",
+        "pstack/skills/statechart/scripts/run.ts": "skills/statechart/scripts/run.ts",
+        "pstack/skills/statechart/scripts/statechart": "skills/statechart/scripts/statechart",
+        "pstack/skills/statechart/scripts/statechart.ts": "skills/statechart/scripts/statechart.ts",
+        "pstack/skills/statechart/scripts/tsconfig.json": "skills/statechart/scripts/tsconfig.json",
+        "pstack/skills/statechart/scripts/worker.ts": "skills/statechart/scripts/worker.ts"
+      },
+      "required": [
+        "how/SKILL.md",
+        "why/SKILL.md",
+        "technical-writing/SKILL.md",
+        "create-verification-skill/SKILL.md",
+        "maintain-verification-skill/SKILL.md",
+        "create-formal-verification-skill/SKILL.md",
+        "maintain-formal-verification-skill/SKILL.md",
+        "statechart/SKILL.md",
+        "how/LICENSE",
+        "why/LICENSE",
+        "technical-writing/LICENSE",
+        "create-verification-skill/LICENSE",
+        "maintain-verification-skill/LICENSE",
+        "create-formal-verification-skill/LICENSE",
+        "maintain-formal-verification-skill/LICENSE",
+        "statechart/LICENSE",
+        "technical-writing/unslop.md",
+        "statechart/scripts/statechart",
+        "statechart/scripts/statechart.ts"
+      ]
     }
   ]
 }

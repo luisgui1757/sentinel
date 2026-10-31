@@ -197,7 +197,7 @@ for (const impl of impls) {
     const skills = path.join(home, '.claude/skills');
     const legacy = path.join(skills, '.sentinel-skills.json');
     const v020 = { council: { 'SKILL.md': 'old council\n' }, 'sol-loop': { 'SKILL.md': 'old sol\n' },
-      tldr: { 'SKILL.md': 'retired\n', 'docs/a.md': 'a\n' } };
+      helix: { 'SKILL.md': 'retired\n', 'docs/a.md': 'a\n' } };
     // v0.2.0 wrote JSON.stringify(registry, null, 2) with a SHA-256 for each file.
     const registry = { schema_version: 1, roots: Object.keys(v020), skills: {} };
     for (const [name, files] of Object.entries(v020)) {
@@ -215,12 +215,12 @@ for (const impl of impls) {
     const check = install(impl, home, { ...opts, check: true });
     assert.equal(check.status, 1);
     assert.match(check.stdout, /LEGACY: +.*council/);
-    assert.match(check.stdout, /RETIRED: +.*tldr/);
-    assert.ok(await exists(path.join(skills, 'tldr/docs/a.md')));
+    assert.match(check.stdout, /RETIRED: +.*helix/);
+    assert.ok(await exists(path.join(skills, 'helix/docs/a.md')));
 
     assert.equal(install(impl, home, opts).status, 1);
     assert.deepEqual(await tree(path.join(skills, 'council')), await tree(path.join(root, 'skills/council')));
-    assert.equal(await exists(path.join(skills, 'tldr')), false);
+    assert.equal(await exists(path.join(skills, 'helix')), false);
     assert.equal(await read(path.join(skills, 'sol-loop/SKILL.md')), 'my edit\n');
     assert.ok(await exists(legacy));
 

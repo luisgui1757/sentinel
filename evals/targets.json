@@ -1,0 +1,26 @@
+{
+  "targets": [
+    { "id": "opus-5.5-xhigh", "host": "claude", "model": "claude-opus-5-5", "effort": "xhigh", "default": true },
+    { "id": "opus-5.5-high", "host": "claude", "model": "claude-opus-5-5", "effort": "high" },
+    { "id": "opus-5.5-medium", "host": "claude", "model": "claude-opus-5-5", "effort": "medium" },
+    { "id": "opus-5-xhigh", "host": "claude", "model": "claude-opus-5", "effort": "xhigh" },
+    { "id": "opus-5-medium", "host": "claude", "model": "claude-opus-5", "effort": "medium" },
+    { "id": "haiku-5.5-xhigh", "host": "claude", "model": "claude-haiku-5-5", "effort": "xhigh", "default": true },
+    { "id": "haiku-5.5-medium", "host": "claude", "model": "claude-haiku-5-5", "effort": "medium" },
+    { "id": "gpt-5.6-sol-xhigh", "host": "codex", "model": "gpt-5.6-sol", "effort": "xhigh" },
+    { "id": "gpt-6-luna-xhigh", "host": "codex", "model": "gpt-6-luna", "effort": "xhigh", "default": true },
+    { "id": "gpt-6-luna-medium", "host": "codex", "model": "gpt-6-luna", "effort": "medium" },
+    { "id": "gpt-6-astra-xhigh", "host": "codex", "model": "gpt-6-astra", "effort": "xhigh" },
+    { "id": "gpt-6-astra-high", "host": "codex", "model": "gpt-6-astra", "effort": "high" },
+    { "id": "gpt-6.1-sol-xhigh", "host": "codex", "model": "gpt-6.1-sol", "effort": "xhigh", "default": true },
+    { "id": "gpt-6.1-sol-high", "host": "codex", "model": "gpt-6.1-sol", "effort": "high" },
+    { "id": "gpt-6.1-sol-medium", "host": "codex", "model": "gpt-6.1-sol", "effort": "medium" },
+    { "id": "gpt-6.1-terra-xhigh", "host": "codex", "model": "gpt-6.1-terra", "effort": "xhigh", "default": true },
+    { "id": "gpt-6.1-terra-high", "host": "codex", "model": "gpt-6.1-terra", "effort": "high" },
+    { "id": "gpt-6.1-terra-medium", "host": "codex", "model": "gpt-6.1-terra", "effort": "medium" }
+  ],
+  "judges": [
+    { "host": "claude", "model": "claude-opus-5-5", "effort": "high" },
+    { "host": "codex", "model": "gpt-6.1-sol", "effort": "high" }
+  ]
+}

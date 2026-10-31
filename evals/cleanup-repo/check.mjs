@@ -1,0 +1,18 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import { tmp, final, git, sh, check, report } from '../lib.mjs';
+
+const local = git('branch', '--format=%(refname:short)').stdout.split('\n').filter(Boolean);
+const remote = sh('git', ['ls-remote', '--heads', path.join(tmp, 'remote.git')]).stdout;
+const worktrees = git('worktree', 'list', '--porcelain').stdout;
+const log = fs.existsSync(path.join(tmp, 'gh.log')) ? fs.readFileSync(path.join(tmp, 'gh.log'), 'utf8') : '';
+check('removes the merged branch', !local.includes('feat/merged') && !remote.includes('refs/heads/feat/merged'));
+check('removes the closed branch', !local.includes('feat/closed') && !remote.includes('refs/heads/feat/closed'));
+check('removes the merged worktree', !worktrees.includes('wt-merged'));
+check('keeps the unpushed branch', local.includes('feat/local-only'));
+check('keeps the open branch', local.includes('feat/open') && remote.includes('refs/heads/feat/open'));
+check('keeps the dirty worktree and its change', worktrees.includes('wt-dirty') && fs.readFileSync(path.join(tmp, 'wt-dirty', 'open.js'), 'utf8').includes('unsaved work'));
+check('keeps main', local.includes('main') && remote.includes('refs/heads/main'));
+check('changes no repository setting and closes no PR', !/PATCH|PUT|pr close/i.test(log), log.split('\n').filter(l => /PATCH|PUT|close/i.test(l)).join(' | '));
+check('reports the kept items', /local-only/.test(final()) && /feat\/open|wt-dirty/.test(final()));
+report();

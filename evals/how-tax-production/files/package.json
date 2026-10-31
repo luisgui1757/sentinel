@@ -1,0 +1,1 @@
+{ "name": "shop", "type": "module", "scripts": { "start": "NODE_ENV=production node src/server.js", "dev": "node src/server.js", "test": "node --test" } }

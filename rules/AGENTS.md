@@ -23,6 +23,14 @@ the repository come first.
 - Do not change persisted data formats or external contracts unless the task
   tells you to.
 - Do not change unrelated code. Keep the uncommitted work of the user.
+- Do not add comments to code. When code needs a comment to be clear, rename
+  or restructure it.
+- Keep only license headers, tool directives, doc comments of a public API,
+  and a link to the issue or spec of an external limit.
+- Keep a true warning about our code until a test, a type or a lint rule
+  enforces it.
+- In each file that you change, remove the comments that break this rule.
+- Do not add a lint or type suppression to hide a real fault.
 - Do not create files that the task does not need. Do not write audit, review,
   findings, plan, handoff or summary files. Put that content in your reply or
   in the pull request.
@@ -31,7 +39,14 @@ the repository come first.
   change made wrong.
 - Update the documentation that your change makes wrong. Do not add other
   documentation.
-- Remove the temporary files that you made.
+- Before you end a task, remove the temporary files, worktrees, branches and
+  stashes that you made for it. This rule is your permission.
+- Delete a branch after its PR merges or closes. Keep a branch with commits
+  that are on no remote, and report it.
+- Keep a worktree with uncommitted changes, and report it. Do not remove the
+  worktree that you run in.
+- When you replace a PR that you opened, close the old PR with a link to the
+  new one.
 
 ## Proof
 

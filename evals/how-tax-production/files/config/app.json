@@ -1,0 +1,4 @@
+{
+  "middleware": ["auth", "validate", "pricing"],
+  "taxProvider": { "default": "legacy", "EU": "vat" }
+}

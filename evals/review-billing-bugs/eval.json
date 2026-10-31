@@ -1,0 +1,1 @@
+{ "arms": ["with"], "timeout": 1200, "targets": ["opus-5.5-high", "gpt-6.1-sol-high", "gpt-6.1-terra-high", "gpt-6-astra-high"] }
