@@ -20,7 +20,7 @@ write('src/sync.js', `export async function sync(client, tries = 3) {
 }
 `);
 run('add', '-A');
-run('commit', '-qm', 'Add retry to the sync client', '-m', 'The supplier API drops about 1 in 50 requests. Tested in /home/alice/work/sync against the staging supplier.');
+run('commit', '-qm', 'Add retry to the sync client', '-m', `The supplier API drops about 1 in 50 requests. Tested in ${path.join('/', 'home', 'alice', 'work', 'sync')} against the staging supplier.`);
 writeFakeGh(bin, tmp, { remote: path.join(tmp, 'remote.git'), prs: [
   { number: 28, state: 'MERGED', title: 'fix(sync): prefix log lines', body: 'Log lines were hard to find in the shop logs. Now each line starts with [sync].', headRefName: 'fix/log-prefix', baseRefName: 'main', isDraft: false, author: { login: 'eval' }, url: 'https://github.com/acme/app/pull/28' },
 ] });
