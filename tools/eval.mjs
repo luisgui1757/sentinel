@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import fs from 'node:fs/promises';
-import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
@@ -264,6 +264,22 @@ Answer with JSON: {"pass": true or false, "reason": "one sentence"}.`;
   } finally { await fs.rm(box.tmp, { recursive: true, force: true }); }
 }
 
+async function archive(box, file, auth) {
+  const tokens = JSON.parse(auth.codex).tokens ?? {};
+  const secrets = [auth.claude, tokens.access_token, tokens.refresh_token, tokens.id_token].filter(s => typeof s === 'string' && s.length > 20);
+  const kept = (await fs.readdir(box.tmp)).filter(name => name !== 'home' && name !== 'bin');
+  if (existsSync(path.join(box.home, '.codex', 'sessions'))) kept.push('home/.codex/sessions');
+  const leaks = [];
+  const scan = rel => {
+    const full = path.join(box.tmp, rel);
+    const stat = statSync(full, { throwIfNoEntry: false });
+    if (stat?.isDirectory()) for (const name of readdirSync(full)) scan(path.join(rel, name));
+    else if (stat?.isFile() && stat.size < 20e6 && secrets.some(s => readFileSync(full, 'latin1').includes(s))) leaks.push(rel);
+  };
+  kept.forEach(scan);
+  spawnSync('tar', ['-czf', file, '-C', box.tmp, ...leaks.flatMap(rel => ['--exclude', `./${rel}`, '--exclude', rel]), ...kept]);
+}
+
 async function grade(ctx, testCase, target, { box, head, diff, finalFile, traceFile, out, final, traceError, timedOut, skillLoaded }) {
   let checks = [];
   if (existsSync(path.join(testCase.dir, 'check.mjs'))) {
@@ -318,9 +334,7 @@ async function trial(ctx, testCase, target, arm, index) {
       arm, index, status, pass, skill_loaded: skillLoaded, timed_out: agent.timedOut, error, checks, judged,
       usage: trace.usage, seconds: Math.round((Date.now() - started) / 1000), head, sandbox: box.tmp };
     await fs.writeFile(path.join(outDir, 'diff.patch'), diff);
-    const kept = (await fs.readdir(box.tmp)).filter(name => name !== 'home' && name !== 'bin');
-    if (existsSync(path.join(box.home, '.codex', 'sessions'))) kept.push('home/.codex/sessions');
-    spawnSync('tar', ['-czf', path.join(outDir, 'sandbox.tgz'), '-C', box.tmp, ...kept]);
+    await archive(box, path.join(outDir, 'sandbox.tgz'), ctx.auth());
     await fs.writeFile(path.join(outDir, 'result.json'), `${JSON.stringify(record, null, 2)}\n`);
     return record;
   } catch (error) {
@@ -345,7 +359,7 @@ async function main() {
   const opts = options(process.argv.slice(2));
   const config = JSON.parse(await fs.readFile(path.join(evalsDir, 'targets.json'), 'utf8'));
   const targets = config.targets.filter(t => opts.targets ? opts.targets.includes(t.id) : opts.ab ? t.default : t.routine);
-  const targetsFor = testCase => testCase.targets
+  const targetsFor = testCase => testCase.targets && opts.ab
     ? config.targets.filter(t => testCase.targets.includes(t.id) && (!opts.targets || opts.targets.includes(t.id))) : targets;
   const judges = config.judges.filter(j => !opts.judges || opts.judges.includes(j.host));
   const judgesFor = target => opts.ab || opts.judges ? judges : judges.filter(j => j.host !== target.host).slice(0, 1);
@@ -353,7 +367,9 @@ async function main() {
   let cases = await loadCases(opts.cases);
   if (!opts.ab && !opts.cases) {
     const files = new Set();
-    for (const line of spawnSync('git', ['diff', '--name-only', `${opts.base}...HEAD`], { cwd: root, encoding: 'utf8' }).stdout.split('\n')) if (line) files.add(line);
+    const changed = spawnSync('git', ['diff', '--name-only', `${opts.base}...HEAD`], { cwd: root, encoding: 'utf8' });
+    if (changed.status !== 0) throw new Error(`Cannot compare with ${opts.base}: ${changed.stderr.trim()}`);
+    for (const line of changed.stdout.split('\n')) if (line) files.add(line);
     for (const line of spawnSync('git', ['status', '--porcelain', '--untracked-files=all'], { cwd: root, encoding: 'utf8' }).stdout.split('\n')) if (line) files.add(line.slice(3));
     const part = prefix => new Set([...files].filter(f => f.startsWith(prefix)).map(f => f.split('/')[1]));
     const skills = part('skills/'), changedCases = part('evals/');
@@ -432,8 +448,13 @@ async function rejudge(opts, judgesFor, config) {
   for (const old of latest.values()) {
     const testCase = cases.find(c => c.name === old.case);
     const target = config.targets.find(t => t.id === old.target);
-    const dir = path.join(source, old.case, old.target, `${old.arm}-${old.index}`);
-    if (!testCase || !target || !existsSync(path.join(dir, 'sandbox.tgz'))) continue;
+    const artifacts = old.rejudged_from ? path.join(root, old.rejudged_from) : source;
+    const dir = path.join(artifacts, old.case, old.target, `${old.arm}-${old.index}`);
+    if (!testCase || !target) continue;
+    if (!existsSync(path.join(dir, 'sandbox.tgz'))) { console.log(`MISSING ${old.case} ${old.target} ${old.arm}#${old.index}: no saved sandbox`); continue; }
+    const saved = new Set((old.judged ?? []).flatMap(g => g.verdicts.map(v => v.judge)));
+    const kept = config.judges.filter(j => saved.has(j.model));
+    ctx.judgesFor = t => opts.judges || !kept.length ? judgesFor(t) : kept;
     const tmp = await fs.mkdtemp(path.join(os.tmpdir(), 'sentinel-rejudge-'));
     try {
       spawnSync('tar', ['-xzf', path.join(dir, 'sandbox.tgz'), '-C', tmp]);
@@ -444,7 +465,7 @@ async function rejudge(opts, judgesFor, config) {
       const traceError = old.error && !/^judge error/.test(old.error) ? old.error : null;
       const graded = await grade(ctx, testCase, target, { box, head: old.head, diff: await fs.readFile(path.join(dir, 'diff.patch'), 'utf8'), finalFile, traceFile,
         out: await fs.readFile(traceFile, 'utf8'), final: await fs.readFile(finalFile, 'utf8'), traceError, timedOut: old.timed_out, skillLoaded: old.skill_loaded });
-      const record = { ...old, ...graded, rejudged_from: path.relative(root, source) };
+      const record = { ...old, ...graded, rejudged_from: path.relative(root, artifacts) };
       records.push(record);
       await fs.appendFile(path.join(results, 'runs.jsonl'), `${JSON.stringify(record)}\n`);
       console.log(`${record.status.toUpperCase()} ${record.case} ${record.target} ${record.arm}#${record.index} (was ${old.status})`);

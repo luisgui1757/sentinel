@@ -60,7 +60,7 @@ export function failureList(records, cases) {
   const rows = [];
   for (const record of records) {
     const testCase = cases.find(c => c.name === record.case);
-    if (!testCase || record.pass || !evidence(record)) continue;
+    if (!testCase || record.pass || record.status === 'skipped') continue;
     const items = [...(record.checks ?? []).filter(c => !c.pass && !c.info).map(c => c.name),
       ...(record.judged ?? []).filter(g => g.verdicts.some(v => !v.pass && !v.error)).map(g => g.grader)];
     rows.push(`| ${record.case} | ${record.model ?? record.target} | ${record.arm} ${record.index} | ${worst(record, testCase) ?? 'error'} | ${items.join(', ') || record.error || '-'} |`);

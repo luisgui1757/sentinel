@@ -179,15 +179,13 @@ repository and run the installer again.
   and Windows.
 - `make lint` checks the shell script, home paths and the STE prose.
 - `make check` compares the imported files with `upstream/lock.json`.
-- `make eval` runs the cases in `evals/` with Claude Code and Codex. Each case
-  runs with and without its skill or rule, in a new temporary home folder with
-  a fresh install. The runs use your logins and count against your plan.
-  `evals/targets.json` lists the models and efforts. Pass options with
-  `ARGS`, for example `make eval ARGS="--case tldr --targets opus-5.5-medium"`.
-  Results go to `evals/results/`, which git ignores. `evals/README.md`
-  explains the cases and gives the last results for each skill.
-- `node tools/trust.mjs <results folder>` gives each skill and rule a trust
-  tier from its critical, major and minor failures.
+- `make eval` runs the eval cases that your changes touch, on Opus and Sol,
+  with Claude Code and Codex, in a new temporary home folder with a fresh
+  install. The runs use your logins and count against your plan. Pass options
+  with `ARGS`, for example `make eval ARGS="--case tldr"`, or
+  `ARGS="--ab"` for the full A/B with and without each skill. Results go to
+  `evals/results/`, which git ignores. `evals/README.md` explains the modes
+  and gives the last results for each skill.
 - `node tools/upstream.mjs --update` imports the newest upstream revisions.
   After a manual edit of `upstream/imports.json`, `--sync` imports again at the
   pins.
