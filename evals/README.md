@@ -50,7 +50,7 @@ the skill. "(not loaded)" means that the **with** arm did not read the skill.
 
 | Skill | Result at xhigh | Use |
 | --- | --- | --- |
-| `council` (design mode) | Gain on 5 of 5 models. | Use it. |
+| `council` (design mode) | Gain on Opus, Sol, Terra and Haiku. The one Luna run did not name its base plan, and step 6 does not ask for it yet. | Use it. |
 | `sol-loop` | Gain on Opus, Sol, Terra and Luna. Haiku fails both arms: it declined a finding without a reason. | Use it. |
 | `no-comments` | Gain on 5 of 5 models. | Use it. |
 | No-comments rule | Gain on Sol, Terra and Luna. Opus and Haiku fail both arms: they keep the old comments. | Works on GPT models only. |
@@ -70,16 +70,14 @@ the skill. "(not loaded)" means that the **with** arm did not read the skill.
 "No measured gain" means that the model did the task of the case without the
 skill. A harder case can still show a gain.
 
-The `council-design` runs used the council text before its last change (seat
-rules, no Gemini). That change keeps the path of this case: two model families
-and no named members give the same two seats.
+The `council-design` row comes from a rerun with the final council text.
 
 ### xhigh
 
 | Case | opus-5.5-xhigh | gpt-6.1-sol-xhigh | gpt-6.1-terra-xhigh | haiku-5.5-xhigh | gpt-6-luna-xhigh |
 |---|---|---|---|---|---|
 | cleanup-repo | 2/3 · 0/3 | 1/1 · 1/1 | 3/3 · 0/3 | 1/1 · 1/1 | 1/1 · 1/1 |
-| council-design | 3/3 · 0/3 | 2/3 · 0/3 | 3/3 · 0/3 | 3/3 · 0/3 | 3/3 · 0/3 |
+| council-design | 3/3 · 0/3 | 3/3 · 0/3 | 3/3 · 0/3 | 3/3 · 0/3 | 0/1 · 0/1 |
 | create-formal-lease | 1/1 · 1/1 | 1/1 · 1/1 | 1/1 · 1/1 | 1/1 · 1/1 (not loaded) | 1/1 · 1/1 |
 | create-verification-http | 1/1 · 1/1 | 1/1 · 1/1 | 1/1 · 1/1 | 1/1 · 1/1 (not loaded) | 1/1 · 1/1 |
 | how-tax-production | 1/1 · 1/1 | 1/1 · 1/1 | 1/1 · 1/1 | 1/1 · 1/1 | 1/1 · 1/1 |
@@ -100,7 +98,8 @@ and no named members give the same two seats.
 ### medium
 
 Opus 5.5, Sol 6.1 and Terra 6.1 at medium, for reference. `sol-loop-pagination`
-did not run at medium.
+did not run at medium. The medium `council-design` row used the council text
+from before its seat rules.
 
 | Case | opus-5.5-medium | gpt-6.1-sol-medium | gpt-6.1-terra-medium |
 |---|---|---|---|
