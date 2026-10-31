@@ -713,7 +713,7 @@
       "source": "pstack",
       "path": "pstack/skills/technical-writing/SKILL.md",
       "sha256": "61fe9c424a798ebf36ad94941f87be049cb8827bdf86d21474a0dde37b513c43",
-      "local": "643145d606971e561ab6055e938c8664d225a5cf43931925c8e811c20017ccfc",
+      "local": "bc2fbb899271364d1774e2b4b92eedb58587b5277bde824194be258956d7dc8a",
       "executable": false
     },
     "skills/create-verification-skill/SKILL.md": {

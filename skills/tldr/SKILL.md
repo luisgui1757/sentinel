@@ -26,8 +26,8 @@ or does:
 - Each check that did not run.
 - For each decision, each option with its cost and its limit.
 - For each risk, what breaks and what removes the risk.
-- For each change that the reader must make, the exact change, such as
-  "change its connection string and client library", not only "fix the export".
+- For each change that the reader must make, the exact change, such as "pin
+  the parser to version 2.3", not only "fix the parser".
 
 A detail that only supports a unit is not a unit. Put it in the line of its
 unit, or remove it.
@@ -45,9 +45,9 @@ unit, or remove it.
 ## 3. Remove the rest
 
 Remove narration, background, repeated text, examples that repeat a point,
-hedges and praise. Remove offers of more work. Remove a number that only explains
-a unit, such as the data size behind a slow step. Remove the steps that led to a result when the result is
-enough to act. Do not add your own notes or analysis. Summarize the source
+hedges and praise. Remove offers of more work. Remove a number that only
+explains a unit, such as the line count behind a slow test. Remove the steps
+that led to a result when the result is enough to act. Do not add your own notes or analysis. Summarize the source
 only.
 
 ## 4. Write the result
