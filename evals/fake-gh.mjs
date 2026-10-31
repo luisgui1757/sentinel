@@ -31,8 +31,9 @@ const live = p => {
     headRepository: { name: 'app' }, headRepositoryOwner: { login: 'acme' }, isCrossRepository: false, reviews: [], latestReviews: [], comments: [], reviewRequests: [], labels: [], assignees: [],
     closingIssuesReferences: [], files: [], additions: 0, deletions: 0, createdAt: '2026-09-01T10:00:00Z', updatedAt: '2026-09-01T10:00:00Z', mergedAt: p.state === 'MERGED' ? '2026-10-31T10:00:00Z' : null };
 };
+const pick = value => { const fields = flag('--json'); if (!fields) return value; const keys = fields.split(','); const one = v => Object.fromEntries(keys.filter(k => k in v).map(k => [k, v[k]])); return Array.isArray(value) ? value.map(one) : one(value); };
 const out = value => {
-  const text = JSON.stringify(value);
+  const text = JSON.stringify(a === 'pr' && (b === 'view' || b === 'list') ? pick(value) : value);
   const jq = flag('--jq', '-q');
   if (jq) { const r = spawnSync('jq', ['-r', jq], { input: text, encoding: 'utf8' }); process.stdout.write(r.stdout); process.exit(r.status ?? 0); }
   process.stdout.write(text + '\\n');
