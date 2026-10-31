@@ -6,7 +6,8 @@ case runs two times on each target model:
 - **with**: a fresh install of all skills and the current rules.
 - **without**: the same install without the skill of the case, or without
   the skills in `without_skills`. For a rule case, the rules from the `base`
-  commit of the case, or from `origin/main`, replace the current rules.
+  commit of the case, or from `origin/main`, replace the current rules. With
+  `"base": "none"`, the **without** arm has no rules.
 
 Run `make eval` from the repo root. See the root `README.md` for the options.
 
@@ -159,7 +160,7 @@ some files of our own:
 | --- | --- |
 | `prompt.md` | The task that the agent gets. |
 | `graders/NN-*.md` | A statement with `type: llm`. Two judges, Claude Opus and GPT Sol at high effort, get the task, the final reply and the diff. Both must find the statement true. `--judges claude` uses only the first. |
-| `eval.json` | `skill` or `rule`, and these options: `timeout` in seconds, `requires` (commands that must be on the `PATH`), `load: false` (the skill must not load, for cases that test the trigger), `judge_files` (files from `files/` that the judges also get), `judge_trace: true` (the judges also get the commands that the agent ran, with their output), `arms` (for example `["with"]` for a case with no skill), `targets` (the target ids that the case runs on, in place of the defaults), `base` (for a rule case, the commit whose rules the **without** arm gets), `without_skills` (the skills that the **without** arm removes, such as the whole family of the skill). |
+| `eval.json` | `skill` or `rule`, and these options: `timeout` in seconds, `requires` (commands that must be on the `PATH`), `load: false` (the skill must not load, for cases that test the trigger), `judge_files` (files from `files/` that the judges also get), `judge_trace: true` (the judges also get the commands that the agent ran, with their output), `arms` (for example `["with"]` for a case with no skill), `targets` (the target ids that the case runs on, in place of the defaults), `base` (for a rule case, the commit whose rules the **without** arm gets, or `none` for no rules), `without_skills` (the skills that the **without** arm removes, such as the whole family of the skill). |
 | `files/` | The files of the repo that the agent works in. |
 | `setup.mjs` | Optional. Gets the work folder, a `bin` folder on the `PATH` and a temporary folder. Use it for git history and fake commands such as `gh`. |
 | `check.mjs` | Optional. Checks the result with code, through the helpers in `lib.mjs`. A failed check skips the judges. |

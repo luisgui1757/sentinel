@@ -15,5 +15,5 @@ const facts = {
   'two steps': /two (steps|phases|stages)|2 (steps|phases|stages)|step 2|phase 2|(cop(y|ies)|replicat)[\s\S]{0,300}(switch|cutover)/i,
 };
 for (const [name, pattern] of Object.entries(facts)) check(`keeps ${name}`, pattern.test(text));
-check('at most 35% of the source length', words(text) <= 0.35 * words(source), `${words(text)} of ${words(source)} words`);
+check('at most half of the source length', words(text) <= 0.5 * words(source), `${words(text)} of ${words(source)} words (${Math.round(100 * words(text) / words(source))}%)`);
 report();

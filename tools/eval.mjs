@@ -302,6 +302,7 @@ async function main() {
   const rulesAt = new Map();
   const baseRulesFor = testCase => {
     const ref = testCase.base ?? opts.base;
+    if (ref === 'none') return '';
     if (!rulesAt.has(ref)) {
       const rules = spawnSync('git', ['show', `${ref}:rules/AGENTS.md`], { cwd: root, encoding: 'utf8' });
       if (rules.status !== 0) throw new Error(`Cannot read rules/AGENTS.md at ${ref}`);

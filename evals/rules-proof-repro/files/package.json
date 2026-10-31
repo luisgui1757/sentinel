@@ -1,0 +1,1 @@
+{ "name": "timer", "type": "module", "scripts": { "test": "node --test" } }
