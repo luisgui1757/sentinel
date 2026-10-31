@@ -42,6 +42,9 @@ If model identity is unavailable, name the harness without guessing a model.
 Before submission, check the title, description, quotes, and attachments for
 secrets and private details.
 
+Report only the check results that you saw in this session. Do not say that CI
+or a check passed unless you read its result.
+
 Open a real PR rather than a draft so review bots run. If `gh pr create` fails
 because the GraphQL rate limit is used up, open it through REST with
 `gh api repos/<owner>/<repo>/pulls -f title=... -f head=... -f base=... -F body=@<file>`. If the user also asked
