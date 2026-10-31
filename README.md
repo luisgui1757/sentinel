@@ -101,16 +101,14 @@ agent can also load each skill when its description fits the task.
 | `why` | "why is X like this" | The agent searches git, pull requests and your MCP servers, and gives the reason with a confidence level. |
 | `tldr` | "tldr" | A short version that keeps each fact that you need to decide or act. |
 | `technical-writing` | "simplify this", "STE" | Docs, PR text and rewrites in simple technical English, without AI patterns. |
-| `create-verification-skill` | "make a verification skill" | The agent writes a project skill that starts the app and proves features the way a user does. |
-| `maintain-verification-skill` | "check the verify skill" | The agent drives each feature again and fixes the skill where the app changed. |
 
 At xhigh, `council`, `cleanup`, `no-comments`, `technical-writing` and the
-rules for comments and cleanup changed the result on 4 or 5 models. `sol-loop`, `why` and the formal skills changed it on 2
-or 3 models. `tldr` helped on GPT Sol only. `create-verification-skill` and
-`how` showed no gain. See [evals/README.md](evals/README.md).
+rules for comments and cleanup changed the result on 4 or 5 models. `sol-loop`,
+`why` and `statechart` changed it on 2 or 3 models. `how` showed no gain. See
+[evals/README.md](evals/README.md).
 
 Sources: `untangle`, `cleanup`, `no-comments` and `tldr` are from
-Sentinel. `how`, `why`, `technical-writing` and the verification skills are
+Sentinel. `how`, `why`, `technical-writing` and `statechart` are
 from [pstack](https://github.com/cursor/plugins/tree/main/pstack). The other
 skills are from [tstack](https://github.com/t3dotgg/tstack). Sentinel keeps
 the T3 Code routes of tstack and adds a route for each other CLI.
@@ -119,14 +117,10 @@ The repository keeps tstack's `full-send` skill, but the installer does not
 install it, because it merges without a person. `full-stop` reads a copy of
 it and stops before the merge.
 
-The `formal` profile is for code where events can occur in many orders, such
-as locks, retries, queues and protocols. These skills are from pstack.
-
-| Skill | Use |
-|---|---|
-| `create-formal-verification-skill` | A project skill that proves a rule of the code with a model checker or a prover |
-| `maintain-formal-verification-skill` | Bring the model back in line with the code after the code changes |
-| `statechart` | Check a TLA+ model with TLC and draw it as a Mermaid chart, with the shortest path to each state that breaks a rule |
+The `formal` profile holds `statechart`, for code where events can occur in
+many orders, such as locks, retries, queues and protocols. It checks a TLA+
+model with TLC and draws it as a Mermaid chart, with the shortest path to each
+state that breaks a rule.
 
 `statechart` needs Node 22.18 or later, Bun or Deno. On the first run, it
 installs Java and TLC with mise and needs the network. Set `TLA2TOOLS` and

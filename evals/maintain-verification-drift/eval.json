@@ -1,1 +1,0 @@
-{"skill": "maintain-verification-skill", "timeout": 1800, "without_skills": ["create-verification-skill", "maintain-verification-skill"], "minor": ["no process from the run stays"]}

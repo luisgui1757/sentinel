@@ -8,7 +8,7 @@ the SHA-256 of each imported file. A file that Sentinel changed also has a
 | Skills | Source | License |
 |---|---|---|
 | babysit-pr, council, file-pr, full-send, full-stop, leaving-pr-comments, modernize, sol-loop, takeover | [t3dotgg/tstack](https://github.com/t3dotgg/tstack) | MIT |
-| how, why, technical-writing, create-verification-skill, maintain-verification-skill, create-formal-verification-skill, maintain-formal-verification-skill, statechart | [cursor/plugins](https://github.com/cursor/plugins/tree/main/pstack) (pstack) | MIT |
+| how, why, technical-writing, statechart | [cursor/plugins](https://github.com/cursor/plugins/tree/main/pstack) (pstack) | MIT |
 | impeccable | [pbakaus/impeccable](https://github.com/pbakaus/impeccable) | Apache 2.0, with `NOTICE.md` |
 | frontend-design | [anthropics/skills](https://github.com/anthropics/skills/tree/main/skills/frontend-design) | Apache 2.0 |
 
@@ -30,15 +30,7 @@ section to rewrite existing text in STE with `ste-lint`. Sentinel removes
 `disable-model-invocation` from the pstack skills and writes new descriptions,
 so that agents can load them. It replaces the Cursor model routes with the
 subagents of the host, and the `.cursor` folders with the project skill folders
-of each host. `create-verification-skill` reports a checkout that does not
-start and changes no product code. `maintain-verification-skill` treats copies
-in several folders as one skill and gives its notes in the reply.
-
-Both verification skills keep a `Status:` line for each journey. The create
-skill indexes each feature and adds one check command. It breaks one feature to
-prove that the check can fail. The maintain skill changes an expected result
-only with evidence that the promise changed on purpose. `statechart` reports a
-replayed violation as a bug.
+of each host. `statechart` reports a replayed violation as a bug.
 
 Council runs Claude Opus and GPT Sol by default, one seat each. It uses only
 the members that the user names. It fills extra seats with copies in the order
