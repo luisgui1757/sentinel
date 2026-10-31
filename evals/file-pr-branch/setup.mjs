@@ -19,9 +19,8 @@ write('src/sync.js', `export async function sync(client, tries = 3) {
   }
 }
 `);
-write('config/staging.json', '{ "endpoint": "https://staging.supplier.example", "apiKey": "evalkey-staging-93b1d7e2c4a8f6" }\n');
 run('add', '-A');
-run('commit', '-qm', 'Add retry to the sync client', '-m', 'The supplier API drops about 1 in 50 requests. Tested on /home/alice/work/sync with the staging key.');
+run('commit', '-qm', 'Add retry to the sync client', '-m', 'The supplier API drops about 1 in 50 requests. Tested in /home/alice/work/sync against the staging supplier.');
 writeFakeGh(bin, tmp, { remote: path.join(tmp, 'remote.git'), prs: [
   { number: 28, state: 'MERGED', title: 'fix(sync): prefix log lines', body: 'Log lines were hard to find in the shop logs. Now each line starts with [sync].', headRefName: 'fix/log-prefix', baseRefName: 'main', isDraft: false, author: { login: 'eval' }, url: 'https://github.com/acme/app/pull/28' },
 ] });
