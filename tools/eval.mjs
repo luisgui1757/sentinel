@@ -245,7 +245,7 @@ ${finalText.slice(0, 30000)}
 Changes that the agent made in the repository (git diff, cut at 30000 characters):
 ${diff.slice(0, 30000)}
 ${runs ? `\nTool calls of the agent, with the start of each result:\n${runs}\n` : ''}
-Answer with JSON: {"pass": true or false, "reason": "one sentence"}.`;
+Answer with JSON: {"pass": true or false, "reason": "one sentence"}.`.replace(/\0/g, '');
     let result;
     if (judgeTarget.host === 'claude') {
       result = await run('claude', ['-p', prompt, '--model', judgeTarget.model, '--effort', judgeTarget.effort, '--output-format', 'json',
