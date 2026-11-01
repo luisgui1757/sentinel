@@ -3,6 +3,7 @@
 core babysit-pr
 core cleanup
 core council
+core enforce
 core file-pr
 core full-stop
 core leaving-pr-comments
@@ -13,6 +14,7 @@ core takeover
 core technical-writing
 core tldr
 core untangle
+core verify-pr
 core why
 formal statechart
 ui beast-ui
@@ -20,3 +22,5 @@ ui doc-view
 ui frontend-design
 ui impeccable
 explain how
+ops featuremap
+ops patrol

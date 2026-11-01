@@ -28,7 +28,7 @@ Start a new agent session after the install.
 | Option | Use |
 |---|---|
 | `--hosts` / `-Hosts` | `codex`, `claude`, `copilot`, `kiro`, `opencode`, or `all` |
-| `--skills` / `-Skills` | `core`, `formal`, `ui`, `explain`, or a list. The default is `core`. Use `none` to install only the rules. |
+| `--skills` / `-Skills` | `core`, `formal`, `ui`, `explain`, `ops`, or a list. The default is `core`. Use `none` to install only the rules. |
 | `--global` / `-Global` | Install into your user folder. |
 | `--project DIR` / `-Project DIR` | Install into one repository. |
 | `--no-rules` / `-NoRules` | Install only the skills. |
@@ -53,6 +53,9 @@ changed them. `--check` reports these folders as `LEGACY`.
 | Copilot CLI | `~/.copilot/copilot-instructions.md` | `~/.agents/skills` |
 | Kiro | `~/.kiro/steering/AGENTS.md` | `~/.kiro/skills` |
 | OpenCode | `~/.config/opencode/AGENTS.md` | `~/.agents/skills` |
+
+For Claude Code, the installer also writes the output style
+`~/.claude/output-styles/sentinel.md`. See "Rules".
 
 `CODEX_HOME`, `CLAUDE_CONFIG_DIR`, `COPILOT_HOME`, `KIRO_HOME` and
 `XDG_CONFIG_HOME` change these folders. When the installer replaces a rules
@@ -82,6 +85,13 @@ file, the file keeps its mode. A project install writes the rules to `AGENTS.md`
   limit the reasoning of the agent. Ask for plain prose to stop it in a
   session. To stop it in a repository, say so in its `AGENTS.md`.
 
+`rules/output-style.md` is a Claude Code output style for short replies. It
+tells the agent to give each fact once and to add no claim that it did not
+check. In the evals, it cut the replies of Opus and Haiku by half or more. The
+installer writes it, but Claude Code uses it only after you pick it: run
+`/output-style Sentinel`, or set `"outputStyle": "Sentinel"` in
+`~/.claude/settings.json`.
+
 ## Skills
 
 The `core` profile is for delivery, review, understanding and writing. An
@@ -100,6 +110,8 @@ agent can also load each skill when its description fits the task.
 | `leaving-pr-comments` | (automatic) | The agent marks the comments that it writes for you. |
 | `untangle` | "untangle" | The agent finds what a codebase does not need and proves each cut. |
 | `cleanup` | "clean up the branches" | The agent removes merged worktrees and branches and reports the others. |
+| `verify-pr` | "verify this PR" | A tester from another model family runs the app, compares each fault with the base, and reports each regression with steps to reproduce. `full-stop` runs it before the handoff. |
+| `enforce` | "make CI catch this" | The agent turns a rule or a repeated mistake into a lint rule, a diff check or a hook, and shows it fail on the old mistake. |
 | `no-comments` | "remove the comments" | The agent removes comments that code can replace, and keeps the others with a reason. |
 | `why` | "why is X like this" | The agent searches git, pull requests and your MCP servers, and gives the reason with a confidence level. |
 | `tldr` | "tldr" | A short version that keeps each fact that you need to decide or act. |
@@ -107,11 +119,15 @@ agent can also load each skill when its description fits the task.
 
 At xhigh, `council`, `cleanup`, `no-comments`, `technical-writing` and the
 rules for comments and cleanup changed the result on 4 or 5 models. `sol-loop`,
-`why` and `statechart` changed it on 2 or 3 models. `how` showed no gain. See
-[evals/README.md](evals/README.md).
+`why` and `statechart` changed it on 2 or 3 models. `how` showed no gain.
+See [evals/README.md](evals/README.md).
 
-Sources: `untangle`, `cleanup`, `no-comments` and `tldr` are from
-Sentinel. `how`, `why`, `technical-writing` and `statechart` are
+`patrol` changed the result on 5 models, and `verify-pr` on 2. As one-off
+tasks, `enforce` and `featuremap` changed it on 1 model. Their scripts ran on
+real projects.
+
+Sources: `untangle`, `cleanup`, `no-comments`, `tldr`, `verify-pr`, `enforce`,
+`patrol` and `featuremap` are from Sentinel. `how`, `why`, `technical-writing` and `statechart` are
 from [pstack](https://github.com/cursor/plugins/tree/main/pstack). The other
 skills are from [tstack](https://github.com/t3dotgg/tstack). Sentinel keeps
 the T3 Code routes of tstack and adds a route for each other CLI.
@@ -134,6 +150,20 @@ explains the code with the files that it read. In the evals, strong models
 explained the code as well without it. It starts 1 to 5 subagents for each
 question. Install it with `--skills core,explain` if you want its
 delegated explanations.
+
+The `ops` profile holds two skills that ship scripts. Both need Node 22 or
+later. Copy the script into the repository, so that CI runs the same file.
+
+- `patrol` runs coding agents in GitHub Actions or Azure Pipelines. A fix job
+  turns one ready tracker item into a draft PR. A weekly scan files at most 3
+  defects. A PR job tests each PR. The agent job gets no forge token, and
+  nothing merges.
+- `featuremap` writes one feature map for a monorepo in many languages. It
+  reads edges from JS, TS, Python, C and C++ code, `go list`, `cargo metadata`
+  and the CMake File API. It checks which features may use which in CI, with a
+  baseline that can only shrink, and draws the graph.
+
+Install it with `--skills core,ops`.
 
 The `ui` profile is for interface work.
 
