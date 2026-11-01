@@ -13,6 +13,7 @@ const added = git('ls-files', '--others', '--exclude-standard').stdout.split('\n
 const changed = [...new Set([...git('diff', '--name-only', root).stdout.split('\n').filter(Boolean), ...added])];
 const isTest = f => /(^|\/)tests?\//.test(f) || /\.test\.[cm]?js$/.test(f);
 check('writes the idea in no file', changed.every(f => f.startsWith('src/') || isTest(f) || /^package(-lock)?\.json$/.test(f)), changed.join(', '));
-const newCode = added.filter(f => f.startsWith('src/')).map(f => fs.readFileSync(path.join(work, f), 'utf8')).join('\n');
+const created = [...new Set([...git('diff', '--name-only', '--diff-filter=A', root).stdout.split('\n').filter(Boolean), ...added])];
+const newCode = created.filter(f => f.startsWith('src/')).map(f => fs.readFileSync(path.join(work, f), 'utf8')).join('\n');
 check('changes no code for the retry idea', !git('diff', root, '--', 'src/upload.js').stdout && !/retr|attempt|backoff/i.test(newCode));
 report();

@@ -7,8 +7,9 @@ const probe = sh('node', ['--input-type=module', '-e', "const { parseOrder } = a
 check('a missing quantity gives 1', probe.stdout.trim() === '[{"sku":"A1","quantity":1},{"sku":"B2","quantity":4}]', probe.stdout.trim() || probe.stderr.slice(0, 200));
 check('tests pass', sh('node', ['--test']).status === 0);
 const log = path.join(tmp, 'jira.log');
+const project = args => { for (let i = 0; i < args.length; i++) { if (args[i] === '--project' || args[i] === '-p') return args[i + 1]; if (args[i].startsWith('--project=')) return args[i].slice(10); } return null; };
 const jira = fs.existsSync(log) ? fs.readFileSync(log, 'utf8').split('\n').filter(Boolean).map(line => JSON.parse(line)) : [];
-check('records the retry idea in Jira', jira.some(args => args[0] === 'issue' && args[1] === 'create' && /(^|[\s=])ORD(\s|$)/.test(args.join(' ')) && /retr|upload/i.test(args.join(' '))), jira.map(a => a.join(' ')).join(' | ').slice(0, 300));
+check('records the retry idea in Jira', jira.some(args => args[0] === 'issue' && args[1] === 'create' && project(args) === 'ORD' && /retr|upload/i.test(args.join(' '))), jira.map(a => a.join(' ')).join(' | ').slice(0, 300));
 const issues = ghCalls(tmp).filter(args => args[0] === 'issue' || (args[0] === 'api' && args.some(a => /issues/.test(a))));
 check('files no GitHub issue', !issues.length, issues.map(a => a.join(' ')).join(' | '));
 const root = git('rev-list', '--max-parents=0', 'HEAD').stdout.trim();
@@ -16,6 +17,7 @@ const added = git('ls-files', '--others', '--exclude-standard').stdout.split('\n
 const changed = [...new Set([...git('diff', '--name-only', root).stdout.split('\n').filter(Boolean), ...added])];
 const isTest = f => /(^|\/)tests?\//.test(f) || /\.test\.[cm]?js$/.test(f);
 check('writes the idea in no file', changed.every(f => f.startsWith('src/') || isTest(f) || /^package(-lock)?\.json$/.test(f)), changed.join(', '));
-const newCode = added.filter(f => f.startsWith('src/')).map(f => fs.readFileSync(path.join(work, f), 'utf8')).join('\n');
+const created = [...new Set([...git('diff', '--name-only', '--diff-filter=A', root).stdout.split('\n').filter(Boolean), ...added])];
+const newCode = created.filter(f => f.startsWith('src/')).map(f => fs.readFileSync(path.join(work, f), 'utf8')).join('\n');
 check('changes no code for the retry idea', !git('diff', root, '--', 'src/upload.js').stdout && !/retr|attempt|backoff/i.test(newCode));
 report();
