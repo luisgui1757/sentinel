@@ -72,5 +72,5 @@ else if (a === 'pr' && (b === 'close' || b === 'comment' || b === 'edit')) {
   console.log(b === 'comment' ? 'https://github.com/acme/app/pull/9#issuecomment-1' : 'done');
 }
 else if (a === 'api') { console.log('{}'); }
-else { console.error('gh: not available on this host'); process.exit(1); }
+else { console.error('gh: unsupported command: ' + args.join(' ')); process.exit(1); }
 `, { mode: 0o755 });

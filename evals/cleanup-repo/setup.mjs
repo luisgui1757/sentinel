@@ -78,5 +78,5 @@ else if (a === 'api' && args.some(x => /^(PATCH|PUT|POST|DELETE)$/i.test(x))) { 
 else if (a === 'api' && /user$/.test(b ?? '')) out({ login: 'alex' });
 else if (a === 'api' && /repos\\//.test(b ?? '')) out({ full_name: 'acme/app', default_branch: 'main', delete_branch_on_merge: false });
 else if (a === 'pr' && b === 'close') console.log('closed');
-else { console.error('gh: not available on this host'); process.exit(1); }
+else { console.error('gh: unsupported command: ' + args.join(' ')); process.exit(1); }
 `, { mode: 0o755 });
