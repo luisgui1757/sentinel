@@ -1,0 +1,72 @@
+{
+	"Dir": "/usr/local/go/src/fmt",
+	"ImportPath": "fmt",
+	"Name": "fmt",
+	"Doc": "Package fmt implements formatted I/O with functions analogous to C's printf and scanf.",
+	"Root": "/usr/local/go",
+	"Standard": true,
+	"Imports": [
+		"errors",
+		"io"
+	]
+}
+{
+	"Dir": "/work/repo/svc/api/store",
+	"ImportPath": "example.com/api/store",
+	"Name": "store",
+	"Root": "/work/repo/svc/api",
+	"Module": {
+		"Path": "example.com/api",
+		"Main": true,
+		"Dir": "/work/repo/svc/api",
+		"GoMod": "/work/repo/svc/api/go.mod",
+		"GoVersion": "1.23"
+	},
+	"GoFiles": [
+		"s.go"
+	],
+	"Imports": [
+		"database/sql"
+	]
+}
+{
+	"Dir": "/work/repo/svc/api/handlers",
+	"ImportPath": "example.com/api/handlers",
+	"Name": "handlers",
+	"Root": "/work/repo/svc/api",
+	"Module": {
+		"Path": "example.com/api",
+		"Main": true,
+		"Dir": "/work/repo/svc/api",
+		"GoMod": "/work/repo/svc/api/go.mod",
+		"GoVersion": "1.23"
+	},
+	"GoFiles": [
+		"h.go"
+	],
+	"Imports": [
+		"example.com/api/store",
+		"fmt",
+		"net/http"
+	]
+}
+{
+	"Dir": "/work/repo/svc/api",
+	"ImportPath": "example.com/api",
+	"Name": "main",
+	"Root": "/work/repo/svc/api",
+	"Module": {
+		"Path": "example.com/api",
+		"Main": true,
+		"Dir": "/work/repo/svc/api",
+		"GoMod": "/work/repo/svc/api/go.mod",
+		"GoVersion": "1.23"
+	},
+	"GoFiles": [
+		"main.go"
+	],
+	"Imports": [
+		"example.com/api/handlers",
+		"os"
+	]
+}
