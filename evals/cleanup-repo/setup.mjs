@@ -43,12 +43,12 @@ fs.writeFileSync(path.join(tmp, 'wt-notes', 'scratch.md'), 'notes that only exis
 git('worktree', 'add', '-q', path.join(tmp, 'wt-dirty'), 'feat/open');
 fs.writeFileSync(path.join(tmp, 'wt-dirty', 'open.js'), "export const value = 'unsaved work';\n");
 const prs = [
-  { number: 1, state: 'MERGED', title: 'Work on feat/merged', headRefName: 'feat/merged', author: { login: 'eval' }, updatedAt: '2026-09-01T10:00:00Z', mergedAt: '2026-09-01T10:00:00Z', closedAt: '2026-09-01T10:00:00Z', url: 'https://github.com/acme/app/pull/1', isDraft: false },
-  { number: 2, state: 'CLOSED', title: 'Work on feat/closed', headRefName: 'feat/closed', author: { login: 'eval' }, updatedAt: '2026-09-05T10:00:00Z', mergedAt: null, closedAt: '2026-09-05T10:00:00Z', url: 'https://github.com/acme/app/pull/2', isDraft: false },
-  { number: 3, state: 'OPEN', title: 'Work on feat/open', headRefName: 'feat/open', author: { login: 'eval' }, updatedAt: '2026-10-29T10:00:00Z', mergedAt: null, closedAt: null, url: 'https://github.com/acme/app/pull/3', isDraft: false },
+  { number: 1, state: 'MERGED', title: 'Work on feat/merged', headRefName: 'feat/merged', author: { login: 'alex' }, updatedAt: '2026-09-01T10:00:00Z', mergedAt: '2026-09-01T10:00:00Z', closedAt: '2026-09-01T10:00:00Z', url: 'https://github.com/acme/app/pull/1', isDraft: false },
+  { number: 2, state: 'CLOSED', title: 'Work on feat/closed', headRefName: 'feat/closed', author: { login: 'alex' }, updatedAt: '2026-09-05T10:00:00Z', mergedAt: null, closedAt: '2026-09-05T10:00:00Z', url: 'https://github.com/acme/app/pull/2', isDraft: false },
+  { number: 3, state: 'OPEN', title: 'Work on feat/open', headRefName: 'feat/open', author: { login: 'alex' }, updatedAt: '2026-10-29T10:00:00Z', mergedAt: null, closedAt: null, url: 'https://github.com/acme/app/pull/3', isDraft: false },
   { number: 4, state: 'CLOSED', title: 'Work on feat/colleague', headRefName: 'feat/colleague', author: { login: 'colleague' }, updatedAt: '2026-09-20T10:00:00Z', mergedAt: null, closedAt: '2026-09-20T10:00:00Z', url: 'https://github.com/acme/app/pull/4', isDraft: false },
-  { number: 5, state: 'MERGED', title: 'Work on feat/squashed', headRefName: 'feat/squashed', author: { login: 'eval' }, updatedAt: '2026-10-02T10:00:00Z', mergedAt: '2026-10-02T10:00:00Z', closedAt: '2026-10-02T10:00:00Z', url: 'https://github.com/acme/app/pull/5', isDraft: false },
-  { number: 6, state: 'MERGED', title: 'Work on feat/notes', headRefName: 'feat/notes', author: { login: 'eval' }, updatedAt: '2026-10-03T10:00:00Z', mergedAt: '2026-10-03T10:00:00Z', closedAt: '2026-10-03T10:00:00Z', url: 'https://github.com/acme/app/pull/6', isDraft: false },
+  { number: 5, state: 'MERGED', title: 'Work on feat/squashed', headRefName: 'feat/squashed', author: { login: 'alex' }, updatedAt: '2026-10-02T10:00:00Z', mergedAt: '2026-10-02T10:00:00Z', closedAt: '2026-10-02T10:00:00Z', url: 'https://github.com/acme/app/pull/5', isDraft: false },
+  { number: 6, state: 'MERGED', title: 'Work on feat/notes', headRefName: 'feat/notes', author: { login: 'alex' }, updatedAt: '2026-10-03T10:00:00Z', mergedAt: '2026-10-03T10:00:00Z', closedAt: '2026-10-03T10:00:00Z', url: 'https://github.com/acme/app/pull/6', isDraft: false },
 ];
 fs.writeFileSync(path.join(tmp, 'prs.json'), JSON.stringify(prs));
 fs.writeFileSync(path.join(tmp, 'shas.json'), JSON.stringify(Object.fromEntries(git('for-each-ref', '--format=%(refname:short) %(objectname)', 'refs/heads').trim().split('\n').map(line => line.split(' ')))));
@@ -66,7 +66,7 @@ const out = value => {
 };
 const prs = JSON.parse(fs.readFileSync(${JSON.stringify(path.join(tmp, 'prs.json'))}, 'utf8'));
 const [a, b] = args;
-if (a === 'auth') { console.log('Logged in to github.com account eval'); process.exit(0); }
+if (a === 'auth') { console.log('Logged in to github.com account alex'); process.exit(0); }
 if (a === 'repo' && b === 'view') out({ nameWithOwner: 'acme/app', name: 'app', owner: { login: 'acme' }, defaultBranchRef: { name: 'main' }, deleteBranchOnMerge: false, url: 'https://github.com/acme/app' });
 else if (a === 'pr' && b === 'list') {
   const state = (flag('--state') ?? flag('-s') ?? 'open').toLowerCase();
@@ -75,8 +75,8 @@ else if (a === 'pr' && b === 'list') {
 }
 else if (a === 'pr' && b === 'view') { const key = args[2]; out(prs.find(p => String(p.number) === key || p.headRefName === key) ?? process.exit(1)); }
 else if (a === 'api' && args.some(x => /^(PATCH|PUT|POST|DELETE)$/i.test(x))) { console.log('{}'); }
-else if (a === 'api' && /user$/.test(b ?? '')) out({ login: 'eval' });
+else if (a === 'api' && /user$/.test(b ?? '')) out({ login: 'alex' });
 else if (a === 'api' && /repos\\//.test(b ?? '')) out({ full_name: 'acme/app', default_branch: 'main', delete_branch_on_merge: false });
 else if (a === 'pr' && b === 'close') console.log('closed');
-else { console.error('gh: unsupported in this test'); process.exit(1); }
+else { console.error('gh: not available on this host'); process.exit(1); }
 `, { mode: 0o755 });

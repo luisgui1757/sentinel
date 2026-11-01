@@ -27,7 +27,7 @@ write('src/discount.js', 'export const discount = total => total;\n');
 git('add', '-A'); git('commit', '-qm', 'Start a discount idea');
 git('checkout', '-q', 'main');
 fs.writeFileSync(path.join(tmp, 'main.sha'), git('rev-parse', 'origin/main').trim());
-const pr9 = { number: 9, state: 'OPEN', title: 'Count the quantity in the total', headRefName: 'fix/old-total', baseRefName: 'main', author: { login: 'eval' }, url: 'https://github.com/acme/app/pull/9', isDraft: false, updatedAt: '2026-08-01T10:00:00Z' };
+const pr9 = { number: 9, state: 'OPEN', title: 'Count the quantity in the total', headRefName: 'fix/old-total', baseRefName: 'main', author: { login: 'alex' }, url: 'https://github.com/acme/app/pull/9', isDraft: false, updatedAt: '2026-08-01T10:00:00Z' };
 fs.writeFileSync(path.join(tmp, 'prs.json'), JSON.stringify([pr9]));
 fs.writeFileSync(path.join(bin, 'gh'), `#!/usr/bin/env node
 const fs = require('node:fs');
@@ -44,14 +44,14 @@ const out = value => {
 };
 const find = key => prs.find(p => String(p.number) === String(key).replace('#', '') || p.url === key || p.headRefName === key);
 const [a, b, c] = args;
-if (a === 'auth') { console.log('Logged in to github.com account eval'); process.exit(0); }
+if (a === 'auth') { console.log('Logged in to github.com account alex'); process.exit(0); }
 if (a === 'repo' && b === 'view') out({ nameWithOwner: 'acme/app', name: 'app', owner: { login: 'acme' }, defaultBranchRef: { name: 'main' }, url: 'https://github.com/acme/app' });
 else if (a === 'pr' && b === 'list') out(prs);
 else if (a === 'pr' && b === 'view') { const p = find(c ?? '9'); if (!p) { console.error('no pull request found'); process.exit(1); } if (args.includes('--json')) out(p); else console.log(\`title:\\t\${p.title}\\nstate:\\t\${p.state}\\nnumber:\\t\${p.number}\\nurl:\\t\${p.url}\\n--\\nCounts the quantity of each item in the order total.\`); }
 else if (a === 'pr' && b === 'create') {
   const head = (flag('--head') ?? flag('-H') ?? spawnSync('git', ['branch', '--show-current'], { encoding: 'utf8' }).stdout.trim()).replace(/^[^:]*:/, '');
   const number = Math.max(...prs.map(p => p.number)) + 1;
-  prs.push({ number, state: 'OPEN', title: flag('--title') ?? flag('-t') ?? 'new', headRefName: head, author: { login: 'eval' }, url: \`https://github.com/acme/app/pull/\${number}\` });
+  prs.push({ number, state: 'OPEN', title: flag('--title') ?? flag('-t') ?? 'new', headRefName: head, author: { login: 'alex' }, url: \`https://github.com/acme/app/pull/\${number}\` });
   fs.writeFileSync(${JSON.stringify(path.join(tmp, 'prs.json'))}, JSON.stringify(prs));
   console.log(\`https://github.com/acme/app/pull/\${number}\`);
 }
@@ -72,5 +72,5 @@ else if (a === 'pr' && (b === 'close' || b === 'comment' || b === 'edit')) {
   console.log(b === 'comment' ? 'https://github.com/acme/app/pull/9#issuecomment-1' : 'done');
 }
 else if (a === 'api') { console.log('{}'); }
-else { console.error('gh: unsupported in this test'); process.exit(1); }
+else { console.error('gh: not available on this host'); process.exit(1); }
 `, { mode: 0o755 });

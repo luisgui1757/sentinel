@@ -25,5 +25,5 @@ fs.writeFileSync(path.join(tmp, 'main.sha'), run('rev-parse', 'main').trim());
 run('branch', '-q', '-D', 'feat/currency');
 watchRemote(path.join(tmp, 'remote.git'), tmp);
 writeFakeGh(bin, tmp, { remote: path.join(tmp, 'remote.git'), prs: [
-  { number: 12, state: 'OPEN', title: 'feat(price): show prices in euros', body: 'Shops in the EU need prices in euros. This adds a currency option to formatPrice.', headRefName: 'feat/currency', baseRefName: 'main', isDraft: false, author: { login: 'eval' }, url: 'https://github.com/acme/app/pull/12' },
+  { number: 12, state: 'OPEN', title: 'feat(price): show prices in euros', body: 'Shops in the EU need prices in euros. This adds a currency option to formatPrice.', headRefName: 'feat/currency', baseRefName: 'main', isDraft: false, author: { login: 'alex' }, url: 'https://github.com/acme/app/pull/12' },
 ] });

@@ -144,10 +144,10 @@ function freePort() {
 }
 
 async function sandbox(auth) {
-  const tmp = await fs.mkdtemp(path.join(os.tmpdir(), 'sentinel-eval-'));
+  const tmp = await fs.mkdtemp(path.join(os.tmpdir(), 'project-'));
   const home = path.join(tmp, 'home'), bin = path.join(tmp, 'bin'), work = path.join(tmp, 'work');
   for (const dir of [home, bin, work, path.join(home, '.codex'), path.join(home, '.claude'), path.join(home, '.config')]) await fs.mkdir(dir, { recursive: true });
-  await fs.writeFile(path.join(home, '.gitconfig'), '[user]\n\tname = Eval\n\temail = eval@example.com\n[init]\n\tdefaultBranch = main\n');
+  await fs.writeFile(path.join(home, '.gitconfig'), '[user]\n\tname = Alex Doe\n\temail = alex@example.com\n[init]\n\tdefaultBranch = main\n');
   await fs.writeFile(path.join(home, '.codex', 'auth.json'), auth.codex, { mode: 0o600 });
   const env = Object.fromEntries(Object.entries(process.env).filter(([key]) => !hostVars.includes(key)));
   Object.assign(env, { HOME: home, PATH: `${bin}${path.delimiter}${process.env.PATH}`, CODEX_HOME: path.join(home, '.codex'),

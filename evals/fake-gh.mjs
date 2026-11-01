@@ -49,11 +49,11 @@ const create = (title, text, head, base, draft) => {
   const open = state.prs.find(p => p.headRefName === head && p.state === 'OPEN');
   if (open) fail('a pull request for branch "' + head + '" into branch "' + base + '" already exists:\\n' + open.url);
   const number = Math.max(0, ...state.prs.map(p => p.number)) + 1;
-  const p = { number, state: 'OPEN', title, body: text, headRefName: head, baseRefName: base, isDraft: draft, author: { login: 'eval' }, url: 'https://github.com/acme/app/pull/' + number };
+  const p = { number, state: 'OPEN', title, body: text, headRefName: head, baseRefName: base, isDraft: draft, author: { login: 'alex' }, url: 'https://github.com/acme/app/pull/' + number };
   state.prs.push(p); save(); record(number, 'create', title + '\\n' + text); return p;
 };
 const [a, b] = args;
-if (a === 'auth') { console.log('Logged in to github.com account eval'); process.exit(0); }
+if (a === 'auth') { console.log('Logged in to github.com account alex'); process.exit(0); }
 if (a === 'repo' && b === 'view') { const repo = { nameWithOwner: 'acme/app', name: 'app', owner: { login: 'acme' }, defaultBranchRef: { name: 'main' }, url: 'https://github.com/acme/app', mergeCommitAllowed: false, squashMergeAllowed: true, rebaseMergeAllowed: false }; if (has('--json')) out(repo); else console.log('acme/app\\n\\nname:\\tacme/app\\ndefault branch:\\tmain'); }
 else if (a === 'pr' && b === 'list') { const head = flag('--head', '-H'); const st = (flag('--state', '-s') ?? 'open').toUpperCase(); out(state.prs.filter(p => (!head || p.headRefName === head) && (st === 'ALL' || p.state === st)).map(live)); }
 else if (a === 'pr' && b === 'view') { const p = target(); if (!p) fail('no pull requests found for branch "' + current() + '"'); if (has('--json')) out(live(p)); else console.log('title:\\t' + p.title + '\\nstate:\\t' + p.state + '\\nnumber:\\t' + p.number + '\\nurl:\\t' + p.url + '\\n--\\n' + (p.body || '')); }
@@ -100,7 +100,7 @@ else if (a === 'api') {
     const p = state.prs.find(x => x.number === number);
     if (!p) fail('Could not resolve to a PullRequest');
     const l = live(p);
-    out({ data: { viewer: { login: 'eval' }, repository: { pullRequest: { url: p.url, state: p.state, headRefOid: l.headRefOid, baseRefName: p.baseRefName, mergeStateStatus: l.mergeStateStatus,
+    out({ data: { viewer: { login: 'alex' }, repository: { pullRequest: { url: p.url, state: p.state, headRefOid: l.headRefOid, baseRefName: p.baseRefName, mergeStateStatus: l.mergeStateStatus,
       author: p.author, baseRef: { target: { oid: sha('refs/heads/main') } }, comments: { nodes: [] }, reviewRequests: { totalCount: 0 }, reviews: { nodes: [] }, reviewThreads: { nodes: [] } } } } });
   }
   else if (/\\/pulls\\/\\d+\\/merge$/.test(route)) { const p = state.prs.find(x => String(x.number) === route.match(/pulls\\/(\\d+)/)[1]); if (method === 'PUT') merge(p, 'merge'); if (p?.state === 'MERGED') process.exit(0); fail('gh: Not Found (HTTP 404)'); }
@@ -118,7 +118,7 @@ else if (a === 'api') {
   else if (/\\/(issues|pulls)\\/\\d+\\/comments$/.test(route) || /\\/reviews$/.test(route)) out([]);
   else out({});
 }
-else fail('gh: this command is not supported in this test: ' + args.join(' '));
+else fail('gh: ' + args.join(' ') + ': not available on this host');
 `;
 
 export function writeFakeGh(bin, tmp, state) {

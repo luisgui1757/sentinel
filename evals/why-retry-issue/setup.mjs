@@ -89,5 +89,5 @@ else if (a === 'search') {
   const list = b === 'prs' ? prs : b === 'issues' ? issues : [];
   out(list.filter(p => words.some(w => JSON.stringify(p).toLowerCase().includes(w))));
 }
-else { console.error('gh: unsupported in this test'); process.exit(1); }
+else { console.error('gh: not available on this host'); process.exit(1); }
 `, { mode: 0o755 });
