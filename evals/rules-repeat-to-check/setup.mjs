@@ -1,0 +1,23 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import { spawnSync } from 'node:child_process';
+
+const [work] = process.argv.slice(2);
+const run = (...args) => { const r = spawnSync('git', args, { cwd: work, encoding: 'utf8' }); if (r.status) throw new Error(`${args.join(' ')}: ${r.stderr}`); };
+const file = name => path.join(work, name);
+const final = Object.fromEntries(['src/billing.js', 'src/users.js', 'src/reports.js', 'test/urls.test.js'].map(f => [f, fs.readFileSync(file(f), 'utf8')]));
+const direct = (name, route) => `export const ${name} = id => \`\${process.env.API_URL ?? 'https://api.example.com'}/${route}/\${id}\`;\n`;
+const commit = message => { run('add', '-A'); run('commit', '-qm', message); };
+fs.writeFileSync(file('src/billing.js'), direct('invoiceUrl', 'invoices'));
+fs.writeFileSync(file('src/users.js'), direct('profileUrl', 'users'));
+fs.rmSync(file('src/reports.js'));
+fs.rmSync(file('test/urls.test.js'));
+run('init', '-q');
+commit('feat: add config, billing and users');
+fs.writeFileSync(file('src/billing.js'), final['src/billing.js']);
+commit('fix(billing): read the API address from config, not process.env');
+fs.writeFileSync(file('src/users.js'), final['src/users.js']);
+fs.writeFileSync(file('test/urls.test.js'), final['test/urls.test.js']);
+commit('fix(users): read the API address from config, not process.env');
+fs.writeFileSync(file('src/reports.js'), final['src/reports.js']);
+commit('feat(reports): add the monthly report URL');
