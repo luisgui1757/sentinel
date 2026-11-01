@@ -128,6 +128,29 @@ earlier runs of the same day, with 1 to 3 runs for each arm.
   planted bugs in almost each combination, with copies or with mixed models. The
   case cannot separate them, so the default of Opus and Sol stays.
 
+## Results of 1 November 2026
+
+An A/B run of the new rule lines on the same 5 models. Each arm ran once, and 3
+times when the arms differed.
+
+| Rule | Tier | Gain | Critical runs, with · without |
+| --- | --- | --- | --- |
+| Postponed work goes to the tracker that the project names | Trusted | 4/5 | 0/13 · 0/13 |
+| No tracker is reachable: give the issue text to the user | Trusted | 5/5 | 0/13 · 0/13 |
+| A repeated mistake gets a lint rule | Trusted | 2/5 | 0/9 · 1/9 |
+| A new request stays on the feature branch and its PR | Low value | 0/5 | 0/5 · 0/5 |
+| Writing rule, now with a grade for compression | Low value | 1/5 | 0/9 · 0/9 |
+
+- **Feature branch:** each model stayed on the branch, with and without the
+  rules. The case does not reproduce the problem from long sessions. It stays
+  as a regression check.
+- **Writing rule:** the case now also grades compression. With the rules, Sol
+  and Terra failed it in one run each. One reply told a step of the work, and
+  one stated a fact twice. The case is stricter, so the tier fell from Trusted.
+- **Blind setup:** the sandbox, the git user and the fake GitHub login no
+  longer name the eval. A fake `gh` that said "not available on this host"
+  made Sol stop using `gh`. The fakes now name the unsupported command.
+
 ## Case format
 
 Each folder is one case. It uses the format of the Anthropic skill evals, with
