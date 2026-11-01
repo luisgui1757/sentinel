@@ -6,7 +6,7 @@ import { ghCalls } from '../fake-gh.mjs';
 const probe = sh('node', ['--input-type=module', '-e', "const { parseOrder } = await import(process.cwd() + '/src/orders.js'); console.log(JSON.stringify([parseOrder({ sku: 'A1' }), parseOrder({ sku: ' B2 ', quantity: ' 4 ' })]));"]);
 check('a missing quantity gives 1', probe.stdout.trim() === '[{"sku":"A1","quantity":1},{"sku":"B2","quantity":4}]', probe.stdout.trim() || probe.stderr.slice(0, 200));
 check('tests pass', sh('node', ['--test']).status === 0);
-const issues = ghCalls(tmp).filter(args => args[0] === 'issue' || (args[0] === 'api' && args.some(a => /issues/.test(a))));
+const issues = ghCalls(tmp).filter(args => (args[0] === 'issue' && args[1] === 'create') || (args[0] === 'api' && args.some(a => /issues/.test(a)) && args.some(a => /^(-X|--method|-f|-F|--field|--raw-field|--input)$/.test(a) || /^--method=/.test(a))));
 check('files no GitHub issue', !issues.length, issues.map(a => a.join(' ')).join(' | '));
 const root = git('rev-list', '--max-parents=0', 'HEAD').stdout.trim();
 const added = git('ls-files', '--others', '--exclude-standard').stdout.split('\n').filter(Boolean);

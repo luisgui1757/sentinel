@@ -10,7 +10,7 @@ const log = path.join(tmp, 'jira.log');
 const project = args => { for (let i = 0; i < args.length; i++) { if (args[i] === '--project' || args[i] === '-p') return args[i + 1]; if (args[i].startsWith('--project=')) return args[i].slice(10); } return null; };
 const jira = fs.existsSync(log) ? fs.readFileSync(log, 'utf8').split('\n').filter(Boolean).map(line => JSON.parse(line)) : [];
 check('records the retry idea in Jira', jira.some(args => args[0] === 'issue' && args[1] === 'create' && project(args) === 'ORD' && /retr|upload/i.test(args.join(' '))), jira.map(a => a.join(' ')).join(' | ').slice(0, 300));
-const issues = ghCalls(tmp).filter(args => args[0] === 'issue' || (args[0] === 'api' && args.some(a => /issues/.test(a))));
+const issues = ghCalls(tmp).filter(args => (args[0] === 'issue' && args[1] === 'create') || (args[0] === 'api' && args.some(a => /issues/.test(a)) && args.some(a => /^(-X|--method|-f|-F|--field|--raw-field|--input)$/.test(a) || /^--method=/.test(a))));
 check('files no GitHub issue', !issues.length, issues.map(a => a.join(' ')).join(' | '));
 const root = git('rev-list', '--max-parents=0', 'HEAD').stdout.trim();
 const added = git('ls-files', '--others', '--exclude-standard').stdout.split('\n').filter(Boolean);
