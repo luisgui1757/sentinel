@@ -399,7 +399,7 @@ export function view(result, map, { format = 'dot', level = 0, limit = 500 } = {
     return `${lines.join('\n')}\n`;
   }
   if (format !== 'dot') throw new UsageError('--format must be dot or mermaid');
-  const q = s => `"${s.replace(/"/g, '\\"')}"`;
+  const q = s => `"${s.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
   const lines = ['digraph featuremap {', '  rankdir=LR;', '  node [shape=box];', ...names.map(n => `  ${q(n)} [label=${q(label(n))}];`)];
   for (const [key, count] of shown) { const [a, b] = key.split(' '); lines.push(`  ${q(a)} -> ${q(b)} [label="${count}"${bad.has(key) ? ', color=red' : ''}];`); }
   if (cut) lines.push(`  // ${cut} more edges are not shown. Use a lower --level.`);
