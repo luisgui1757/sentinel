@@ -1,0 +1,61 @@
+trigger: none
+pr: none
+
+variables:
+  - group: patrol
+
+pool:
+  vmImage: ubuntu-latest
+
+jobs:
+  - job: agent
+    condition: eq(variables['Build.Reason'], 'PullRequest')
+    timeoutInMinutes: 45
+    steps:
+      - checkout: self
+        fetchDepth: 0
+        persistCredentials: false
+      - task: UseNode@1
+        inputs:
+          version: "22.x"
+      - task: DownloadSecureFile@1
+        name: codexConfig
+        inputs:
+          secureFile: codex-config.toml
+      - script: |
+          mkdir -p "$HOME/.codex"
+          cp "$(codexConfig.secureFilePath)" "$HOME/.codex/config.toml"
+          npm install --global @openai/codex@0.166.0
+        displayName: Install the agent
+      - script: |
+          export PR_BASE="$(git rev-parse HEAD^1)" PR_HEAD="$(git rev-parse HEAD^2)"
+          git checkout --quiet --detach "$PR_HEAD"
+          node tools/patrol/patrol.mjs agent --prompt tools/patrol/prompts/verify.md --out "$(Agent.TempDirectory)/out" --minutes 30
+        displayName: Run the agent
+        target:
+          settableVariables: none
+        env:
+          PATROL_AGENT: codex exec --dangerously-bypass-approvals-and-sandbox --skip-git-repo-check -
+          AZURE_OPENAI_API_KEY: $(AZURE_OPENAI_API_KEY)
+      - publish: $(Agent.TempDirectory)/out
+        artifact: out
+        condition: always()
+
+  - job: publish
+    dependsOn: agent
+    condition: and(always(), eq(variables['Build.Reason'], 'PullRequest'))
+    timeoutInMinutes: 10
+    steps:
+      - checkout: self
+        fetchDepth: 2
+      - task: UseNode@1
+        inputs:
+          version: "22.x"
+      - download: current
+        artifact: out
+      - script: |
+          git checkout --quiet --detach HEAD^1
+          az extension add --name azure-devops --only-show-errors
+          node tools/patrol/patrol.mjs publish --forge azure --mode comment --in "$(Pipeline.Workspace)/out" --pr "$(System.PullRequest.PullRequestId)"
+        env:
+          AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
