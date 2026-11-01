@@ -1,0 +1,1 @@
+{"output_style": "Sentinel", "targets": ["opus-5.5-xhigh", "haiku-5.5-xhigh"], "judge_files": ["src/payments.js"], "minor": ["changes no file"]}

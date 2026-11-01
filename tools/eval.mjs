@@ -73,7 +73,14 @@ function sessionLog(home) {
     const replies = lines.filter(l => l.type === 'response_item' && l.payload?.type === 'message' && l.payload?.role === 'assistant')
       .map(l => (l.payload.content ?? []).map(c => c.text ?? '').join(''));
     const last = replies.at(-1) ?? '(no reply)';
-    return `[codex session] model ${model}, ${replies.length} replies, last reply:\n${last.length > 300 ? `${last.slice(0, 300)} [cut]` : last}`;
+    const head = `[codex session] model ${model}, ${replies.length} replies, last reply:\n${last.length > 300 ? `${last.slice(0, 300)} [cut]` : last}`;
+    if (!lines.find(l => l.type === 'session_meta')?.payload?.source?.subagent) return head;
+    const outputs = new Map(lines.filter(l => l.payload?.type === 'function_call_output').map(l => [l.payload.call_id, String(l.payload.output ?? '')]));
+    const calls = lines.filter(l => l.payload?.type === 'function_call').map(l => {
+      const output = outputs.get(l.payload.call_id) ?? '(no result)';
+      return `[subagent ${l.payload.name}] ${String(l.payload.arguments).slice(0, 400)}\n${output.length > 300 ? `${output.slice(0, 300)} [cut]` : output}`;
+    });
+    return [head, ...calls].join('\n');
   }).join('\n\n');
 }
 
@@ -171,6 +178,7 @@ async function prepare(testCase, target, arm, box, baseRules) {
   }
   const install = spawnSync(path.join(root, 'tools/install'), ['--global', '--hosts', target.host, '--skills', allProfiles], { env: box.env, encoding: 'utf8' });
   if (install.status !== 0) throw new Error(`install failed: ${install.stderr}`);
+  if (arm === 'with' && testCase.output_style) await fs.writeFile(path.join(box.home, '.claude/settings.json'), `${JSON.stringify({ outputStyle: testCase.output_style })}\n`);
   const skills = target.host === 'claude' ? path.join(box.home, '.claude/skills') : path.join(box.home, '.agents/skills');
   const rulesFile = target.host === 'claude' ? path.join(box.home, '.claude/CLAUDE.md') : path.join(box.home, '.codex/AGENTS.md');
   if (arm === 'without') for (const skill of testCase.without_skills ?? (testCase.skill ? [testCase.skill] : [])) await fs.rm(path.join(skills, skill), { recursive: true, force: true });

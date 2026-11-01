@@ -50,7 +50,7 @@ export function trustTable(records, cases) {
     const sum = (key, side) => cells.reduce((n, c) => n + c[side][key], 0);
     const time = median(paired.map(c => c.with.seconds)) / Math.max(1, median(paired.map(c => c.without.seconds)));
     const name = list => list.map(c => c.model.replace(/^(claude|gpt)-/, '')).join(', ') || '-';
-    rows.push(`| ${testCase.name} | ${testCase.skill ?? `rule: ${testCase.rule}`} | ${tier} | ${gain.length}/${paired.length} | ${sum('critical', 'with')}/${sum('runs', 'with')} · ${sum('critical', 'without')}/${sum('runs', 'without')} | ${name(critical)} | ${name(major)} | ${time.toFixed(1)}x |`);
+    rows.push(`| ${testCase.name} | ${testCase.skill ?? (testCase.rule ? `rule: ${testCase.rule}` : `style: ${testCase.output_style}`)} | ${tier} | ${gain.length}/${paired.length} | ${sum('critical', 'with')}/${sum('runs', 'with')} · ${sum('critical', 'without')}/${sum('runs', 'without')} | ${name(critical)} | ${name(major)} | ${time.toFixed(1)}x |`);
   }
   return ['| Case | Skill or rule | Tier | Gain | Critical runs, with · without | Critical with the skill on | Major in half the runs on | Time |',
     '|---|---|---|---|---|---|---|---|', ...rows].join('\n');
