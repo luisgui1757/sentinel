@@ -191,7 +191,7 @@ test('agent stops the command at the deadline and refuses an output folder insid
     env: { ...process.env, PATROL_AGENT: command } });
   assert.equal(result.timedOut, true);
   assert.ok(Date.now() - started < 20000);
-  await assert.rejects(agent({ prompt: path.join(root, 'prompt.md'), out: path.join(work, 'out'), cwd: work, env: { ...process.env, PATROL_AGENT: command } }),
+  await assert.rejects(agent({ prompt: path.join(root, 'prompt.md'), out: path.join(work, 'out'), minutes: 0.05, cwd: work, env: { ...process.env, PATROL_AGENT: command } }),
     /outside the repository/);
   await fs.rm(root, { recursive: true, force: true });
 });

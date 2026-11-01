@@ -70,7 +70,7 @@ export function loadMap(file) {
 
 export function sourceFiles(root, map) {
   const all = git(root, ['ls-files', '-z', '--cached', '--others', '--exclude-standard']).split('\0').filter(Boolean);
-  const self = posix(path.relative(fs.realpathSync(root), fs.realpathSync(fileURLToPath(import.meta.url))));
+  const self = posix(path.relative(fs.realpathSync.native(root), fs.realpathSync.native(fileURLToPath(import.meta.url))));
   return [...new Set(all)].filter(f => f !== self && matches(map.sources, f) && !matches(map.ignore, f) && fs.existsSync(path.join(root, f))).sort();
 }
 
@@ -474,11 +474,12 @@ function print(json, value, text) {
   console.log(json ? JSON.stringify(value, null, 2) : text);
 }
 
-export function main(argv, cwd = process.cwd()) {
+export function main(argv, start = process.cwd()) {
   const [command, ...rest] = argv;
   if (!command || command === '--help' || command === 'help') { console.log(USAGE); return 0; }
   const opts = options(rest);
-  const root = git(cwd, ['rev-parse', '--show-toplevel']).trim();
+  const cwd = fs.realpathSync.native(start);
+  const root = fs.realpathSync.native(git(cwd, ['rev-parse', '--show-toplevel']).trim());
   const mapFile = path.resolve(cwd, opts.map ?? path.join(root, 'featuremap.json'));
   const map = loadMap(mapFile);
   const baselineFile = path.resolve(cwd, opts.baseline ?? path.join(path.dirname(mapFile), 'featuremap.baseline.json'));

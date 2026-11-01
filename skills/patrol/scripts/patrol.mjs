@@ -192,9 +192,9 @@ export function redact(outDir, env) {
 export async function agent({ prompt, out, item, minutes = 45, cwd = process.cwd(), env = process.env }) {
   const command = env.PATROL_AGENT;
   if (!command) throw new Error('set PATROL_AGENT to the agent command, for example: codex exec --full-auto -');
-  const repo = fs.realpathSync(exec('git', ['rev-parse', '--show-toplevel'], { cwd }).trim());
+  const repo = fs.realpathSync.native(exec('git', ['rev-parse', '--show-toplevel'], { cwd }).trim());
   fs.mkdirSync(out, { recursive: true });
-  const outDir = fs.realpathSync(out);
+  const outDir = fs.realpathSync.native(out);
   if (inside(outDir, repo)) throw new Error('--out must be outside the repository');
   const base = exec('git', ['rev-parse', 'HEAD'], { cwd: repo }).trim();
   const text = buildPrompt(fs.readFileSync(prompt, 'utf8'), item && JSON.parse(fs.readFileSync(item, 'utf8')));
