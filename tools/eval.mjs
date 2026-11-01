@@ -116,6 +116,7 @@ function run(cmd, args, { cwd, env, input, timeout = 900, stdout }) {
 }
 
 function claudeToken() {
+  if (process.env.CLAUDE_CODE_OAUTH_TOKEN) return process.env.CLAUDE_CODE_OAUTH_TOKEN;
   const config = process.env.CLAUDE_CONFIG_DIR || path.join(os.homedir(), '.claude');
   const read = () => JSON.parse(readFileSync(path.join(config, '.credentials.json'), 'utf8')).claudeAiOauth;
   let auth = read();

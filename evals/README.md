@@ -23,6 +23,10 @@ In an A/B run, the arms are:
 
 Each run saves its diff and its work folder, so `--rejudge` can grade it again.
 
+The Claude runs use your Claude login, which must have 30 minutes left. To
+skip that check, set `CLAUDE_CODE_OAUTH_TOKEN` to a token from
+`claude setup-token`.
+
 ## Read the results
 
 | Result | Meaning |
