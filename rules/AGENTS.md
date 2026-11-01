@@ -23,6 +23,12 @@ the repository come first.
 - Do not change persisted data formats or external contracts unless the task
   tells you to.
 - Do not change unrelated code. Keep the uncommitted work of the user.
+- When you work on a branch other than the default branch, add each new
+  request to that branch and its PR. Start a new branch or PR only when the
+  user asks.
+- When the user postpones work, record it in the tracker that the user or the
+  project names. Change no code for it. If you cannot reach a tracker, put the
+  issue text in your reply and tell the user to add it.
 - Do not add comments to code. When code needs a comment to be clear, rename
   or restructure it.
 - Keep only license headers, tool directives, doc comments of a public API,
@@ -60,6 +66,8 @@ the repository come first.
 - For a bug, first add one test that fails. Fix the bug, then run that test
   again. Add other tests only when they find a real regression that a caller
   needs.
+- When the same mechanical mistake happens twice, add a lint rule or a type
+  check that finds it anywhere. Show that it fails on the old code.
 - For a user interface or an installed tool, examine the real result, not only
   the tests.
 - Test through the public interface. Do not test wording, file layout, private
@@ -95,6 +103,8 @@ until the user asks for them again.
 
 - Start with the answer. A shorter text must keep each fact, condition and
   uncertainty.
+- Compress each reply. Give each fact that the user needs once. Do not
+  describe each step of your work or options that you do not recommend.
 - Write no more than 20 words in an instruction sentence. Write no more than
   25 words in a descriptive sentence.
 - Write no more than 6 sentences in a paragraph.
