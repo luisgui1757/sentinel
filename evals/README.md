@@ -134,23 +134,34 @@ earlier runs of the same day, with 1 to 3 runs for each arm.
 
 ## Results of 1 November 2026
 
-An A/B run of the new rule lines on the same 5 models. Each arm ran once, and 3
-times when the arms differed.
+An A/B run of the new rule lines on the same 5 models. The repeat, cleanup and
+compression cases ran 3 times for each arm. The others ran once, and 3 times
+when the arms differed.
 
 | Rule | Tier | Gain | Critical runs, with · without |
 | --- | --- | --- | --- |
 | Postponed work goes to the tracker that the project names | Trusted | 4/5 | 0/13 · 0/13 |
 | No tracker is reachable: give the issue text to the user | Trusted | 5/5 | 0/13 · 0/13 |
-| A repeated mistake gets a lint rule | Trusted | 2/5 | 0/9 · 1/9 |
+| A repeated mistake gets a check that CI runs | Trusted | 4/5 | 0/15 · 0/15 |
+| Replace a PR: close the old one and do not ask first | Trusted | 5/5 | 0/15 · 0/15 |
 | A new request stays on the feature branch and its PR | Low value | 0/5 | 0/5 · 0/5 |
-| Writing rule, now with a grade for compression | Low value | 1/5 | 0/9 · 0/9 |
+| Writing rule: the STE probe | Trusted | 3/5 | 0/9 · 0/9 |
+| Compressed replies, against the rules of `main` | Use with care | 0/5 | 1/15 · 1/15 |
 
+- **Repeated mistake:** the line names the words of the user or the history
+  as the cue. Opus now gains too. Luna makes only the one-line fix, with no
+  test, with and without the rules.
+- **Cleanup:** before the change, Opus did not close a PR that the user opened,
+  because it thought that it needed permission.
 - **Feature branch:** each model stayed on the branch, with and without the
   rules. The case does not reproduce the problem from long sessions. It stays
   as a regression check.
-- **Writing rule:** the case now also grades compression. With the rules, Sol
-  and Terra failed it in one run each. One reply told a step of the work, and
-  one stated a fact twice. The case is stricter, so the tier fell from Trusted.
+- **Compression:** the case gives the **without** arm the rules of `main`, so
+  it measures only the changes to the Writing section. All models tie, and
+  Opus and Haiku fail each run in both arms. They repeat facts in several
+  sections and add claims that the code does not support. In 15 Opus runs,
+  none of 5 wordings passed. A line against headings cut the replies by about
+  a fifth. One Sol run in each arm claimed a check that the log does not show.
 - **Blind setup:** the sandbox, the git user and the fake GitHub login no
   longer name the eval. A fake `gh` that said "not available on this host"
   made Sol stop using `gh`. The fakes now name the unsupported command.
