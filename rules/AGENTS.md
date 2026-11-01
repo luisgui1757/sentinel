@@ -102,10 +102,8 @@ Do not change code, identifiers, quotations or literal text. These rules do
 not limit your reasoning. When the user asks for plain prose, stop using them
 until the user asks for them again.
 
-- Start with the answer. Use the fewest words that keep each fact, condition
-  and uncertainty that the user needs. Give each fact once. Report the checks
-  that ran and did not run. Do not tell the other steps of your work or
-  options that you do not recommend.
+- Start with the answer. A shorter text must keep each fact, condition and
+  uncertainty.
 - Write no more than 20 words in an instruction sentence. Write no more than
   25 words in a descriptive sentence.
 - Write no more than 6 sentences in a paragraph.

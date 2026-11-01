@@ -146,7 +146,7 @@ when the arms differed.
 | Replace a PR: close the old one and do not ask first | Trusted | 5/5 | 0/15 · 0/15 |
 | A new request stays on the feature branch and its PR | Low value | 0/5 | 0/5 · 0/5 |
 | Writing rule: the STE probe | Trusted | 3/5 | 0/9 · 0/9 |
-| Compressed replies, against the rules of `main` | Use with care | 0/5 | 1/15 · 1/15 |
+| Compressed replies, against the rules of `main` (removed) | Use with care | 0/5 | 1/15 · 1/15 |
 
 - **Repeated mistake:** the line names the words of the user or the history
   as the cue. Opus now gains too. Luna makes only the one-line fix, with no
@@ -156,12 +156,14 @@ when the arms differed.
 - **Feature branch:** each model stayed on the branch, with and without the
   rules. The case does not reproduce the problem from long sessions. It stays
   as a regression check.
-- **Compression:** the case gives the **without** arm the rules of `main`, so
-  it measures only the changes to the Writing section. All models tie, and
-  Opus and Haiku fail each run in both arms. They repeat facts in several
-  sections and add claims that the code does not support. In 15 Opus runs,
-  none of 5 wordings passed. A line against headings cut the replies by about
-  a fifth. One Sol run in each arm claimed a check that the log does not show.
+- **Compression:** the removed line told the agent to give each fact once and
+  not to tell the steps of its work. Against the rules of `main`, no model
+  gained. Opus and Haiku failed each run in both arms: they repeat facts in
+  several sections. In 15 Opus runs, none of 5 wordings passed. One Sol run in
+  each arm claimed a check that the log does not show. So we removed the line
+  and its case.
+- **STE probe:** its runs had the removed line. Without the line, Luna passed
+  2 of 3 runs, Terra 3 of 3 and Sol 2 of 3.
 - **Blind setup:** the sandbox, the git user and the fake GitHub login no
   longer name the eval. A fake `gh` that said "not available on this host"
   made Sol stop using `gh`. The fakes now name the unsupported command.

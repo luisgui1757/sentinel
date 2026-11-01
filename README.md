@@ -78,8 +78,6 @@ file, the file keeps its mode. A project install writes the rules to `AGENTS.md`
 - For a bug, first add one test that fails, then fix the bug and run it again.
 - When a mechanical mistake occurred before, add a lint rule or a type check
   that CI runs.
-- Start each reply with the answer. Use the fewest words that keep each fact
-  that the user needs.
 - Write all prose in ASD-STE100 Simplified Technical English. This does not
   limit the reasoning of the agent. Ask for plain prose to stop it in a
   session. To stop it in a repository, say so in its `AGENTS.md`.
