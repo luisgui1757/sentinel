@@ -1,0 +1,20 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import { spawnSync } from 'node:child_process';
+
+const [work, , tmp] = process.argv.slice(2);
+const run = (...args) => { const r = spawnSync('git', args, { cwd: work, encoding: 'utf8' }); if (r.status) throw new Error(`${args.join(' ')}: ${r.stderr}`); return r.stdout; };
+const write = (file, text) => fs.writeFileSync(path.join(work, file), text);
+const commit = message => { run('add', '-A'); run('commit', '-qm', message); };
+spawnSync('git', ['init', '-q', '--bare', path.join(tmp, 'remote.git')]);
+run('init', '-q'); commit('feat(orders): total of an order');
+write('shop/discount.py', 'def discount(total, code):\n    return total * 0.9 if code == "TENOFF" else total  # noqa: E501 the discount codes come from marketing and change each season\n');
+commit('feat(orders): add discount codes');
+write('shop/discount.py', 'def discount(total, code):\n    # Marketing changes the codes each season.\n    return total * 0.9 if code == "TENOFF" else total\n');
+commit('fix(orders): wrap the long line instead of hiding it with noqa');
+write('shop/report.py', 'import csv, os  # noqa\n\n\ndef rows(orders):\n    return [[o["id"], o["total"]] for o in orders]\n');
+commit('feat(report): add the order report');
+write('shop/report.py', 'def rows(orders):\n    return [[o["id"], o["total"]] for o in orders]\n');
+commit('fix(report): remove the unused imports instead of the noqa');
+run('remote', 'add', 'origin', path.join(tmp, 'remote.git'));
+run('push', '-q', '-u', 'origin', 'main');
