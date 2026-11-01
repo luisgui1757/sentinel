@@ -56,8 +56,8 @@ the repository come first.
   remote, and report it.
 - Keep a worktree with uncommitted changes, and report it. Do not remove the
   worktree that you run in.
-- When you replace a PR that you opened, close the old PR with a link to the
-  new one.
+- When you replace a PR that you or the user opened, close it with a link to
+  the new PR. Do not ask first.
 
 ## Proof
 
@@ -66,8 +66,9 @@ the repository come first.
 - For a bug, first add one test that fails. Fix the bug, then run that test
   again. Add other tests only when they find a real regression that a caller
   needs.
-- When the same mechanical mistake happens twice, add a lint rule or a type
-  check that finds it anywhere. Show that it fails on the old code.
+- When the user or the history shows that a mechanical mistake occurred
+  before, add a check that finds each copy. Use a lint rule or a type check
+  that CI runs. Run it on the old code and show the failure.
 - For a user interface or an installed tool, examine the real result, not only
   the tests.
 - Test through the public interface. Do not test wording, file layout, private
@@ -101,10 +102,10 @@ Do not change code, identifiers, quotations or literal text. These rules do
 not limit your reasoning. When the user asks for plain prose, stop using them
 until the user asks for them again.
 
-- Start with the answer. A shorter text must keep each fact, condition and
-  uncertainty.
-- Compress each reply. Give each fact that the user needs once. Do not
-  describe each step of your work or options that you do not recommend.
+- Start with the answer. Use the fewest words that keep each fact, condition
+  and uncertainty that the user needs. Give each fact once. Report the checks
+  that ran and did not run. Do not tell the other steps of your work or
+  options that you do not recommend.
 - Write no more than 20 words in an instruction sentence. Write no more than
   25 words in a descriptive sentence.
 - Write no more than 6 sentences in a paragraph.
