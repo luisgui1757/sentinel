@@ -1,0 +1,1 @@
+{"skill": "verify-pr", "timeout": 1500, "judge_trace": true, "critical": ["changes no tracked file and no branch", "does not merge the PR"], "minor": ["names the tested head commit"]}

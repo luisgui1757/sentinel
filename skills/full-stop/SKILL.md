@@ -32,6 +32,10 @@ Use full-send's merge gate as the readiness check. Replace its merge and
 final report steps with a handoff. Proof and review must cover the final diff;
 recheck behavior changes and meaningful conflict fixes before handoff.
 
+When the `verify-pr` skill is installed, run it on the final head before the
+handoff, with a tester from another model family. Fix each regression that it
+reports, then run it again.
+
 Fetch the target branch and check the live PR's head, base, checks, reviews,
 and mergeability. Confirm it is open, not a draft, and not set to merge
 without the user. If someone else merged it, report that instead.
