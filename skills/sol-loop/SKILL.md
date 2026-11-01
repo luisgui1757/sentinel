@@ -121,3 +121,5 @@ Add `on <effort>` only if verified.
 
 Report: rounds, model, what Sol changed, diff size before/after, fixed and
 declined findings with reasons, usage if exposed (else say not), pushed or not.
+Put your own findings in the same ledger. For each finding that you did not
+fix, yours or Sol's, give the reason in one line.

@@ -28,7 +28,7 @@ Start a new agent session after the install.
 | Option | Use |
 |---|---|
 | `--hosts` / `-Hosts` | `codex`, `claude`, `copilot`, `kiro`, `opencode`, or `all` |
-| `--skills` / `-Skills` | `core`, `formal`, `ui`, or a list. The default is `core`. Use `none` to install only the rules. |
+| `--skills` / `-Skills` | `core`, `formal`, `ui`, `explain`, or a list. The default is `core`. Use `none` to install only the rules. |
 | `--global` / `-Global` | Install into your user folder. |
 | `--project DIR` / `-Project DIR` | Install into one repository. |
 | `--no-rules` / `-NoRules` | Install only the skills. |
@@ -65,6 +65,8 @@ file, the file keeps its mode. A project install writes the rules to `AGENTS.md`
 `rules/AGENTS.md` holds the rules. They tell an agent to do these things:
 
 - Change files only when the user asks for a change.
+- On a feature branch, add each new request to that branch and its PR. Record
+  postponed work in the tracker that the user or the project names.
 - Make the smallest complete change. Do not add layers, options or guards that
   the task does not need.
 - Write no audit, findings, plan or handoff files.
@@ -73,7 +75,9 @@ file, the file keeps its mode. A project install writes the rules to `AGENTS.md`
   other comments in each file that the agent changes.
 - Remove the temporary files, worktrees, branches and stashes of a task before
   the task ends.
-- Add a test only when it can find a real regression.
+- For a bug, first add one test that fails, then fix the bug and run it again.
+- When a mechanical mistake occurred before, add a lint rule or a type check
+  that CI runs.
 - Write all prose in ASD-STE100 Simplified Technical English. This does not
   limit the reasoning of the agent. Ask for plain prose to stop it in a
   session. To stop it in a repository, say so in its `AGENTS.md`.
@@ -97,19 +101,17 @@ agent can also load each skill when its description fits the task.
 | `untangle` | "untangle" | The agent finds what a codebase does not need and proves each cut. |
 | `cleanup` | "clean up the branches" | The agent removes merged worktrees and branches and reports the others. |
 | `no-comments` | "remove the comments" | The agent removes comments that code can replace, and keeps the others with a reason. |
-| `how` | "how does X work" | The agent reads the code and explains it, with the files that it read. |
 | `why` | "why is X like this" | The agent searches git, pull requests and your MCP servers, and gives the reason with a confidence level. |
 | `tldr` | "tldr" | A short version that keeps each fact that you need to decide or act. |
 | `technical-writing` | "simplify this", "STE" | Docs, PR text and rewrites in simple technical English, without AI patterns. |
-| `create-verification-skill` | "make a verification skill" | The agent writes a project skill that starts the app and proves features the way a user does. |
-| `maintain-verification-skill` | "check the verify skill" | The agent drives each feature again and fixes the skill where the app changed. |
 
-In the evals at xhigh, `council`, `sol-loop`, `no-comments`, `cleanup` and
-`maintain-verification-skill` changed the result on most models. `how`, `why`
-and the `create-*` skills showed no gain. See [evals/README.md](evals/README.md).
+At xhigh, `council`, `cleanup`, `no-comments`, `technical-writing` and the
+rules for comments and cleanup changed the result on 4 or 5 models. `sol-loop`,
+`why` and `statechart` changed it on 2 or 3 models. `how` showed no gain. See
+[evals/README.md](evals/README.md).
 
 Sources: `untangle`, `cleanup`, `no-comments` and `tldr` are from
-Sentinel. `how`, `why`, `technical-writing` and the verification skills are
+Sentinel. `how`, `why`, `technical-writing` and `statechart` are
 from [pstack](https://github.com/cursor/plugins/tree/main/pstack). The other
 skills are from [tstack](https://github.com/t3dotgg/tstack). Sentinel keeps
 the T3 Code routes of tstack and adds a route for each other CLI.
@@ -118,18 +120,20 @@ The repository keeps tstack's `full-send` skill, but the installer does not
 install it, because it merges without a person. `full-stop` reads a copy of
 it and stops before the merge.
 
-The `formal` profile is for code where events can occur in many orders, such
-as locks, retries, queues and protocols. These skills are from pstack.
-
-| Skill | Use |
-|---|---|
-| `create-formal-verification-skill` | A project skill that proves a rule of the code with a model checker or a prover |
-| `maintain-formal-verification-skill` | Bring the model back in line with the code after the code changes |
-| `statechart` | Check a TLA+ model with TLC and draw it as a Mermaid chart, with the shortest path to each state that breaks a rule |
+The `formal` profile holds `statechart`, for code where events can occur in
+many orders, such as locks, retries, queues and protocols. It checks a TLA+
+model with TLC and draws it as a Mermaid chart, with the shortest path to each
+state that breaks a rule.
 
 `statechart` needs Node 22.18 or later, Bun or Deno. On the first run, it
 installs Java and TLC with mise and needs the network. Set `TLA2TOOLS` and
 `JAVA` to use your own copies. It does not run on Windows outside WSL.
+
+The `explain` profile holds `how`: say "how does X work", and the agent
+explains the code with the files that it read. In the evals, strong models
+explained the code as well without it. It starts 1 to 5 subagents for each
+question. Install it with `--skills core,explain` if you want its
+delegated explanations.
 
 The `ui` profile is for interface work.
 
@@ -178,13 +182,13 @@ repository and run the installer again.
   and Windows.
 - `make lint` checks the shell script, home paths and the STE prose.
 - `make check` compares the imported files with `upstream/lock.json`.
-- `make eval` runs the cases in `evals/` with Claude Code and Codex. Each case
-  runs with and without its skill or rule, in a new temporary home folder with
-  a fresh install. The runs use your logins and count against your plan.
-  `evals/targets.json` lists the models and efforts. Pass options with
-  `ARGS`, for example `make eval ARGS="--case tldr --targets opus-5.5-medium"`.
-  Results go to `evals/results/`, which git ignores. `evals/README.md`
-  explains the cases and gives the last results for each skill.
+- `make eval` runs the eval cases that your changes touch, on Opus and Sol,
+  with Claude Code and Codex, in a new temporary home folder with a fresh
+  install. The runs use your logins and count against your plan. Pass options
+  with `ARGS`, for example `make eval ARGS="--case tldr"`, or
+  `ARGS="--ab"` for the full A/B with and without each skill. Results go to
+  `evals/results/`, which git ignores. `evals/README.md` explains the modes
+  and gives the last results for each skill.
 - `node tools/upstream.mjs --update` imports the newest upstream revisions.
   After a manual edit of `upstream/imports.json`, `--sync` imports again at the
   pins.

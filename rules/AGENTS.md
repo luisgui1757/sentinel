@@ -23,10 +23,19 @@ the repository come first.
 - Do not change persisted data formats or external contracts unless the task
   tells you to.
 - Do not change unrelated code. Keep the uncommitted work of the user.
+- When you work on a branch other than the default branch, add each new
+  request to that branch and its PR. Start a new branch or PR only when the
+  user asks.
+- When the user postpones work, record it in the tracker that the user or the
+  project names. Change no code for it. If you cannot reach a tracker, put the
+  issue text in your reply and tell the user to add it.
 - Do not add comments to code. When code needs a comment to be clear, rename
   or restructure it.
 - Keep only license headers, tool directives, doc comments of a public API,
-  and a link to the issue or spec of an external limit.
+  and a link to the issue or spec of an external limit. A doc comment follows
+  the doc format of the language. Examples are JSDoc, a Python docstring and a
+  Go comment right above an exported name. In JavaScript, a plain `//` line
+  above a function is not a doc comment.
 - Keep a true warning about our code until a test, a type or a lint rule
   enforces it.
 - In each file that you change, remove the comments that break this rule.
@@ -40,24 +49,28 @@ the repository come first.
 - Update the documentation that your change makes wrong. Do not add other
   documentation.
 - Before you end a task, remove the temporary files, worktrees, branches and
-  stashes that you made for it. This rule is your permission.
-- Delete a branch after its PR merges or closes. Keep a branch with commits
-  that are on no remote, and report it.
+  stashes that you made for it. Do not ask before you remove them.
+- Delete a branch after its PR merges or closes, locally and on the remote.
+  This includes the branch of a PR that you close. Keep the remote branch of a
+  PR that another person closed. Keep a branch with commits that are on no
+  remote, and report it.
 - Keep a worktree with uncommitted changes, and report it. Do not remove the
   worktree that you run in.
-- When you replace a PR that you opened, close the old PR with a link to the
-  new one.
+- When you replace a PR that you or the user opened, close it with a link to
+  the new PR. Do not ask first.
 
 ## Proof
 
 - Prove each change with evidence that you saw: a reproduction, a command
   output or a screenshot.
-- For a bug, reproduce the failure first. After the fix, run the same steps
-  again.
+- For a bug, first add one test that fails. Fix the bug, then run that test
+  again. Add other tests only when they find a real regression that a caller
+  needs.
+- When the user or the history shows that a mechanical mistake occurred
+  before, add a check that finds each copy. Use a lint rule or a type check
+  that CI runs. Run it on the old code and show the failure.
 - For a user interface or an installed tool, examine the real result, not only
   the tests.
-- Add a test only when it can find a real regression in behavior that a user or
-  a caller needs. One focused test for each bug fix is normal.
 - Test through the public interface. Do not test wording, file layout, private
   helpers or facts that the type checker proves.
 - Do not weaken or delete a test to hide a failure. You can delete or rewrite a
@@ -67,8 +80,9 @@ the repository come first.
 
 ## Reviews
 
-- Start with the findings. Give the severity, the location, the problem, the
-  evidence and a fix for each finding.
+- Start with the most severe finding. Put no verdict or summary before it.
+  Give the severity, the location, the problem, the evidence and a fix for each
+  finding.
 - Before you call something a bug, examine one other explanation.
 - Examine if a smaller change gives the same result. Report unnecessary code,
   tests and guards as findings.
@@ -92,8 +106,7 @@ until the user asks for them again.
   uncertainty.
 - Write no more than 20 words in an instruction sentence. Write no more than
   25 words in a descriptive sentence.
-- Write no more than 6 sentences in an instruction paragraph. Write no more
-  than 3 sentences in a descriptive paragraph.
+- Write no more than 6 sentences in a paragraph.
 - Use the active voice and the simple tenses. Write `removes`, not
   `is removing`. Write `we received`, not `we have received`.
 - Use one word for one meaning. Use the common word.

@@ -1,0 +1,1 @@
+{ "name": "store", "type": "module", "scripts": { "test": "node --test", "payments:check": "node vendor/payments/check.js" } }

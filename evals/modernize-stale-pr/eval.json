@@ -1,0 +1,1 @@
+{ "skill": "modernize", "timeout": 1800, "requires": ["jq"], "critical": ["keeps the work of the PR", "the remote main does not change", "does not merge or close the PR", "uses no plain force push"] }

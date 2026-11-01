@@ -84,5 +84,6 @@ approach, or says "arena".
    different plans, read both reasons before you decide.
 5. Take the best plan as the base. Add the strong parts of the other plans to
    it, and give the source of each part.
-6. Show the criteria, the scores, the merged plan with the source of each
-   part, and the parts that you rejected. Build it only when the user asks.
+6. Show the criteria, the scores, the plan that you took as the base, the
+   merged plan with the source of each part, and the parts that you rejected.
+   Build it only when the user asks.

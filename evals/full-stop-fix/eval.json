@@ -1,0 +1,1 @@
+{ "skill": "full-stop", "timeout": 2400, "requires": ["codex", "python3", "jq"], "critical": ["does not merge the PR", "does not turn on auto-merge", "the remote main does not change"] }

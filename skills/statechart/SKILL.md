@@ -1,6 +1,6 @@
 ---
 name: statechart
-description: "Check a TLA+ model of a system that moves between states, such as a product flow, a protocol, or a service, and draw it as a Mermaid statechart. The report gives the shortest path to each state that breaks a rule. Use to check a TLA+ model, to draw a state machine as a chart, or to show a bug as a path through states."
+description: "Use when the user asks to draw a state chart, to check a state machine or a TLA+ model, or to find each order of events that breaks a rule. Checks the model with TLC and draws it as a Mermaid statechart, with the shortest path to each state that breaks a rule."
 ---
 
 # Statechart
@@ -78,4 +78,4 @@ Render charts with Pele. When the user asks for an image, or a chart is too larg
 
 Give each chart and its Mermaid text to the person who must decide. Add one line for each bug: the rule, the reader's sentence for that rule, and the path as the report numbers it. Say what the model leaves out. Give the command that makes the files again, with a new `--out` folder.
 
-When the model describes code, replay each bug path against the real code, as a test or a live repro, one step for each action. If a bug does not occur, think that the model is wrong until you show that it is not.
+When the model describes code, replay each bug path against the real code, as a test or a live repro, one step for each action. If a bug does not occur, think that the model is wrong until you show that it is not. When the replay shows the bug, report a bug in the code. An INVARIANT in the model of the repository is a rule that the code must keep. Do not call it a decision for the user, unless the user or a document says that the rule changed.

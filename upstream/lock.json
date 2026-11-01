@@ -1,7 +1,7 @@
 {
   "version": 1,
   "inputs": {
-    "upstream/imports.json": "3a5bda543aeb469dc444843c3aa52aad921e444f05a93bd142760639f1c5b44a"
+    "upstream/imports.json": "1401d83d5e276305231f512201f01124628e9cc11127a450d4f10beed0cd83c4"
   },
   "sources": {
     "tstack": "7de017b3fc9d50c03cf3ecb98fb71e0ca65a78bd",
@@ -28,7 +28,7 @@
       "source": "tstack",
       "path": "skills/council/SKILL.md",
       "sha256": "da8b4166f19defb2b6916e8f8fe30fa93b8bd2eabaf870ba87e9accaa038e2b8",
-      "local": "d50edde37fcfbd1a3907d43fea4500cfe11af569e43ef2594215b587558d6a9e",
+      "local": "01893ffa5c0449efd543f1a3f3351dd3c836875d674cda69c2143d6c0e03f992",
       "executable": false
     },
     "skills/file-pr/SKILL.md": {
@@ -91,7 +91,7 @@
       "source": "tstack",
       "path": "skills/sol-loop/SKILL.md",
       "sha256": "1db1eb4c4a156ee666070e9a12623d520cd1bd9b19c3fc21003fe5a440ba0b10",
-      "local": "f062c00b3224f6f060ae8e133e4a6bcc8f08aebe6f41cbe5d712d1677df380a8",
+      "local": "04b489f5bca9f3b82d48c3158a27a21a100803b564bc428f637d5a524b9d60ef",
       "executable": false
     },
     "skills/takeover/SKILL.md": {
@@ -581,30 +581,6 @@
       "sha256": "bc957ca6bee02792566a1a028d105e02e247c6e77cf057061674273da77b200e",
       "executable": false
     },
-    "skills/create-verification-skill/LICENSE": {
-      "source": "pstack",
-      "path": "pstack/LICENSE",
-      "sha256": "bc957ca6bee02792566a1a028d105e02e247c6e77cf057061674273da77b200e",
-      "executable": false
-    },
-    "skills/maintain-verification-skill/LICENSE": {
-      "source": "pstack",
-      "path": "pstack/LICENSE",
-      "sha256": "bc957ca6bee02792566a1a028d105e02e247c6e77cf057061674273da77b200e",
-      "executable": false
-    },
-    "skills/create-formal-verification-skill/LICENSE": {
-      "source": "pstack",
-      "path": "pstack/LICENSE",
-      "sha256": "bc957ca6bee02792566a1a028d105e02e247c6e77cf057061674273da77b200e",
-      "executable": false
-    },
-    "skills/maintain-formal-verification-skill/LICENSE": {
-      "source": "pstack",
-      "path": "pstack/LICENSE",
-      "sha256": "bc957ca6bee02792566a1a028d105e02e247c6e77cf057061674273da77b200e",
-      "executable": false
-    },
     "skills/statechart/LICENSE": {
       "source": "pstack",
       "path": "pstack/LICENSE",
@@ -634,7 +610,7 @@
       "source": "pstack",
       "path": "pstack/skills/why/SKILL.md",
       "sha256": "144d42e7712723d763e607bc0a969e5f1cdf83ec7228519d87677cc534571bed",
-      "local": "faca9fea9af1c839268ae3f0d15c0e14a1efd0de0b93797d628214dc85562f77",
+      "local": "f7017095c1b10b3b7784ce8998f4d8d90ead275c047f62ef4c9c9be0c3d97d7b",
       "executable": false
     },
     "skills/why/references/epistemics.md": {
@@ -713,53 +689,7 @@
       "source": "pstack",
       "path": "pstack/skills/technical-writing/SKILL.md",
       "sha256": "61fe9c424a798ebf36ad94941f87be049cb8827bdf86d21474a0dde37b513c43",
-      "local": "f0f798eb2107ded63fd61d5662b394e76ac56798af79bd2b02e15abc189855af",
-      "executable": false
-    },
-    "skills/create-verification-skill/SKILL.md": {
-      "source": "pstack",
-      "path": "pstack/skills/create-verification-skill/SKILL.md",
-      "sha256": "d353973547bf8ad8977eca645f4cd4feaed0d32f4b43d1448f906b0a76c4d694",
-      "local": "ed8bb629398c00b57df7f8983f8853863ed28b1d5210c7b71f01eb24cd18c6bc",
-      "executable": false
-    },
-    "skills/create-verification-skill/references/feature-map-example/README.md": {
-      "source": "pstack",
-      "path": "pstack/skills/create-verification-skill/references/feature-map-example/README.md",
-      "sha256": "cb7bd782cf89968a4ba3d58a5151db837430db92d19a6f52a906973b77b516ba",
-      "executable": false
-    },
-    "skills/create-verification-skill/references/feature-map-example/create-note.md": {
-      "source": "pstack",
-      "path": "pstack/skills/create-verification-skill/references/feature-map-example/create-note.md",
-      "sha256": "644a44c74f35d38c2feb7cd05a0121fdebbb623e8dc376c185b565a581d1ccf7",
-      "executable": false
-    },
-    "skills/create-verification-skill/references/feature-map-example/search.md": {
-      "source": "pstack",
-      "path": "pstack/skills/create-verification-skill/references/feature-map-example/search.md",
-      "sha256": "6e87b9e7f2791a7776ba1bb83f371cd285c306c67f19d245cc4dd6ca3015c823",
-      "executable": false
-    },
-    "skills/maintain-verification-skill/SKILL.md": {
-      "source": "pstack",
-      "path": "pstack/skills/maintain-verification-skill/SKILL.md",
-      "sha256": "515c0eaa054b3f6be1b1fb06f2c2f173c80fddb58bbcac57576f89c479bc68e8",
-      "local": "e80a9d66d6073b26fb2a5cb3b3f258a50b59762933db0d422ca775d2305d6b36",
-      "executable": false
-    },
-    "skills/create-formal-verification-skill/SKILL.md": {
-      "source": "pstack",
-      "path": "pstack/skills/create-formal-verification-skill/SKILL.md",
-      "sha256": "30ef0ac27612ecd16fdc081112113221d673053cef3f8603db11932193861211",
-      "local": "e74da58d779bef8551bda0cc3369e2984bd55ae0733672447c359d86d3d7018f",
-      "executable": false
-    },
-    "skills/maintain-formal-verification-skill/SKILL.md": {
-      "source": "pstack",
-      "path": "pstack/skills/maintain-formal-verification-skill/SKILL.md",
-      "sha256": "0c96f54293542d3818b68754562b338073958781a9684454611dca37592e2d2c",
-      "local": "df9edb909498a7cc50f56adf0c69aebbf0c0a314ec0b29269f82681b67524090",
+      "local": "bc2fbb899271364d1774e2b4b92eedb58587b5277bde824194be258956d7dc8a",
       "executable": false
     },
     "skills/technical-writing/unslop.md": {
@@ -772,7 +702,7 @@
       "source": "pstack",
       "path": "pstack/skills/statechart/SKILL.md",
       "sha256": "010b7b4532406739b1c3a426d1a45f02bb618a42561fc96b3976e064a7f8384d",
-      "local": "d19be756705ca81aa89601ab92afd3db81ca513a6a1a5de787dfd68079440aaa",
+      "local": "aaa0032bca4857dd04d307e0a251cc766c9409bba33e49e4d5a4e69a83e47971",
       "executable": false
     },
     "skills/statechart/references/render.md": {

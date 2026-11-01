@@ -1,1 +1,1 @@
-{ "skill": "no-comments" }
+{"skill": "no-comments", "critical": ["keeps the license headers", "keeps the audit order"], "minor": ["removes the narration"]}

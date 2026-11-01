@@ -1,6 +1,6 @@
 ---
 name: why
-description: "Find why code is the way it is: design rationale, past decisions, regressions, postmortems, and the source of a threshold. Searches git history and pull requests, plus each MCP server of the session that holds issues, docs, chat, monitoring, errors or analytics, and gives a cited answer with a confidence level for each claim. Use how for runtime behavior."
+description: "Use when the user asks why code is the way it is, where a limit or threshold came from, or whether a past decision still holds. Searches git history and pull requests, plus each MCP server of the session that holds issues, docs, chat, monitoring, errors or analytics, and gives a cited answer with a confidence level for each claim. Use how for runtime behavior."
 ---
 
 # Why
@@ -23,7 +23,7 @@ If the target is vague ("why do we do it this way?" with no clear referent), mak
 
 ## Step 2. Establish the Code Anchor
 
-Before spawning investigators, build the seed context inline: file paths and line ranges, key symbols (functions, classes, constants), the last few commits touching the target, PR numbers from merge commits (pattern `(#1234)` in the subject line), and any linked ticket IDs. Run `git blame -L <start>,<end> <file>` for last-touch commits, `git log --follow -p -- <file>` for full history with patches through renames, `git log --oneline -20 -- <file>` for recent commits with PR numbers visible, and `git log -1 --format=%B <commit>` to extract PR numbers. Then pull the PR bodies and discussion for any substantive commit: `gh pr view <number> --json title,body,author,createdAt,mergedAt,labels,closingIssuesReferences,comments,reviews`. This anchor goes to every investigator and to the synthesizer.
+Before spawning investigators, build the seed context inline: file paths and line ranges, key symbols (functions, classes, constants), the last few commits touching the target, PR numbers from merge commits (pattern `(#1234)` in the subject line), and any linked ticket IDs. Run `git blame -L <start>,<end> <file>` for last-touch commits, `git log --follow -p -- <file>` for full history with patches through renames, `git log --oneline -20 -- <file>` for recent commits with PR numbers visible, and `git log -1 --format=%B <commit>` to extract PR numbers. Then pull the PR bodies and discussion for any substantive commit: `gh pr view <number> --json title,body,author,createdAt,mergedAt,labels,closingIssuesReferences,comments,reviews`. Search the issues of the repository for the key terms too, also when no commit or pull request links one: `gh search issues '<terms>' --repo <owner>/<repo>` or `gh issue list --state all --search '<terms>'`. A decision record often sits in an issue that nothing links. This anchor goes to every investigator and to the synthesizer.
 
 ## Step 3. Spawn Parallel Investigators
 

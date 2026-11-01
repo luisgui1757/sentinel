@@ -1,0 +1,1 @@
+{"rule": "changes", "base": "none", "critical": ["the remote main does not change"], "minor": ["creates no new local branch"]}

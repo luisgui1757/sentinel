@@ -1,0 +1,1 @@
+{"rule": "changes", "base": "none", "critical": ["keeps the uncommitted work of the user"], "minor": ["no stash remains"]}
