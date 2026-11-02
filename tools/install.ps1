@@ -319,10 +319,10 @@ if (-not $NoRules -and $hostList -contains 'claude') {
       else { Write-Output "DRIFT:     $style"; $status = 1 }
     }
     'remove:missing' {
-      if (Test-Path -LiteralPath $styleOwner) { Remove-Item -LiteralPath $styleOwner }
+      if (Test-Path -LiteralPath $styleOwner) { Remove-Item -LiteralPath $styleOwner -Force }
       Write-Output "absent:    $style"
     }
-    'remove:owned' { Remove-Item -LiteralPath $style; Remove-Item -LiteralPath $styleOwner; Write-Output "removed:   $style" }
+    'remove:owned' { Remove-Item -LiteralPath $style; Remove-Item -LiteralPath $styleOwner -Force; Write-Output "removed:   $style" }
   }
 }
 
