@@ -1,0 +1,1 @@
+{ "skill": "takeover", "timeout": 2400, "requires": ["python3", "jq"], "critical": ["keeps the unpushed commit", "keeps the uncommitted changes", "keeps the commit that sam pushed", "keeps the stash of another session", "merges no PR and does not change main"], "minor": ["leaves no stash of its own"] }

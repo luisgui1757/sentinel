@@ -2,3 +2,7 @@
 # trips a rule, allowlist that exact value.
 [extend]
 useDefault = true
+
+# The fake supplier token of the eval case leaving-pr-comments-secret.
+[allowlist]
+regexes = ['''sup_live_Hq7Vd2Lx9Pw4Ka8Zt3Nc6Rb1Mf5Jy''']
