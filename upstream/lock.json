@@ -14,7 +14,7 @@
       "source": "tstack",
       "path": "skills/babysit-pr/SKILL.md",
       "sha256": "fbe43ba3ab76a466a88ef8b46dca1b41fb8101347d24a396903849865173a6ac",
-      "local": "d9b1c32262d0892ae2c7dd35ffe3c161e6c934651ed7eaf32748f8d88af92079",
+      "local": "b0dfa346a5944499cb9d1043d626798feffec059fbd1a436a65b581c4856759d",
       "executable": false
     },
     "skills/babysit-pr/scripts/pr-wait": {

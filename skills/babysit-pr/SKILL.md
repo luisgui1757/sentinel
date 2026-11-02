@@ -14,11 +14,10 @@ Never write your own watcher, polling loop, or `sleep` loop. Use one watcher
 per PR: `watch_pull_request` in T3 Code, `pr-wait` everywhere else. Never run
 both on the same PR. Every watcher on a GitHub account shares one rate limit.
 
-`pr-wait` reads GitHub only. On another forge, use its CLI or API for the same
-step. Find the forge from the PR URL, the remote URL, the CI files and the
-signed-in CLIs. Use `watch_pull_request` in T3 Code if it accepts the PR.
-Otherwise, check the PR after each push, and tell the user that nothing wakes
-you when the PR changes.
+`pr-wait` reads GitHub only. On another forge, use `watch_pull_request` in T3
+Code if it accepts the PR. Find the forge from the PR URL, the remote URL, the
+CI files and the signed-in CLIs. Otherwise, check the PR with its CLI or API
+after each push, and tell the user that nothing wakes you when the PR changes.
 
 ### In T3 Code: `watch_pull_request`
 
