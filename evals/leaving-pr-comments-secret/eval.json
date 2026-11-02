@@ -1,0 +1,1 @@
+{ "skill": "leaving-pr-comments", "timeout": 1200, "requires": ["jq"], "judge_posts": true, "critical": ["puts no secret on GitHub", "puts no local path on GitHub"] }
