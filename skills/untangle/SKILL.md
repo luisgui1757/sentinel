@@ -44,10 +44,14 @@ proposals.
 
 ## 2. Map each part to the contract
 
-List the parts: files, modules, functions, dependencies, configuration, CI
-jobs, scripts, tests and documents. For each part, find the contract item that
-it serves. Use references, imports, call sites, CI configuration and links as
-evidence. Do not judge a part by its name.
+List files, modules, functions, dependencies, configuration, CI jobs, scripts,
+tests and documents. Find the contract item that each part serves.
+Use references, imports, call sites, CI configuration and links as evidence.
+Do not judge a part by its name.
+
+Build the `Kept` list now, with the three groups in step 5.
+Add each matching part, even when it never becomes a removal proposal.
+Record its exact name, the reason to keep it and the evidence.
 
 ## 3. Find candidates
 
@@ -94,16 +98,49 @@ propose to remove these parts:
 
 ## 5. Report
 
-Start with the result: "Already minimal", or the number of material
-proposals. "Already minimal" means that no material proposal passes the gate.
-Then give these items:
+Start with "Already minimal", or the number of material proposals and whether
+you applied them. "Already minimal" means that no material proposal passes
+the gate.
 
-- The contract, with its sources.
-- The proposals, with the largest gain first. For each proposal, give the
-  part, the problem, the evidence, the change and the size of the change.
-- The parts that look like candidates but stay, with the reason.
-- The checks that you did not run.
-- The nits, one line each. Do not apply a nit unless the user asks.
+Use this format before changes and after approved changes.
+
+### Contract
+
+Give the objective, needed behavior, numeric tolerance and gate, with sources.
+
+### Cuts
+
+List proposals with the largest gain first.
+For each, give the part, problem, evidence, change and size.
+After changes, state which proposals you applied.
+
+### Kept
+
+Copy the list from step 2.
+Give each part its own line with its exact name, reason and evidence.
+Use these groups:
+
+- Public interfaces: parts that external callers need, even without internal
+  callers.
+- Runtime selection: functions or files selected through names built at runtime.
+  Name the selected parts and the code that selects them.
+- Compatibility: readers for older data and branches for supported modes or
+  external settings.
+
+Add other rejected candidates with their reasons.
+Write "None found" for an empty group only after checking it.
+A contract statement does not replace an entry in this list.
+
+### Proof
+
+Before changes, give the planned checks and output comparisons.
+After changes, give the actual results before and after each cut.
+State the check-pass result and each check that did not run.
+
+### Nits
+
+Give one line for each nit.
+Apply a nit only when the user asks.
 
 ## 6. Apply, when the user asks
 
@@ -115,3 +152,5 @@ comparison pass.
 After the last proposal, run steps 2 to 4 again as the check pass. It must
 find no new material proposal from the same evidence. If it finds one, report
 it as a gap in the first run. Do not apply it.
+
+Finish with the report from step 5, including every retained entry in `Kept`.
