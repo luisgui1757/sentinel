@@ -280,23 +280,50 @@ for (const impl of impls) {
 
   test(`${impl}: Claude Code gets the output style, and check, update and remove handle it`, () => withHome(async home => {
     const style = path.join(home, '.claude/output-styles/sentinel.md');
+    const owner = path.join(home, '.claude/output-styles/.sentinel-owned');
     const source = await read(path.join(root, 'rules/output-style.md'));
     ok(install(impl, home, { global: true, hosts: 'codex' }));
     assert.equal(await exists(style), false);
     ok(install(impl, home, { global: true, hosts: 'claude' }));
     assert.equal(await read(style), source);
-    await fs.writeFile(style, 'edited\n');
+    assert.equal(await read(owner), await ownership(path.dirname(style)));
+    // An older release that the installer wrote is drift, and the next run updates it.
+    await fs.writeFile(style, 'an older release\n');
+    await fs.writeFile(owner, await ownership(path.dirname(style)));
     const drift = install(impl, home, { global: true, hosts: 'claude', check: true });
     assert.equal(drift.status, 1);
     assert.match(drift.stdout, /DRIFT: +.*sentinel\.md/);
     ok(install(impl, home, { global: true, hosts: 'claude' }));
     assert.equal(await read(style), source);
+    // An update that stopped after the file and before the hash ends on the next run.
+    await fs.writeFile(owner, `${'0'.repeat(64)}  sentinel.md\n`);
+    ok(install(impl, home, { global: true, hosts: 'claude' }));
+    assert.equal(await read(owner), await ownership(path.dirname(style)));
     ok(install(impl, home, { global: true, hosts: 'claude', remove: true }));
     assert.equal(await exists(style), false);
+    assert.equal(await exists(owner), false);
     const project = path.join(home, 'project');
     await fs.mkdir(project);
     ok(install(impl, home, { project, hosts: 'claude' }));
     assert.equal(await read(path.join(project, '.claude/output-styles/sentinel.md')), source);
+  }));
+
+  test(`${impl}: an output style that the installer did not write, or that was changed, is refused and kept`, () => withHome(async home => {
+    const opts = { global: true, hosts: 'claude' };
+    const style = path.join(home, '.claude/output-styles/sentinel.md');
+    await fs.mkdir(path.dirname(style), { recursive: true });
+    await fs.writeFile(style, 'my own style\n');
+    assert.equal(install(impl, home, opts).status, 1);
+    assert.equal(await read(style), 'my own style\n');
+    ok(install(impl, home, { ...opts, remove: true }));
+    assert.equal(await read(style), 'my own style\n');
+    await fs.rm(style);
+    ok(install(impl, home, opts));
+    await fs.writeFile(style, 'my edit\n');
+    for (const extra of [{}, { check: true }, { remove: true }]) {
+      assert.equal(install(impl, home, { ...opts, ...extra }).status, 1);
+      assert.equal(await read(style), 'my edit\n');
+    }
   }));
 
   test(`${impl}: an unknown host writes nothing`, () => withHome(async home => {

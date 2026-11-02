@@ -10,7 +10,7 @@
 # The rules go into a managed block. Text outside the block stays. A skill folder
 # is replaced only when this installer or Sentinel v0.2.0 wrote it and nobody
 # changed it since. For Claude Code, the installer also writes the output style
-# output-styles/sentinel.md.
+# output-styles/sentinel.md, with the same rule for its replacement.
 # tools/install.ps1 does the same on Windows.
 set -euo pipefail
 export LC_ALL=C
@@ -242,25 +242,47 @@ if [[ "$rules" == 1 ]]; then
   done < <(targets)
 fi
 
-# Claude Code reads output styles from output-styles/. Sentinel owns sentinel.md there.
+# Claude Code reads output styles from output-styles/. Sentinel owns sentinel.md
+# there when output-styles/.sentinel-owned holds its SHA-256, as for a skill folder.
 if [[ "$rules" == 1 ]] && selected claude; then
   style="${CLAUDE_CONFIG_DIR:-$HOME/.claude}/output-styles/sentinel.md"
   if [[ "$scope" == project ]]; then style="$dir/.claude/output-styles/sentinel.md"; fi
-  case "$action" in
-    write)
-      if [[ -f "$style" ]] && cmp -s "$style" "$ROOT/rules/output-style.md"; then echo "unchanged: $style"
-      else mkdir -p "$(dirname "$style")"; replace_file "$style" "$ROOT/rules/output-style.md"; echo "wrote:     $style"
+  style_src="$ROOT/rules/output-style.md"
+  style_owner="$(dirname "$style")/$MARKER"
+  style_line="$(sha256 "$style_src")  sentinel.md"
+  # A first install writes the hash first, and an update writes the file first.
+  # So after an interruption, the next run finds a missing file, or a file that
+  # equals the source with an older hash.
+  if [[ ! -e "$style" ]]; then style_state=missing
+  elif [[ ! -f "$style_owner" ]]; then style_state=unowned
+  elif [[ "$(cat "$style_owner")" == "$(sha256 "$style")  sentinel.md" ]] || cmp -s "$style" "$style_src"; then style_state=owned
+  else style_state=changed
+  fi
+  case "$action:$style_state" in
+    *:unowned)
+      if [[ "$action" == remove ]]; then echo "skipped:   $style (not installed by Sentinel)"
+      else echo "refused:   $style (not installed by Sentinel; move it away first)" >&2; status=1
       fi
       ;;
-    check)
-      if [[ ! -f "$style" ]]; then echo "MISSING:   $style"; status=1
-      elif cmp -s "$style" "$ROOT/rules/output-style.md"; then echo "ok:        $style"
-      else echo "DRIFT:     $style"; status=1
+    *:changed) echo "refused:   $style (changed after install)" >&2; status=1 ;;
+    write:missing)
+      mkdir -p "$(dirname "$style")"
+      replace_file "$style_owner" <(printf '%s\n' "$style_line")
+      replace_file "$style" "$style_src"; echo "wrote:     $style"
+      ;;
+    write:owned)
+      if [[ "$(cat "$style_owner")" == "$style_line" ]]; then echo "unchanged: $style"
+      else
+        replace_file "$style" "$style_src"
+        replace_file "$style_owner" <(printf '%s\n' "$style_line"); echo "wrote:     $style"
       fi
       ;;
-    remove)
-      if [[ -f "$style" ]]; then rm -f "$style"; echo "removed:   $style"; else echo "absent:    $style"; fi
+    check:missing) echo "MISSING:   $style"; status=1 ;;
+    check:owned)
+      if cmp -s "$style" "$style_src"; then echo "ok:        $style"; else echo "DRIFT:     $style"; status=1; fi
       ;;
+    remove:missing) rm -f "$style_owner"; echo "absent:    $style" ;;
+    remove:owned) rm -f "$style" "$style_owner"; echo "removed:   $style" ;;
   esac
 fi
 

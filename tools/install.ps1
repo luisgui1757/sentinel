@@ -12,7 +12,7 @@ Usage:
 The rules go into a managed block. Text outside the block stays. A skill folder
 is replaced only when this installer or Sentinel v0.2.0 wrote it and nobody
 changed it since. For Claude Code, the installer also writes the output style
-output-styles/sentinel.md.
+output-styles/sentinel.md, with the same rule for its replacement.
 tools/install does the same on macOS and Linux.
 #>
 [CmdletBinding()]
@@ -112,6 +112,13 @@ function Get-Composed([string]$path, [string]$block) {
   }
   if ($skip) { throw 'UNTERMINATED' }
   return $out.ToString()
+}
+
+# Return the lowercase SHA-256 of one file.
+function Get-Sha256([string]$path) {
+  $sha = [System.Security.Cryptography.SHA256]::Create()
+  try { return [BitConverter]::ToString($sha.ComputeHash([System.IO.File]::ReadAllBytes($path))).Replace('-', '').ToLowerInvariant() }
+  finally { $sha.Dispose() }
 }
 
 # Return "<sha256>  <path>" for each file in a skill folder, sorted by path.
@@ -280,19 +287,43 @@ if (-not $NoRules) {
 }
 
 $action = if ($Check) { 'check' } elseif ($Remove) { 'remove' } else { 'write' }
-# Claude Code reads output styles from output-styles. Sentinel owns sentinel.md there.
+# Claude Code reads output styles from output-styles. Sentinel owns sentinel.md
+# there when output-styles/.sentinel-owned holds its SHA-256, as for a skill folder.
 if (-not $NoRules -and $hostList -contains 'claude') {
   $style = Join-Path $claudeDir 'output-styles/sentinel.md'
-  $styleText = Read-Text (Join-Path $Root 'rules/output-style.md')
-  if ($Check) {
-    if (-not (Test-Path -LiteralPath $style)) { Write-Output "MISSING:   $style"; $status = 1 }
-    elseif (Test-SameBytes $style $styleText) { Write-Output "ok:        $style" }
-    else { Write-Output "DRIFT:     $style"; $status = 1 }
-  } elseif ($Remove) {
-    if (Test-Path -LiteralPath $style) { Remove-Item -LiteralPath $style; Write-Output "removed:   $style" }
-    else { Write-Output "absent:    $style" }
-  } elseif (Test-SameBytes $style $styleText) { Write-Output "unchanged: $style" }
-  else { Write-TextAtomic $style $styleText; Write-Output "wrote:     $style" }
+  $styleSrc = Join-Path $Root 'rules/output-style.md'
+  $styleText = Read-Text $styleSrc
+  $styleOwner = Join-Path $claudeDir "output-styles/$Marker"
+  $styleLine = (Get-Sha256 $styleSrc) + "  sentinel.md$LF"
+  # A first install writes the hash first, and an update writes the file first.
+  # So after an interruption, the next run finds a missing file, or a file that
+  # equals the source with an older hash.
+  $styleState = if (-not (Test-Path -LiteralPath $style)) { 'missing' }
+  elseif (-not (Test-Path -LiteralPath $styleOwner -PathType Leaf)) { 'unowned' }
+  elseif ((Read-Text $styleOwner) -ceq ((Get-Sha256 $style) + "  sentinel.md$LF") -or (Test-SameBytes $style $styleText)) { 'owned' }
+  else { 'changed' }
+  switch ("${action}:$styleState") {
+    { $_ -like '*:unowned' } {
+      if ($action -eq 'remove') { Write-Output "skipped:   $style (not installed by Sentinel)" }
+      else { [Console]::Error.WriteLine("refused:   $style (not installed by Sentinel; move it away first)"); $status = 1 }
+    }
+    { $_ -like '*:changed' } { [Console]::Error.WriteLine("refused:   $style (changed after install)"); $status = 1 }
+    'write:missing' { Write-TextAtomic $styleOwner $styleLine; Write-TextAtomic $style $styleText; Write-Output "wrote:     $style" }
+    'write:owned' {
+      if (Test-SameBytes $styleOwner $styleLine) { Write-Output "unchanged: $style" }
+      else { Write-TextAtomic $style $styleText; Write-TextAtomic $styleOwner $styleLine; Write-Output "wrote:     $style" }
+    }
+    'check:missing' { Write-Output "MISSING:   $style"; $status = 1 }
+    'check:owned' {
+      if (Test-SameBytes $style $styleText) { Write-Output "ok:        $style" }
+      else { Write-Output "DRIFT:     $style"; $status = 1 }
+    }
+    'remove:missing' {
+      if (Test-Path -LiteralPath $styleOwner) { Remove-Item -LiteralPath $styleOwner -Force }
+      Write-Output "absent:    $style"
+    }
+    'remove:owned' { Remove-Item -LiteralPath $style; Remove-Item -LiteralPath $styleOwner -Force; Write-Output "removed:   $style" }
+  }
 }
 
 foreach ($skillRoot in $skillRoots) {

@@ -55,7 +55,9 @@ changed them. `--check` reports these folders as `LEGACY`.
 | OpenCode | `~/.config/opencode/AGENTS.md` | `~/.agents/skills` |
 
 For Claude Code, the installer also writes the output style
-`~/.claude/output-styles/sentinel.md`. See "Rules".
+`~/.claude/output-styles/sentinel.md`. See "Rules". The installer writes its
+SHA-256 into `output-styles/.sentinel-owned`. It does not replace or remove a
+`sentinel.md` that it did not write or that somebody changed.
 
 `CODEX_HOME`, `CLAUDE_CONFIG_DIR`, `COPILOT_HOME`, `KIRO_HOME` and
 `XDG_CONFIG_HOME` change these folders. When the installer replaces a rules
