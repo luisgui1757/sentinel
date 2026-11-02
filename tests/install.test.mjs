@@ -155,7 +155,7 @@ for (const impl of impls) {
   }));
 
   test(`${impl}: a skill folder that the installer did not write is refused and kept`, () => withHome(async home => {
-    const mine = path.join(home, '.claude/skills/takeover');
+    const mine = path.join(home, '.claude/skills/modernize');
     await fs.mkdir(mine, { recursive: true });
     await fs.writeFile(path.join(mine, 'SKILL.md'), 'my own skill\n');
     assert.equal(install(impl, home, { global: true, hosts: 'claude', skills: 'core' }).status, 1);

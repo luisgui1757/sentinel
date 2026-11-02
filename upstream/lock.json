@@ -1,7 +1,7 @@
 {
   "version": 1,
   "inputs": {
-    "upstream/imports.json": "6a02a7f4751461623acbaf7de86283fa5dd2dd6a2c95fbc87753e6527f44b892"
+    "upstream/imports.json": "99e764317c7c5e04f89f2bdafa32520921315c39b2e28bea36f979c109c4b4bc"
   },
   "sources": {
     "tstack": "7de017b3fc9d50c03cf3ecb98fb71e0ca65a78bd",
@@ -97,12 +97,6 @@
       "local": "39ff4ac16929587de538184c09b86200b3ace5d7d9d31c8e7a18e85841c90834",
       "executable": false
     },
-    "skills/takeover/SKILL.md": {
-      "source": "tstack",
-      "path": "skills/takeover/SKILL.md",
-      "sha256": "9f00a7c67bf82603af2e80f56e9ce63f1516a1b4339365b79cf786d9d9055465",
-      "executable": false
-    },
     "skills/full-stop/full-send.md": {
       "source": "tstack",
       "path": "skills/full-send/SKILL.md",
@@ -153,12 +147,6 @@
       "executable": false
     },
     "skills/sol-loop/LICENSE": {
-      "source": "tstack",
-      "path": "LICENSE",
-      "sha256": "8095f9a9f97d074131f6a2ce09b952d12c18b36f09f4e5df0517c4e64e82c851",
-      "executable": false
-    },
-    "skills/takeover/LICENSE": {
       "source": "tstack",
       "path": "LICENSE",
       "sha256": "8095f9a9f97d074131f6a2ce09b952d12c18b36f09f4e5df0517c4e64e82c851",

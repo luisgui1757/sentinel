@@ -7,7 +7,14 @@
       "ref": "main",
       "revision": "7de017b3fc9d50c03cf3ecb98fb71e0ca65a78bd",
       "paths": {
-        "skills/": "skills/",
+        "skills/babysit-pr/": "skills/babysit-pr/",
+        "skills/council/": "skills/council/",
+        "skills/file-pr/": "skills/file-pr/",
+        "skills/full-send/": "skills/full-send/",
+        "skills/full-stop/": "skills/full-stop/",
+        "skills/leaving-pr-comments/": "skills/leaving-pr-comments/",
+        "skills/modernize/": "skills/modernize/",
+        "skills/sol-loop/": "skills/sol-loop/",
         "skills/full-send/SKILL.md": "skills/full-stop/full-send.md",
         "LICENSE": [
           "skills/babysit-pr/LICENSE",
@@ -17,8 +24,7 @@
           "skills/full-stop/LICENSE",
           "skills/leaving-pr-comments/LICENSE",
           "skills/modernize/LICENSE",
-          "skills/sol-loop/LICENSE",
-          "skills/takeover/LICENSE"
+          "skills/sol-loop/LICENSE"
         ]
       },
       "required": [
@@ -31,8 +37,7 @@
         "full-stop/full-send.md",
         "leaving-pr-comments/SKILL.md",
         "modernize/SKILL.md",
-        "sol-loop/SKILL.md",
-        "takeover/SKILL.md"
+        "sol-loop/SKILL.md"
       ]
     },
     {
