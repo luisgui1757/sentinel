@@ -93,7 +93,9 @@ extractor can hide a violation. `check` then prints `INCOMPLETE`. Do not call
 that result clean. Name the files with no extractor in the report.
 
 Generated code: give the consumer an edge to the generated file. Give the
-generated file a `generates` edge to its template and its generator.
+generated file a `generates` edge to its template and its generator. Each path
+in a declared edge must exist in the checkout. Commit the generated file, or
+run the generator before `check`.
 
 A feature in two languages, such as one filter in C++ and in Python, gets a
 parent with one child for each language: `filter/cpp` and `filter/py`. Each

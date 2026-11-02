@@ -242,6 +242,10 @@ test('errors in the map or a missing tool output exit 2 before any result', asyn
   const broken = fm(dir, 'check');
   assert.equal(broken.code, 2);
   assert.match(broken.err, /go list could not load example\.com\/api: expected package, found EOF/);
+  await fs.writeFile(path.join(dir, 'featuremap.json'), JSON.stringify({ ...map, declared: [{ from: 'services/ledger/stroe.py', to: 'firmware/drivers/uart.c' }] }));
+  const typo = fm(dir, 'check');
+  assert.equal(typo.code, 2);
+  assert.match(typo.err, /the declared edge services\/ledger\/stroe\.py -> firmware\/drivers\/uart\.c names services\/ledger\/stroe\.py, which does not exist/);
   await fs.writeFile(path.join(dir, 'featuremap.json'), JSON.stringify(map));
   const badBase = fm(dir, 'check', '--base', 'no-such-commit');
   assert.equal(badBase.code, 2);
