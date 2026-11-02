@@ -10,7 +10,6 @@ core leaving-pr-comments
 core modernize
 core no-comments
 core sol-loop
-core takeover
 core technical-writing
 core tldr
 core untangle

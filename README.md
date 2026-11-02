@@ -107,7 +107,6 @@ agent can also load each skill when its description fits the task.
 | `council` | "arena", or a design request to the council | Each model writes its own plan. A judge scores the plans without model names. The agent merges the best parts into one plan. |
 | `file-pr` | "file a PR" | The agent files a short pull request. |
 | `babysit-pr` | "babysit" | The agent watches CI and review bots and fixes real findings. |
-| `takeover` | "take over" | The agent finishes the work of another person and keeps their credit. |
 | `modernize` | "modernize" | The agent rebases an old pull request and asks if it still has a use. |
 | `leaving-pr-comments` | (automatic) | The agent marks the comments that it writes for you. |
 | `untangle` | "untangle" | The agent finds what a codebase does not need and proves each cut. |

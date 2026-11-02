@@ -7,7 +7,7 @@ the SHA-256 of each imported file. A file that Sentinel changed also has a
 
 | Skills | Source | License |
 |---|---|---|
-| babysit-pr, council, file-pr, full-send, full-stop, leaving-pr-comments, modernize, sol-loop, takeover | [t3dotgg/tstack](https://github.com/t3dotgg/tstack) | MIT |
+| babysit-pr, council, file-pr, full-send, full-stop, leaving-pr-comments, modernize, sol-loop | [t3dotgg/tstack](https://github.com/t3dotgg/tstack) | MIT |
 | why, technical-writing, statechart | [cursor/plugins](https://github.com/cursor/plugins/tree/main/pstack) (pstack) | MIT |
 | impeccable | [pbakaus/impeccable](https://github.com/pbakaus/impeccable) | Apache 2.0, with `NOTICE.md` |
 | frontend-design | [anthropics/skills](https://github.com/anthropics/skills/tree/main/skills/frontend-design) | Apache 2.0 |
