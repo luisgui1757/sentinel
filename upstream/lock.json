@@ -614,7 +614,7 @@
       "source": "pstack",
       "path": "pstack/skills/why/SKILL.md",
       "sha256": "144d42e7712723d763e607bc0a969e5f1cdf83ec7228519d87677cc534571bed",
-      "local": "755b40fea9b03a89f8cfad26064c74a2a64db1b971f332daaae075fc97452559",
+      "local": "ca5c8ab5e49c868d3c4487562cf5bf9ff9c60bf867933fa54409f9e50ab0ea33",
       "executable": false
     },
     "skills/why/references/epistemics.md": {

@@ -3,6 +3,9 @@
 A hook stops an agent before a command runs. It guards one agent host on one
 machine. Protect the branch on the server too.
 
+The examples block a merge on GitHub, GitLab and Azure Repos, and a push to
+`main` or `master`. Replace these names with the default branch of the repo.
+
 ## Claude Code
 
 A `PreToolUse` hook gets the tool call as JSON on stdin. Exit code 2 blocks the
@@ -16,8 +19,8 @@ import { readFileSync } from 'node:fs';
 
 const { tool_input: input = {} } = JSON.parse(readFileSync(0, 'utf8'));
 const blocked = [
-  [/\b(gh\s+pr\s+merge|glab\s+mr\s+merge)\b/, 'Do not merge. Leave the PR for a person to merge.'],
-  [/\baz\s+repos\s+pr\s+update\b.*(--status[\s=]+completed|--auto-complete)/, 'Do not complete the PR. Leave it for a person.'],
+  [/\b(gh\s+pr\s+merge|glab\s+mr\s+(merge|accept))\b/, 'Do not merge. Leave the PR for a person to merge.'],
+  [/\baz\s+repos\s+pr\s+update\b[\s\S]*(--status[\s=]+["']?completed\b|--auto-complete[\s=]+["']?true\b)/i, 'Do not complete the PR. Leave it for a person.'],
   [/\bgit\s+push\b.*\b(main|master)\b/, 'Do not push to the default branch. Push your branch and open a PR.'],
 ];
 for (const [pattern, reason] of blocked) {
@@ -27,9 +30,6 @@ for (const [pattern, reason] of blocked) {
   }
 }
 ```
-
-The patterns block a merge on GitHub, GitLab and Azure Repos. Replace `main`
-and `master` with the default branch of the repo.
 
 `.claude/settings.json` in the repo, or `~/.claude/settings.json` for each
 repo:
@@ -64,10 +64,10 @@ prefix_rule(
     not_match = ["gh pr view 12"],
 )
 prefix_rule(
-    pattern = ["glab", "mr", "merge"],
+    pattern = ["glab", "mr", ["merge", "accept"]],
     decision = "forbidden",
     justification = "Do not merge. Leave the MR for a person.",
-    match = ["glab mr merge 12"],
+    match = ["glab mr merge 12", "glab mr accept 12"],
 )
 prefix_rule(
     pattern = ["git", "push", "origin", ["main", "master"]],
