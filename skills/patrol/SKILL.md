@@ -136,10 +136,33 @@ the Copilot Requests permission and no repository access.
   merge request pipelines, allow them for verify.
 - GitLab starts no pipeline when a draft MR becomes ready. Run the pipeline of
   the MR again.
-- Any runner works if each job gets a new container, for example with the
-  Docker or Kubernetes executor, and a job cannot read the credentials of the
-  runner machine. The claim and publish jobs make a new clone. So files that
-  the agent left in a shared build folder cannot change them.
+
+## Your own runners
+
+The GitHub and Azure templates use hosted runners, and each hosted job gets a
+new machine. GitLab sends the jobs to each runner of the project that takes
+untagged jobs. The claim and publish jobs hold the write token, so the agent
+job must not change their files or act as their runner.
+
+- Do not give jobs the Docker socket, privileged mode, the cloud metadata
+  service or a shared host folder.
+- GitLab: use the Docker or Kubernetes executor, not the shell executor. Each
+  job then gets a new container. The claim and publish jobs make a new clone.
+  So files that the agent left in a shared build folder cannot change them. If
+  the project also has a runner that is not safe, add `tags` to the jobs.
+- Azure: a self-hosted agent runs all its jobs as one user, and a job can read
+  the credentials of the agent. So make a pool for patrol only, and set
+  `pool: <that pool>` only on the `agent` job of each file. Keep claim and
+  publish on `vmImage: ubuntu-latest`, so `PATROL_AZURE_PAT` never gets to
+  your machine. Start a new agent container with `run.sh --once` for each job.
+  Register it with a token of a user who administers only that pool. The
+  templates need Azure DevOps Services, because the Azure DevOps CLI does not
+  support Azure DevOps Server.
+- GitHub: register each self-hosted runner with `config.sh --ephemeral`, and
+  start it on a new VM or container.
+- On a local runner, the agent can reach your network, and tracker text can
+  try to give it orders. Use a separate machine or VM, on a network that
+  cannot reach your other services.
 
 ## Report
 
