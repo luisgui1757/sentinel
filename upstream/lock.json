@@ -35,7 +35,7 @@
       "source": "tstack",
       "path": "skills/file-pr/SKILL.md",
       "sha256": "174a7ae52e3b9d17f2bd0eaf0a11a89d744d1249164ecbdb0e642359eee75b1b",
-      "local": "d2519f470073b610a426e878b60fe2620449b805543f6358563d1b9be2e63bda",
+      "local": "a6a7f6e42eb81bb7a0bd8453a8c6cff15056367f453c62fa7f48211390771ec3",
       "executable": false
     },
     "skills/full-send/SKILL.md": {
@@ -68,7 +68,7 @@
       "source": "tstack",
       "path": "skills/leaving-pr-comments/SKILL.md",
       "sha256": "1d110343022d0514c101dd942286cce10d6b9f5bd5b899f5a0530620d34cd295",
-      "local": "0c9807ad58d9bf77e50ed190606b4900b409a9f313df11e5f1bc85f668806c3b",
+      "local": "d162a51cd7fdfaa5f481e676e90a0ea229eaa1c164452e6f6d841a2932da7ae8",
       "executable": false
     },
     "skills/leaving-pr-comments/agents/openai.yaml": {
@@ -94,7 +94,7 @@
       "source": "tstack",
       "path": "skills/sol-loop/SKILL.md",
       "sha256": "1db1eb4c4a156ee666070e9a12623d520cd1bd9b19c3fc21003fe5a440ba0b10",
-      "local": "ecaeedf0cd4964dd0bdae1ab0be5c98d214b50cbbd32ae73b8c1f37444f4e08d",
+      "local": "7532c5d8587ce84b86d49fe8ed51c54e14f3383082272822d2e8947730cdf0ee",
       "executable": false
     },
     "skills/takeover/SKILL.md": {
@@ -614,7 +614,7 @@
       "source": "pstack",
       "path": "pstack/skills/why/SKILL.md",
       "sha256": "144d42e7712723d763e607bc0a969e5f1cdf83ec7228519d87677cc534571bed",
-      "local": "ca5c8ab5e49c868d3c4487562cf5bf9ff9c60bf867933fa54409f9e50ab0ea33",
+      "local": "ed849cb9848036de69b36b7ca1d39c676c1f4c0c8ebd88c61d28bc4c3aa0f62a",
       "executable": false
     },
     "skills/why/references/epistemics.md": {
@@ -633,14 +633,13 @@
       "source": "pstack",
       "path": "pstack/skills/why/references/source-playbook.md",
       "sha256": "9ae9dcb9d09111c9facc68510331c5aba4aed9b1b057314ff1fc0e166ad3993a",
-      "local": "f34ddad82707fa58c916db6e43f1bde6336edd7b92cbcea0667b4f9f2bd9216f",
       "executable": false
     },
     "skills/why/references/sources/code-archaeology.md": {
       "source": "pstack",
       "path": "pstack/skills/why/references/sources/code-archaeology.md",
       "sha256": "a4a3970e9db448054aed676f3f7feeee667b4b69f0bd57c8fd72b751be687cc7",
-      "local": "ee1a4976038ff5e6a8d32ceae4bb9f6f297eabc0d82e290265708ee6910ba997",
+      "local": "dabf1ecfe65f6baeaacd93fbff86d021c7d888083d7660738ba0c1ca37774269",
       "executable": false
     },
     "skills/why/references/sources/databricks.md": {

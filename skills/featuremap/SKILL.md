@@ -120,8 +120,8 @@ edge, each unowned file, and each file with no extractor. A replaced violation
 is new, also when the count stays the same. When the code fixes an entry, run
 `baseline` again to shrink the file. Add `featuremap.json` and
 `featuremap.baseline.json` to CODEOWNERS, so that a person reviews each change
-of the rules. On Azure Repos, use a branch policy that adds a reviewer for these
-two files.
+of the rules. If the forge has no CODEOWNERS file, use its rule that adds a
+reviewer for these two files.
 
 In CI, install the tools that the map names, and run the CMake configure step,
 before `check`.

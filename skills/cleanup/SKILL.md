@@ -20,9 +20,8 @@ Change nothing in this step. Run:
 - `gh api repos/{owner}/{repo} --jq .delete_branch_on_merge`
 - `git stash list`
 
-The two `gh` commands are for GitHub. On GitLab, use
-`glab mr list --all --per-page 100 --output json`, and add `--page 2` when the
-page is full. On Azure Repos, use `az repos pr list --status all --top 300`.
+The two `gh` commands are for GitHub. On another forge (see `git remote -v`), use its CLI
+or API to list each PR with its state and branch.
 
 A squash merge does not make the branch an ancestor of the default branch. So
 use the state of the PR to find merged work, not only `git branch --merged`.

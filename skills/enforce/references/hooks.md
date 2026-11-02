@@ -3,8 +3,9 @@
 A hook stops an agent before a command runs. It guards one agent host on one
 machine. Protect the branch on the server too.
 
-The examples block a merge on GitHub, GitLab and Azure Repos, and a push to
-`main` or `master`. Replace these names with the default branch of the repo.
+The examples block `gh pr merge` and a push to `main` or `master`. For another
+forge (see `git remote -v`), block the merge command of its CLI. Use the default branch
+of the repo.
 
 ## Claude Code
 
@@ -19,8 +20,7 @@ import { readFileSync } from 'node:fs';
 
 const { tool_input: input = {} } = JSON.parse(readFileSync(0, 'utf8'));
 const blocked = [
-  [/\b(gh\s+pr\s+merge|glab\s+mr\s+(merge|accept))\b/, 'Do not merge. Leave the PR for a person to merge.'],
-  [/\baz\s+repos\s+pr\s+update\b[\s\S]*(--status[\s=]+["']?completed\b|--auto-complete(?![\s=]+["']?false\b))/i, 'Do not complete the PR. Leave it for a person.'],
+  [/\bgh\s+pr\s+merge\b/, 'Do not merge. Leave the PR for a person to merge.'],
   [/\bgit\s+push\b.*\b(main|master)\b/, 'Do not push to the default branch. Push your branch and open a PR.'],
 ];
 for (const [pattern, reason] of blocked) {
@@ -64,12 +64,6 @@ prefix_rule(
     not_match = ["gh pr view 12"],
 )
 prefix_rule(
-    pattern = ["glab", "mr", ["merge", "accept"]],
-    decision = "forbidden",
-    justification = "Do not merge. Leave the MR for a person.",
-    match = ["glab mr merge 12", "glab mr accept 12"],
-)
-prefix_rule(
     pattern = ["git", "push", "origin", ["main", "master"]],
     decision = "forbidden",
     justification = "Push your branch and open a PR.",
@@ -80,8 +74,9 @@ prefix_rule(
 Test it: `codex execpolicy check --rules <file> -- gh pr merge 12`. A rule
 matches the start of the argument list only. `git push origin HEAD:main` and
 `bash -lc 'gh pr merge 3'` do not match the rules above. A rule also cannot
-find `--status completed` later in `az repos pr update`. On Azure Repos, use a
-hook or a branch policy. Codex marks these rules as experimental.
+find a flag later in the command, such as a flag that completes a PR. Use a
+hook or a branch rule on the server for that case. Codex marks these rules as
+experimental.
 
 ## Other hosts
 

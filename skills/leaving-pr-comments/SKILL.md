@@ -1,6 +1,6 @@
 ---
 name: leaving-pr-comments
-description: Use whenever leaving comments on a pull request or merge request, on GitHub, GitLab, Azure Repos or another forge.
+description: Use whenever leaving comments on a pull request or merge request, on any forge.
 ---
 
 # Leaving PR Comments
