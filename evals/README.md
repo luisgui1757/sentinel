@@ -108,9 +108,14 @@ earlier runs of the same day, with 1 to 3 runs for each arm.
   the code needs. After the fix, a regression run passed on Opus. Sol passed
   each check, but its report did not name the parts that it kept, in 3 of 3
   runs (major).
+- **untangle after the fix:** the A/B of 2 November measures the skill with one
+  added line that we removed again. We ran no A/B of the current skill, and did
+  not rejudge these runs with the fixed check. The shipped untangle skill has
+  no new tier.
 - **tldr:** Opus, Haiku and Luna drop a fact in half the runs or more, with and
   without the skill. After the review by Fable, tldr keeps who holds a doubt.
-  With the skill, Opus went from 0/3 to 1/3 and Sol from 2/3 to 3/3.
+  With the skill, Opus went from 0/3 to 1/3 and Sol from 2/3 to 3/3. See the
+  results of 2 November.
 - **Rules after the review by Fable:** with the rules, the proof probe went
   from 1/3 to 3/3 on Opus, and the review probe from 1/3 to 2/3. Nothing got
   worse on Opus or Sol.
@@ -284,6 +289,76 @@ for each arm.
   One Luna run read it. A run that reads it can learn how the case works.
 - **Login:** the first takeover A/B stopped, because the Claude login had less
   than 30 minutes left. We ran the case again after the login refreshed.
+
+## Results of 2 November 2026: tldr and untangle
+
+A climb on two failures that repeat. Each skill got one held-out case that
+tests the same failure on other material. The climb used only the old case.
+
+- `tldr-hotfix-reply`: a long report about an app crash, with conditions,
+  numbers, and a claim and a doubt of two other persons.
+- `untangle-tally`: a small Python CLI with a dead function, a duplicate module
+  and an unused dependency. Three parts only look unused: functions that the
+  CLI picks by name, a public function and an old-format reader.
+
+Each climb step changed one sentence and ran the old case 3 times on each
+model that failed. The models were Opus, Haiku and Luna for tldr, and Sol and
+Opus for untangle. A step stayed only when the pass count went up.
+
+After the climb, the A/B ran each case 3 times for each arm on the 5 default
+models.
+
+| Case | Skill | Tier | Gain | Critical runs, with · without |
+| --- | --- | --- | --- | --- |
+| `tldr-long-reply` | `tldr` | Trusted | 4/5 | 0/15 · 0/15 |
+| `tldr-hotfix-reply`, held out | `tldr` | Use with care | 1/5 | 0/15 · 0/15 |
+
+**A/B of `untangle` with the removed line.** This A/B is the evidence for the
+revert. It gives no tier to the untangle skill on `main`.
+
+| Case | Tier of this version | Gain | Critical runs, with · without |
+| --- | --- | --- | --- |
+| `untangle-shop` | Use with care | 1/5 | 0/15 · 0/15 |
+| `untangle-tally`, held out | Use with care | 2/5 | 1/15 · 0/15 |
+
+- **tldr climb:** before the climb, the old case passed 4 of 9 runs. The four
+  edits gave 1, 3, 2 and 3 of 9, so we kept none. The tldr rows measure the
+  skill on `main`.
+- **tldr tier:** since the A/B of 31 October, one line of the skill changed:
+  it keeps who holds a doubt. With 3 runs, we cannot tell if this line or noise
+  moved `tldr-long-reply` from "Use with care" to "Trusted".
+- **tldr edits:** the first edit removed hedges from the text to remove. The
+  other edits named who holds a doubt and kept how far a partial check went.
+  The last edit compared each claim with its source.
+- **tldr failures:** some failed runs drop a detail, such as the exact change
+  or the cost of an option. Luna does this the most. Other runs change the
+  meaning: a doubt of the author goes to everyone, or a guess becomes a fact.
+- **tldr gain:** without the skill, one Opus run passed, on the held-out case.
+  With it, Sol passed 5 of 6 runs, Opus 3, Terra 2, Haiku 1 and Luna 0. Haiku
+  did not load the skill in 2 of 6 runs.
+- **Noise:** with one sentence changed, Opus passed 1, 2 or 3 of 3 runs on the
+  old tldr case. So 3 runs for each model find only large effects.
+- **untangle climb:** before the climb, Sol and Opus passed 0 of 6 runs. The
+  four edits gave 0, 0, 2 and 0 of 6. The A/B used the third edit. It asked
+  the report to name each part that the contract keeps and no code calls.
+- **untangle held out:** with that edit, Sol and Opus passed 1 of 6 runs of the
+  held-out case, and 0 of 6 before. In the A/B of the old case, they passed 0
+  of 6. This gain is not larger than the noise, so we removed the line again.
+- **untangle failures:** most runs now name some kept parts with a reason.
+  Most runs leave out one part, such as the functions that code picks by name
+  or the `OLD_TAX` branch. With the line, Sol named the public function in 5 of
+  6 runs.
+- **untangle critical:** one Haiku run said that `python3 -m unittest` passes
+  without `tests/__init__.py`. The log does not show the exit code. Python 3.12
+  and later exit with code 5 when no test runs.
+- **Eval fixes:** the first A/B of `tldr-hotfix-reply` found two faults in the
+  new case. The check asked for the old crash rate, which only explains the
+  new rate. The source also said that both options need the cache change, and
+  then that option B does not. We fixed both and ran the A/B again.
+- **Check fixes after review:** the checks of both held-out cases failed some
+  correct replies, such as "cache key 8" or a duplicate module that only
+  imports the other copy. We fixed the checks and rejudged both held-out A/B
+  runs. The tables give the rejudged results.
 
 ## Case format
 
