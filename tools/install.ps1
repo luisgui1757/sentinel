@@ -114,13 +114,14 @@ function Get-Composed([string]$path, [string]$block) {
   return $out.ToString()
 }
 
-# Return "<sha256>  <path>" for each file in a skill folder, sorted by path.
+# Return the lowercase SHA-256 of one file.
 function Get-Sha256([string]$path) {
   $sha = [System.Security.Cryptography.SHA256]::Create()
   try { return [BitConverter]::ToString($sha.ComputeHash([System.IO.File]::ReadAllBytes($path))).Replace('-', '').ToLowerInvariant() }
   finally { $sha.Dispose() }
 }
 
+# Return "<sha256>  <path>" for each file in a skill folder, sorted by path.
 # EnumerateFiles returns paths that start with $dir exactly as given. Other APIs
 # can expand a Windows short name such as RUNNER~1, and then the prefix differs.
 function Get-Manifest([string]$dir) {
