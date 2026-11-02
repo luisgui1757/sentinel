@@ -32,8 +32,9 @@ Otherwise stop and ask.
 
 Find the base after `git fetch origin`:
 
-- PR: `gh pr view <n> --json baseRefName,headRefOid`, or the same two fields
-  from the CLI or API of another forge. Check out the branch
+- PR: `gh pr view <n> --json baseRefName,headRefOid`. On another forge, use
+  its CLI or API for the same step. Find the forge from the PR URL, the remote
+  URL, the CI files and the signed-in CLIs. Check out the branch
   only if clean. Confirm `HEAD` is the PR head, or ahead only by this
   change. Base: `git merge-base HEAD origin/<baseRefName>`.
 - Local: `git merge-base HEAD origin/<default-branch>`. No remote: a base

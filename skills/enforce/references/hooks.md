@@ -3,9 +3,10 @@
 A hook stops an agent before a command runs. It guards one agent host on one
 machine. Protect the branch on the server too.
 
-The examples block `gh pr merge` and a push to `main` or `master`. For another
-forge (see `git remote -v`), block the merge command of its CLI. Use the default branch
-of the repo.
+The examples block `gh pr merge` and a push to `main` or `master`. On another
+forge, block the merge command of its CLI. Find the forge from the PR URL, the
+remote URL, the CI files and the signed-in CLIs. Put the default branch of the
+repo in the patterns.
 
 ## Claude Code
 

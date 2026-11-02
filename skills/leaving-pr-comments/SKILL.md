@@ -15,8 +15,8 @@ callout:
 Actual comment starts here.
 ```
 
-GitHub shows `[!NOTE]` as a note box. On another forge, remove the
-`> [!NOTE]` line and keep the robot line as a plain quote.
+Keep the `> [!NOTE]` line only on a forge that shows it as a note box, such as
+GitHub. On other forges, remove it and keep the robot line as a plain quote.
 
 Use the verified public name of the model that wrote the comment, and the
 user's name or forge login.
@@ -43,5 +43,6 @@ Write the comment itself in a direct style:
 - Distinguish verified facts from judgment.
 
 Preview the final Markdown before posting so quoting and blank lines render as
-shown. After posting, verify that the forge returned the comment or review URL.
+shown. After posting, verify that the forge returned the new comment, with its
+URL or ID.
 Resolve a review thread only after its response was posted successfully.

@@ -42,8 +42,9 @@ If model identity is unavailable, name the harness without guessing a model.
 Before submission, check the title, description, quotes, and attachments for
 secrets and private details.
 
-Open a real PR rather than a draft so review bots run. On another forge
-(see `git remote -v`), use its CLI or API, and pass the title and description as
+Open a real PR rather than a draft so review bots run. On another forge, use
+its CLI or API for the same step. Find the forge from the PR URL, the remote
+URL, the CI files and the signed-in CLIs. Pass the title and description as
 arguments, so that no prompt waits for input. On GitHub, if `gh pr create`
 fails because the GraphQL rate limit is used up, open it through REST with
 `gh api repos/<owner>/<repo>/pulls -f title=... -f head=... -f base=... -F body=@<file>`. If the user also asked

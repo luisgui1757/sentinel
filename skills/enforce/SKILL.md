@@ -92,8 +92,7 @@ PR:
 In another CI, fetch the full history, and give `--base` the base commit of
 the PR or `origin/<target branch>`. Make the job a check that the forge runs on
 each PR. When a reviewer accepts a finding, the reviewer approves the PR with
-the check red. Or the repo adds the case to its
-config.
+the check red. Or the repo adds the case to its config.
 
 ## Agent action
 
