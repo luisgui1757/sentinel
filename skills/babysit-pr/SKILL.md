@@ -14,6 +14,10 @@ Never write your own watcher, polling loop, or `sleep` loop. Use one watcher
 per PR: `watch_pull_request` in T3 Code, `pr-wait` everywhere else. Never run
 both on the same PR. Every watcher on a GitHub account shares one rate limit.
 
+`pr-wait` reads GitHub only. On another forge, use `watch_pull_request` in T3
+Code if it accepts the PR. Otherwise, check the PR with the forge CLI after
+each push, and tell the user that nothing wakes you when the PR changes.
+
 ### In T3 Code: `watch_pull_request`
 
 Handle the existing checks and comments first. Then call
@@ -98,7 +102,7 @@ narrows code.
 
 ## Base branch and merging
 
-Keep an eye on changes to `main` and rebase when needed. `pr-wait` reports when
+Keep an eye on changes to the base branch and rebase when needed. `pr-wait` reports when
 new base commits touch this PR's files, and when the PR becomes BEHIND or DIRTY.
 `watch_pull_request` reports conflicts only, so check for BEHIND yourself
 before you call the PR ready.

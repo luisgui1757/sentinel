@@ -83,6 +83,6 @@ jobs:
           az extension add --name azure-devops --only-show-errors
           git config user.name patrol
           git config user.email patrol@example.invalid
-          node tools/patrol/patrol.mjs publish --forge azure --mode pr --in "$(Pipeline.Workspace)/out" --item "$(Pipeline.Workspace)/item/item.json" --base main
+          node tools/patrol/patrol.mjs publish --forge azure --mode pr --in "$(Pipeline.Workspace)/out" --item "$(Pipeline.Workspace)/item/item.json" --base "${BUILD_SOURCEBRANCH#refs/heads/}"
         env:
           AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
