@@ -154,10 +154,10 @@ delegated explanations.
 The `ops` profile holds two skills that ship scripts. Both need Node 22 or
 later. Copy the script into the repository, so that CI runs the same file.
 
-- `patrol` runs coding agents in GitHub Actions or Azure Pipelines. A fix job
-  turns one ready tracker item into a draft PR. A weekly scan files at most 3
-  defects. A PR job tests each PR. The agent job gets no forge token, and
-  nothing merges.
+- `patrol` runs coding agents in GitHub Actions, GitLab CI or Azure
+  Pipelines. A fix job turns one ready tracker item into a draft PR. A weekly
+  scan files at most 3 defects. A PR job tests each PR. The agent job gets no
+  token that can push or open a PR, and nothing merges.
 - `featuremap` writes one feature map for a monorepo in many languages. It
   reads edges from JS, TS, Python, C and C++ code, `go list`, `cargo metadata`
   and the CMake File API. It checks which features may use which in CI, with a

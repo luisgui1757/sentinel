@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { spawn, spawnSync } from 'node:child_process';
@@ -7,8 +8,9 @@ import { pathToFileURL } from 'node:url';
 
 export const LABELS = { ready: 'patrol:ready', working: 'patrol:working', done: 'patrol:done', stuck: 'patrol:stuck', triage: 'patrol:triage' };
 export const FORGE_TOKENS = ['GH_TOKEN', 'GITHUB_TOKEN', 'GH_ENTERPRISE_TOKEN', 'GITHUB_ENTERPRISE_TOKEN', 'PATROL_GH_TOKEN', 'SYSTEM_ACCESSTOKEN',
-  'AZURE_DEVOPS_EXT_PAT', 'ACTIONS_RUNTIME_TOKEN', 'ACTIONS_ID_TOKEN_REQUEST_TOKEN', 'ACTIONS_ID_TOKEN_REQUEST_URL'];
-const BLOCKED = [/^\.github\//, /^\.azure-pipelines\//, /(^|\/)azure-pipelines[^/]*\.ya?ml$/i, /^\.gitlab-ci\.yml$/, /(^|\/)CODEOWNERS$/,
+  'AZURE_DEVOPS_EXT_PAT', 'ACTIONS_RUNTIME_TOKEN', 'ACTIONS_ID_TOKEN_REQUEST_TOKEN', 'ACTIONS_ID_TOKEN_REQUEST_URL', 'PATROL_GITLAB_TOKEN',
+  'GITLAB_TOKEN', 'CI_JOB_TOKEN', 'CI_REPOSITORY_URL', 'CI_REGISTRY_PASSWORD', 'CI_DEPENDENCY_PROXY_PASSWORD'];
+const BLOCKED = [/^\.github\//, /^\.azure-pipelines\//, /(^|\/)azure-pipelines[^/]*\.ya?ml$/i, /^\.gitlab-ci\.yml$/, /^\.gitlab\//, /(^|\/)CODEOWNERS$/,
   /(^|\/)\.git(\/|$)/, /(^|\/)(AGENTS|CLAUDE)\.md$/, /^\.(claude|codex|agents|kiro)\//, /^tools\/patrol\//];
 const STATE = /<!-- patrol-state (\{.*?\}) -->/;
 const LIMITS = { files: 40, lines: 2000, findings: 3 };
@@ -123,9 +125,55 @@ export function azure(run = exec, env = process.env) {
   };
 }
 
-const forges = { github, azure };
+export function gitlab(run = exec, env = process.env) {
+  const api = env.CI_API_V4_URL, project = env.CI_PROJECT_ID, token = env.PATROL_GITLAB_TOKEN;
+  if (!api || !project || !token) throw new Error('gitlab needs CI_API_V4_URL, CI_PROJECT_ID and PATROL_GITLAB_TOKEN');
+  const base = `${api.replace(/\/$/, '')}/projects/${encodeURIComponent(project)}`;
+  const call = (method, route, body) => {
+    const file = body && path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'patrol-gitlab-')), 'body.json');
+    if (file) fs.writeFileSync(file, JSON.stringify(body));
+    try {
+      return json(run('curl', ['--silent', '--show-error', '--fail-with-body', '--request', method, '--header', '@-',
+        ...(file ? ['--header', 'Content-Type: application/json', '--data-binary', `@${file}`] : []), `${base}${route}`], { input: `PRIVATE-TOKEN: ${token}\n` }));
+    } finally { if (file) fs.rmSync(path.dirname(file), { recursive: true, force: true }); }
+  };
+  const all = route => {
+    const items = [];
+    for (let page = 1; page <= 10; page++) {
+      const batch = call('GET', `${route}&per_page=100&page=${page}`);
+      items.push(...batch);
+      if (batch.length < 100) break;
+    }
+    return items;
+  };
+  const phases = Object.values(LABELS).filter(l => l !== LABELS.triage);
+  const item = i => ({ id: String(i.iid), title: i.title, body: i.description ?? '', labels: i.labels });
+  const pr = mr => ({ number: String(mr.iid), url: mr.web_url });
+  return {
+    name: 'gitlab',
+    list: label => all(`/issues?state=opened&labels=${encodeURIComponent(label)}`).map(item),
+    get: id => item(call('GET', `/issues/${id}`)),
+    state: it => {
+      const mark = call('GET', `/issues/${it.id}/notes?sort=desc&order_by=created_at&per_page=100`).map(n => String(n.body).match(STATE)).find(Boolean);
+      return mark ? json(mark[1]) : {};
+    },
+    mark(it, state, note) {
+      const phase = LABELS[state.phase], remove = phases.filter(l => l !== phase && it.labels.includes(l));
+      call('PUT', `/issues/${it.id}`, { add_labels: phase, ...(remove.length && { remove_labels: remove.join(',') }) });
+      call('POST', `/issues/${it.id}/notes`, { body: `${note}\n\n<!-- patrol-state ${JSON.stringify(state)} -->\n` });
+    },
+    findPr: branch => call('GET', `/merge_requests?state=opened&source_branch=${encodeURIComponent(branch)}`).map(pr)[0] ?? null,
+    createPr: ({ branch, base: target, title, body }) => pr(call('POST', '/merge_requests', { source_branch: branch, target_branch: target, title: `Draft: ${title}`, description: body })),
+    commentPr: (number, body) => call('POST', `/merge_requests/${number}/notes`, { body }),
+    findingExists: fp => all(`/issues?state=all&labels=${encodeURIComponent(LABELS.triage)}`).some(i => (i.description ?? '').includes(`patrol-finding-${fp}`)),
+    createIssue: ({ title, body, fp }) => call('POST', '/issues', { title, labels: LABELS.triage, description: `${body}\n\n<!-- patrol-finding-${fp} -->\n` }).web_url,
+    closes: it => `Closes #${it.id}`,
+  };
+}
+
+const forges = { github, gitlab, azure };
 function forgeFor(name, run, env) {
-  if (!forges[name]) throw new Error('--forge must be github or azure');
+  if (!forges[name]) throw new Error('--forge must be github, gitlab or azure');
   return forges[name](run, env);
 }
 

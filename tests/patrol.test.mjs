@@ -6,7 +6,7 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { LABELS, agent, azure, checkPatch, claim, github, publish, unquote } from '../skills/patrol/scripts/patrol.mjs';
+import { LABELS, agent, azure, checkPatch, claim, github, gitlab, publish, unquote } from '../skills/patrol/scripts/patrol.mjs';
 
 const skill = fileURLToPath(new URL('../skills/patrol/', import.meta.url));
 const temp = prefix => fs.mkdtemp(path.join(os.tmpdir(), prefix));
@@ -135,6 +135,34 @@ test('the Azure forge keeps the tags of the user and stores the attempt in tags'
   assert.equal(update[update.indexOf('--fields') + 1], 'System.Tags=team-a; patrol:working; patrol:try-2; patrol:until-200');
   assert.equal(update[update.indexOf('--discussion') + 1], 'a &lt;b&gt; note<br>line 2');
   assert.match(calls[0][calls[0].indexOf('--wiql') + 1], /\[System\.Tags\] CONTAINS 'patrol:working'/);
+});
+
+test('the GitLab forge sends the token only on stdin, keeps state in a note and opens a draft MR', () => {
+  const calls = [];
+  const run = (cmd, args, { input } = {}) => {
+    const method = args[args.indexOf('--request') + 1], url = args.at(-1);
+    const data = args.includes('--data-binary') ? JSON.parse(readFileSync(args[args.indexOf('--data-binary') + 1].slice(1), 'utf8')) : null;
+    calls.push({ cmd, args, input, method, url, data });
+    if (url.includes('/notes?')) return JSON.stringify([{ body: 'hi' }, { body: '<!-- patrol-state {"attempt":2,"until":5} -->' }, { body: '<!-- patrol-state {"attempt":1} -->' }]);
+    if (method === 'GET' && url.includes('/issues?')) return JSON.stringify([{ iid: 4, title: 'Bug', description: 'b', labels: ['bug', LABELS.ready] }]);
+    if (method === 'POST' && url.endsWith('/merge_requests')) return JSON.stringify({ iid: 12, web_url: 'https://gitlab.example.com/g/p/-/merge_requests/12' });
+    return '{}';
+  };
+  const forge = gitlab(run, { CI_API_V4_URL: 'https://gitlab.example.com/api/v4', CI_PROJECT_ID: '7', PATROL_GITLAB_TOKEN: 'glpat-secret-value' });
+  const [item] = forge.list(LABELS.ready);
+  assert.match(calls[0].url, /^https:\/\/gitlab\.example\.com\/api\/v4\/projects\/7\/issues\?state=opened&labels=patrol%3Aready&per_page=100&page=1$/);
+  assert.deepEqual(forge.state(item), { attempt: 2, until: 5 });
+  forge.mark(item, { phase: 'working', attempt: 3, until: 9 }, 'started');
+  const [edit, note] = calls.slice(-2);
+  assert.deepEqual([edit.method, edit.url.split('/v4')[1], edit.data], ['PUT', '/projects/7/issues/4', { add_labels: LABELS.working, remove_labels: LABELS.ready }]);
+  assert.match(note.data.body, /^started\n\n<!-- patrol-state \{"phase":"working","attempt":3,"until":9\} -->/);
+  assert.deepEqual(forge.createPr({ branch: 'patrol/4', base: 'main', title: 't', body: 'b' }), { number: '12', url: 'https://gitlab.example.com/g/p/-/merge_requests/12' });
+  assert.equal(calls.at(-1).data.title, 'Draft: t');
+  for (const call of calls) {
+    assert.equal(call.cmd, 'curl');
+    assert.equal(call.input, 'PRIVATE-TOKEN: glpat-secret-value\n');
+    assert.ok(!call.args.some(arg => arg.includes('glpat-secret-value')));
+  }
 });
 
 async function repoWithRemote() {
@@ -321,17 +349,18 @@ test('checkPatch decodes a quoted non-ASCII rename that git writes', async () =>
 });
 
 test('the templates give no forge token to the agent job and never merge', async () => {
-  for (const forge of ['github', 'azure']) {
+  for (const forge of ['github', 'gitlab', 'azure']) {
     for (const name of await fs.readdir(path.join(skill, 'templates', forge))) {
       const text = readFileSync(path.join(skill, 'templates', forge, name), 'utf8');
-      const jobs = forge === 'github' ? text.split(/\n  (?=[a-z]+:\n)/) : text.split(/\n  - job: /);
-      const agentJob = jobs.find(j => /^(agent:|agent\n)/.test(j));
+      const jobs = forge === 'github' ? text.split(/\n  (?=[a-z]+:\n)/) : forge === 'gitlab' ? text.split(/\n(?=[a-z-]+:\n)/) : text.split(/\n  - job: /);
+      const agentJob = jobs.find(j => /^(agent:|agent\n|patrol-[a-z]+-agent:)/.test(j));
       assert.ok(agentJob, `${forge}/${name} has an agent job`);
-      assert.doesNotMatch(agentJob, /GH_TOKEN|github\.token|PATROL_GH_TOKEN|System\.AccessToken|AZURE_DEVOPS_EXT_PAT/, `${forge}/${name}`);
-      assert.match(agentJob, forge === 'github' ? /persist-credentials: false/ : /persistCredentials: false/, `${forge}/${name}`);
+      assert.doesNotMatch(agentJob, /GH_TOKEN|github\.token|PATROL_GH_TOKEN|System\.AccessToken|AZURE_DEVOPS_EXT_PAT|PATROL_GITLAB_TOKEN|environment:/, `${forge}/${name}`);
+      if (forge === 'gitlab') for (const job of jobs.filter(j => j !== agentJob)) assert.match(job, /environment:\n    name: patrol/, `${forge}/${name}`);
+      else assert.match(agentJob, forge === 'github' ? /persist-credentials: false/ : /persistCredentials: false/, `${forge}/${name}`);
       if (forge === 'azure') assert.match(agentJob, /settableVariables: none/, `${forge}/${name}`);
-      assert.doesNotMatch(text, /merge|auto-merge/i, `${forge}/${name}`);
+      assert.doesNotMatch(text.replace(/merge_request_event|CI_MERGE_REQUEST_\w+/g, ''), /merge|auto-merge/i, `${forge}/${name}`);
     }
   }
-  assert.doesNotMatch(readFileSync(path.join(skill, 'scripts/patrol.mjs'), 'utf8'), /pr merge|auto-merge|--auto\b/);
+  assert.doesNotMatch(readFileSync(path.join(skill, 'scripts/patrol.mjs'), 'utf8'), /pr merge|auto-merge|--auto\b|merge_when_pipeline_succeeds|auto_merge|\/merge['`]/);
 });

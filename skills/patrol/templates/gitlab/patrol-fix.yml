@@ -1,0 +1,61 @@
+patrol-fix-claim:
+  stage: test
+  image: node:22
+  rules:
+    - if: $CI_PIPELINE_SOURCE =~ /^(schedule|web|api)$/ && $PATROL_JOB == "fix"
+  environment:
+    name: patrol
+    action: access
+  timeout: 5 minutes
+  variables:
+    GIT_STRATEGY: clone
+  script:
+    - mkdir -p .patrol && node tools/patrol/patrol.mjs claim --forge gitlab --out .patrol/item.json
+  artifacts:
+    paths:
+      - .patrol/
+    expire_in: 1 day
+
+patrol-fix-agent:
+  stage: test
+  image: node:22
+  needs: [patrol-fix-claim]
+  rules:
+    - if: $CI_PIPELINE_SOURCE =~ /^(schedule|web|api)$/ && $PATROL_JOB == "fix"
+  timeout: 60 minutes
+  variables:
+    PATROL_AGENT: codex exec --dangerously-bypass-approvals-and-sandbox --skip-git-repo-check -
+  script:
+    - test -f .patrol/item.json || { echo "patrol found no ready item"; exit 0; }
+    - mkdir -p .git/info && echo "/.patrol/" >> .git/info/exclude
+    - npm install --global @openai/codex@0.166.0
+    - mkdir -p ~/.codex && cp "$CODEX_CONFIG" ~/.codex/config.toml
+    - node tools/patrol/patrol.mjs agent --prompt tools/patrol/prompts/fix.md --item .patrol/item.json --out /tmp/patrol-out --minutes 45 || status=$?
+    - cp -R /tmp/patrol-out .patrol/out
+    - exit "${status:-0}"
+  artifacts:
+    when: always
+    paths:
+      - .patrol/out/
+    expire_in: 1 day
+
+patrol-fix-publish:
+  stage: test
+  image: node:22
+  needs: [patrol-fix-claim, patrol-fix-agent]
+  rules:
+    - if: $CI_PIPELINE_SOURCE =~ /^(schedule|web|api)$/ && $PATROL_JOB == "fix"
+      when: always
+  environment:
+    name: patrol
+    action: access
+  timeout: 10 minutes
+  variables:
+    GIT_STRATEGY: clone
+    GIT_DEPTH: 0
+  script:
+    - test -f .patrol/item.json || { echo "patrol found no ready item"; exit 0; }
+    - git config user.name patrol
+    - git config user.email patrol@example.invalid
+    - git remote set-url origin "$CI_SERVER_PROTOCOL://oauth2:$PATROL_GITLAB_TOKEN@$CI_SERVER_FQDN/$CI_PROJECT_PATH.git"
+    - node tools/patrol/patrol.mjs publish --forge gitlab --mode pr --in .patrol/out --item .patrol/item.json --base "$CI_COMMIT_BRANCH"

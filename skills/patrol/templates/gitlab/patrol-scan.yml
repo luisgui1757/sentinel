@@ -1,0 +1,35 @@
+patrol-scan-agent:
+  stage: test
+  image: node:22
+  rules:
+    - if: $CI_PIPELINE_SOURCE =~ /^(schedule|web|api)$/ && $PATROL_JOB == "scan"
+  timeout: 60 minutes
+  variables:
+    PATROL_AGENT: codex exec --dangerously-bypass-approvals-and-sandbox --skip-git-repo-check -
+  script:
+    - npm install --global @openai/codex@0.166.0
+    - mkdir -p ~/.codex && cp "$CODEX_CONFIG" ~/.codex/config.toml
+    - node tools/patrol/patrol.mjs agent --prompt tools/patrol/prompts/scan.md --out /tmp/patrol-out --minutes 45 || status=$?
+    - mkdir -p .patrol && cp -R /tmp/patrol-out .patrol/out
+    - exit "${status:-0}"
+  artifacts:
+    when: always
+    paths:
+      - .patrol/out/
+    expire_in: 1 day
+
+patrol-scan-publish:
+  stage: test
+  image: node:22
+  needs: [patrol-scan-agent]
+  rules:
+    - if: $CI_PIPELINE_SOURCE =~ /^(schedule|web|api)$/ && $PATROL_JOB == "scan"
+      when: always
+  environment:
+    name: patrol
+    action: access
+  timeout: 10 minutes
+  variables:
+    GIT_STRATEGY: clone
+  script:
+    - node tools/patrol/patrol.mjs publish --forge gitlab --mode issues --in .patrol/out
