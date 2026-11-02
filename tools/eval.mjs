@@ -157,6 +157,8 @@ async function sandbox(auth) {
   for (const dir of [home, bin, work, path.join(home, '.codex'), path.join(home, '.claude'), path.join(home, '.config')]) await fs.mkdir(dir, { recursive: true });
   await fs.writeFile(path.join(home, '.gitconfig'), '[user]\n\tname = Alex Doe\n\temail = alex@example.com\n[init]\n\tdefaultBranch = main\n');
   await fs.writeFile(path.join(home, '.codex', 'auth.json'), auth.codex, { mode: 0o600 });
+  // Apps reach the real accounts of the Codex login, such as GitHub.
+  await fs.writeFile(path.join(home, '.codex', 'config.toml'), '[features]\napps = false\n');
   const env = Object.fromEntries(Object.entries(process.env).filter(([key]) => !hostVars.includes(key)));
   Object.assign(env, { HOME: home, PATH: `${bin}${path.delimiter}${process.env.PATH}`, CODEX_HOME: path.join(home, '.codex'),
     CLAUDE_CONFIG_DIR: path.join(home, '.claude'), XDG_CONFIG_HOME: path.join(home, '.config'), CLAUDE_CODE_OAUTH_TOKEN: auth.claude,
