@@ -20,7 +20,7 @@ import { readFileSync } from 'node:fs';
 const { tool_input: input = {} } = JSON.parse(readFileSync(0, 'utf8'));
 const blocked = [
   [/\b(gh\s+pr\s+merge|glab\s+mr\s+(merge|accept))\b/, 'Do not merge. Leave the PR for a person to merge.'],
-  [/\baz\s+repos\s+pr\s+update\b[\s\S]*(--status[\s=]+["']?completed\b|--auto-complete[\s=]+["']?true\b)/i, 'Do not complete the PR. Leave it for a person.'],
+  [/\baz\s+repos\s+pr\s+update\b[\s\S]*(--status[\s=]+["']?completed\b|--auto-complete(?![\s=]+["']?false\b))/i, 'Do not complete the PR. Leave it for a person.'],
   [/\bgit\s+push\b.*\b(main|master)\b/, 'Do not push to the default branch. Push your branch and open a PR.'],
 ];
 for (const [pattern, reason] of blocked) {
