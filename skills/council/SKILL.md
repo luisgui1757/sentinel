@@ -5,6 +5,7 @@ description: Trigger this if the user says 'council' or 'arena'.
 
 # Council
 
+<<<<<<< local
 Bring in delegates to help with the user's request, usually for review or
 feedback. By default, use Claude Opus and GPT Sol, in their latest versions,
 one seat each, at high reasoning effort. Start a delegate for each seat, also
@@ -13,6 +14,18 @@ seat each. If the user asks for more seats than members, fill the extra seats
 with copies, in the order of the user's list. Report a named member that you
 cannot reach. If you can reach only one model family, report it. Do not
 substitute a model.
+=======
+Before an audit, address outstanding PR comments, fix known issues, and run
+relevant checks. Give council the updated implementation; do not defer known
+fixes until reviews return. If the user wants to discard the implementation
+and explore new ideas, skip fixes to code being replaced.
+
+Bring in three delegates to help with the user's request, usually for review
+or feedback. Use one strong model from each of three different providers, at
+high reasoning effort. If the user's instructions name council members, use
+those. Otherwise pick the latest flagship model from each provider, for
+example Claude Opus, GPT Sol, and Gemini Pro.
+>>>>>>> upstream
 
 In T3 Code, use `orchestrator_capabilities` to resolve the models, then
 `delegate_task` to start one delegate per seat in parallel. Elsewhere, use
