@@ -76,7 +76,7 @@ CMake tools give edges between folders.
 | Tool | Edges | Misses |
 | --- | --- | --- |
 | `scan` | JS and TS `import`, `export ... from`, `require` and `import()` with a literal path, relative or to a workspace package. Python `import` and `from`, resolved from `roots`. C and C++ `#include`, resolved from the folder of the file and from `includeDirs`. | Dynamic paths, path aliases, macros, and conditional includes |
-| `go` | Packages of the main module, from `go list -deps -json ./...` in `dir` | Code that the build tags leave out |
+| `go` | Packages of the main module, from `go list -e -json ./...` in `dir` | Code that the build tags leave out |
 | `cargo` | Path dependencies between workspace crates, from `cargo metadata --no-deps` | Dev-dependencies |
 | `cmake` | Links between targets, from the CMake File API in `build` | Includes. Add a `scan` entry for them. |
 | `jsonl` | Edges that another tool wrote to `path`, one JSON object for each line, with `from`, `to` and `kind` | Whatever that tool misses |

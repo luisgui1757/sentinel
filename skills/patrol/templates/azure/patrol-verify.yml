@@ -45,6 +45,8 @@ jobs:
     dependsOn: agent
     condition: and(always(), eq(variables['Build.Reason'], 'PullRequest'))
     timeoutInMinutes: 10
+    variables:
+      - group: patrol-write
     steps:
       - checkout: self
         fetchDepth: 2
@@ -58,4 +60,4 @@ jobs:
           az extension add --name azure-devops --only-show-errors
           node tools/patrol/patrol.mjs publish --forge azure --mode comment --in "$(Pipeline.Workspace)/out" --pr "$(System.PullRequest.PullRequestId)"
         env:
-          AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
+          AZURE_DEVOPS_EXT_PAT: $(PATROL_AZURE_PAT)

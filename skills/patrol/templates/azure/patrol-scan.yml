@@ -49,6 +49,8 @@ jobs:
     dependsOn: agent
     condition: always()
     timeoutInMinutes: 10
+    variables:
+      - group: patrol-write
     steps:
       - checkout: self
         fetchDepth: 1
@@ -61,4 +63,4 @@ jobs:
           az extension add --name azure-devops --only-show-errors
           node tools/patrol/patrol.mjs publish --forge azure --mode issues --in "$(Pipeline.Workspace)/out" --type Bug
         env:
-          AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
+          AZURE_DEVOPS_EXT_PAT: $(PATROL_AZURE_PAT)

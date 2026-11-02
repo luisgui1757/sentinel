@@ -160,6 +160,13 @@ test('check fails on new violations and gaps, passes after baseline, and catches
   await fs.rm(dir, { recursive: true, force: true });
 });
 
+test('a scan entry covers only the files that it can read', async () => {
+  const { dir } = await repo({ 'featuremap.json': JSON.stringify({ ...map, extract: [{ tool: 'scan', files: ['**/*'] }] }) });
+  const r = fm(dir, 'check');
+  assert.match(r.out, /^NEW uncovered tools\/gen\.rb/m);
+  await fs.rm(dir, { recursive: true, force: true });
+});
+
 test('check --base fails when the baseline grows', async () => {
   const { dir, git } = await repo();
   fm(dir, 'baseline');

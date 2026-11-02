@@ -355,7 +355,8 @@ test('the templates give no forge token to the agent job and never merge', async
       const jobs = forge === 'github' ? text.split(/\n  (?=[a-z]+:\n)/) : forge === 'gitlab' ? text.split(/\n(?=[a-z-]+:\n)/) : text.split(/\n  - job: /);
       const agentJob = jobs.find(j => /^(agent:|agent\n|patrol-[a-z]+-agent:)/.test(j));
       assert.ok(agentJob, `${forge}/${name} has an agent job`);
-      assert.doesNotMatch(agentJob, /GH_TOKEN|github\.token|PATROL_GH_TOKEN|System\.AccessToken|AZURE_DEVOPS_EXT_PAT|PATROL_GITLAB_TOKEN|environment:/, `${forge}/${name}`);
+      assert.doesNotMatch(agentJob, /GH_TOKEN|github\.token|PATROL_GH_TOKEN|System\.AccessToken|AZURE_DEVOPS_EXT_PAT|PATROL_AZURE_PAT|patrol-write|PATROL_GITLAB_TOKEN|environment:/, `${forge}/${name}`);
+      assert.doesNotMatch(text.split('\njobs:')[0], /patrol-write|System\.AccessToken/, `${forge}/${name}`);
       if (forge === 'gitlab') for (const job of jobs.filter(j => j !== agentJob)) assert.match(job, /environment:\n    name: patrol/, `${forge}/${name}`);
       else assert.match(agentJob, forge === 'github' ? /persist-credentials: false/ : /persistCredentials: false/, `${forge}/${name}`);
       if (forge === 'azure') assert.match(agentJob, /settableVariables: none/, `${forge}/${name}`);

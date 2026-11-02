@@ -129,7 +129,7 @@ export function scan(root, entry, files) {
   const packages = files.some(f => JS.test(f)) ? workspacePackages(root, files) : new Map();
   const roots = entry.roots ?? ['', 'src'];
   const includeDirs = entry.includeDirs ?? [];
-  const edges = [], covered = files.filter(f => matches(entry.files, f));
+  const edges = [], covered = files.filter(f => matches(entry.files, f) && (JS.test(f) || PY.test(f) || C.test(f)));
   for (const from of covered) {
     const text = fs.readFileSync(path.join(root, from), 'utf8');
     const add = (to, kind) => { if (to && to !== from) edges.push({ from, to, kind, tool: 'scan', config: '' }); };

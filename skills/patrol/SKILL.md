@@ -42,8 +42,10 @@ These risks stay:
   too. Use a key with a spend limit, for patrol only.
 - The verify job runs the code of the PR with the provider key. The GitHub
   and GitLab templates skip PRs from forks.
-- On GitLab, each job gets a `CI_JOB_TOKEN`, and the agent can read it while
-  the job runs. It cannot push or change issues and MRs. It can publish
+- On GitLab and Azure, the agent can read the job token of the CI while the
+  job runs. On Azure, that token has the rights of the build service. So the
+  setup gives the build service no write rights. The GitLab `CI_JOB_TOKEN`
+  cannot push or change issues and MRs. It can publish
   packages, container images and releases of the project. If the project
   does not use its package registry, container registry or releases, turn
   them off. Keep job token push access off.
@@ -60,7 +62,9 @@ These risks stay:
      `stages` list has no `test`, change the stage in the files.
    - For Azure Pipelines: `templates/azure/*.yml` to `.azure-pipelines/`, and
      make one pipeline for each file. If the default branch is not `main`,
-     change the branch in the `schedules` of the fix and scan files.
+     change the branch in the `schedules` of the fix and scan files. Azure
+     Repos starts a PR pipeline only from a branch policy. So add the verify
+     pipeline as a build validation policy on the default branch.
 2. Give the agent a key:
    - GitHub: the secret `OPENAI_API_KEY`.
    - GitLab: the masked CI/CD variable `AZURE_OPENAI_API_KEY`, and a CI/CD
@@ -80,14 +84,19 @@ These risks stay:
      `patrol`. Only the claim and publish jobs use that environment, so the
      agent job never gets the token.
    - GitLab verify: make a second token with the Reporter role and the scope
-     `api`. That role can comment, but it cannot push or merge. Put it in a
-     variable with the same name, masked but not protected, with the
-     environment scope `patrol-verify`. A merge request pipeline gets no
-     protected variable. A person who can push a branch can read this token
-     through the CI file. The token gives that person no new right.
-   - Azure: give the build service of the project the rights to contribute,
-     to create branches, to contribute to pull requests, and to edit work
-     items.
+     `api`, for the verify comment. That role can comment, but it cannot push
+     or merge. Put it in a masked variable with the same name and the
+     environment scope `patrol-verify`. Do not protect it, because a merge
+     request pipeline from an unprotected branch gets no protected variable.
+     The scope `patrol` keeps the write token out of the verify jobs. A person
+     who can push a branch can read this token through the CI file, but gets
+     no new right.
+   - Azure: each job can read the token of the build service. So give the
+     build service no right to contribute, to create branches, to contribute
+     to pull requests, or to edit work items. Make a PAT for a patrol account
+     with the scopes Code (read and write) and Work Items (read and write).
+     Put it in a variable group `patrol-write` as the secret
+     `PATROL_AZURE_PAT`. Only the claim and publish jobs link that group.
 4. On GitHub, make the labels once:
    `gh label create patrol:ready`, then the same for `patrol:working`,
    `patrol:done`, `patrol:stuck` and `patrol:triage`. On GitLab, make the
@@ -112,7 +121,8 @@ the agent job its key. Any command that reads the prompt on stdin works:
 | Copilot CLI | `copilot -p "$(cat)" --allow-all-tools` | `COPILOT_GITHUB_TOKEN` |
 
 `patrol.mjs agent` removes `GH_TOKEN` and `GITHUB_TOKEN`, so Copilot CLI must
-get its token as `COPILOT_GITHUB_TOKEN`.
+get its token as `COPILOT_GITHUB_TOKEN`. Make it a fine-grained token with only
+the Copilot Requests permission and no repository access.
 
 ## GitLab notes
 

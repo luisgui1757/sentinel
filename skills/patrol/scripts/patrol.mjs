@@ -262,7 +262,7 @@ export async function agent({ prompt, out, item, minutes = 45, cwd = process.cwd
   fs.closeSync(log);
   exec('git', ['add', '-A', '-N'], { cwd: repo });
   fs.writeFileSync(path.join(outDir, 'patch.diff'), exec('git', ['diff', '--binary', base], { cwd: repo }));
-  redact(outDir, childEnv);
+  redact(outDir, env);
   const result = { exitCode: code, timedOut, seconds: Math.round((Date.now() - started) / 1000), base, report: fs.existsSync(path.join(outDir, 'report.md')) };
   fs.writeFileSync(path.join(outDir, 'result.json'), `${JSON.stringify(result, null, 2)}\n`);
   return result;
