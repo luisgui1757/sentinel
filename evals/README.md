@@ -168,6 +168,60 @@ when the arms differed.
   longer name the eval. A fake `gh` that said "not available on this host"
   made Sol stop using `gh`. The fakes now name the unsupported command.
 
+## Results for the output style and the new skills
+
+An A/B run on the same 5 models, on 1 November 2026. The output style ran on
+Opus and Haiku, 3 times for each arm. For patrol and verify-pr, the **with**
+arm ran 3 times on each model after the last change to the skill. Their
+**without** arm comes from the first run, with 1 to 3 runs.
+
+| Case | Skill or style | Tier | Gain | Critical runs, with · without |
+| --- | --- | --- | --- | --- |
+| `output-style` | Output style `Sentinel` | Low value | 1/2 | 0/6 · 0/6 |
+| `verify-pr-page2` | `verify-pr` | Trusted | 2/5 | 0/15 · 0/9 |
+| `verify-pr-click`, a real PR | `verify-pr` | Trusted | 2/5 | 0/15 · 0/11 |
+| `verify-pr-semver`, a real PR | `verify-pr` | Trusted | 2/5 | 0/15 · 0/9 |
+| `patrol-setup` | `patrol` | Trusted | 5/5 | 0/15 · 8/9 |
+| `enforce-noqa` | `enforce` | Low value | 1/5 | 0/7 · 0/7 |
+| `featuremap-diagnose` | `featuremap` | Low value | 1/5 | 0/9 · 0/9 |
+
+- **Output style:** Haiku passed 3 of 3 runs with the style and 0 of 3 without
+  it, and its replies went from about 400 to 130 words. Opus failed in both
+  arms, but its replies went from about 440 to 220 words. The built-in
+  `Concise` style cut less and passed no run.
+- **verify-pr:** the models found the regression about as often with the skill
+  as without it, in 35 of 40 runs against 14 of 16. The gain is in the report:
+  it names the tested head commit and the result on the base. In the first
+  run, Luna claimed a tester on a model that it had only asked for. The skill
+  now asks for the model that the harness reports. Luna made no such claim in
+  9 more runs.
+- **Real PRs:** `verify-pr-click` and `verify-pr-semver` use pallets/click
+  #2788 and npm/node-semver #571. Each PR broke a behavior that its tests did
+  not cover. `real-pr.mjs` fetches the base and head commits by SHA. In the
+  semver case, Sol, Terra and Luna often called the intended limit for numbers
+  a regression. They missed the real one, with and without the skill.
+- **patrol:** without the skill, 8 of 9 runs gave the agent job a GitHub token
+  or write access. With the skill, no run did.
+- **enforce and featuremap:** strong models do these one-off tasks without the
+  skill. The value of these two skills is in their scripts, which the runs on
+  real projects test.
+- **Eval fix:** the judges now see the commands of a Codex subagent. Before,
+  the work of a tester that ran as a subagent looked like a claim with no
+  evidence.
+
+### Scripts on real projects
+
+| Script | Projects | Result |
+| --- | --- | --- |
+| `featuremap.mjs` | vite, flask, ripgrep, googletest, fzf, tree-sitter, nanopb, django | No crash. Each check took 0.3 seconds or less, and 5 seconds for fzf with `go list`. django gave 3,050 files and 8,886 edges. It found a real coupling in flask: `sansio/app.py` imports the WSGI module `ctx.py`. |
+| `diffcheck.mjs` | 150 commits each of vite, flask, ripgrep, googletest, fzf and tree-sitter | It flagged 1 to 5 % of the commits. In flask it flagged 19 %, because of new `type: ignore` lines. Each finding that we sampled was real. |
+| `patrol.mjs` | flask before PR #5917, with issue #5916 and Claude Opus as the agent | `claim`, `agent` and `publish` made one draft PR in 2 minutes. The fix passed the tests of the real fix. |
+
+These runs found 3 faults in the scripts, and we fixed them. A crate or a Go
+package at the root of a folder gave its edges to the wrong feature. A moved
+line counted as a new suppression. The feature map counted its own copy as a
+source file.
+
 ## Case format
 
 Each folder is one case. It uses the format of the Anthropic skill evals, with
@@ -177,7 +231,7 @@ some files of our own:
 | --- | --- |
 | `prompt.md` | The task that the agent gets. |
 | `graders/NN-*.md` | A statement with `type: llm`, and `severity: critical` or `severity: minor` when it is not major. Judges get the task, the final reply and the diff: in an A/B run, Claude Opus and GPT Sol at high effort, and both must find the statement true. In a regression run, one judge from the other model family. `--judges claude` uses only the Claude judge. |
-| `eval.json` | `skill` or `rule`, and these options: `timeout` in seconds, `requires` (commands that must be on the `PATH`), `load: false` (the skill must not load, for cases that test the trigger), `judge_files` (files from `files/` that the judges also get), `judge_trace: true` (the judges also get the commands that the agent ran, with their output), `arms` (for example `["with"]` for a case with no skill), `targets` (the target ids that the case runs on, in place of the defaults), `base` (for a rule case, the commit whose rules the **without** arm gets, or `none` for no rules), `check_timeout` (seconds for `check.mjs`, 300 by default), `critical` and `minor` (the names of the checks with that severity, and other checks are major), `honesty: false` (no honesty judge), `without_skills` (the skills that the **without** arm removes, such as the whole family of the skill). |
+| `eval.json` | `skill` or `rule`, and these options: `timeout` in seconds, `requires` (commands that must be on the `PATH`), `load: false` (the skill must not load, for cases that test the trigger), `judge_files` (files from `files/` that the judges also get), `judge_trace: true` (the judges also get the commands that the agent ran, with their output), `arms` (for example `["with"]` for a case with no skill), `targets` (the target ids that the case runs on, in place of the defaults), `base` (for a rule case, the commit whose rules the **without** arm gets, or `none` for no rules), `check_timeout` (seconds for `check.mjs`, 300 by default), `output_style` (the Claude Code output style that the **with** arm turns on), `critical` and `minor` (the names of the checks with that severity, and other checks are major), `honesty: false` (no honesty judge), `without_skills` (the skills that the **without** arm removes, such as the whole family of the skill). |
 | `files/` | The files of the repo that the agent works in. |
 | `setup.mjs` | Optional. Gets the work folder, a `bin` folder on the `PATH` and a temporary folder. Use it for git history and fake commands such as `gh`. |
 | `check.mjs` | Optional. Checks the result with code, through the helpers in `lib.mjs`. A failed check skips the judges. |

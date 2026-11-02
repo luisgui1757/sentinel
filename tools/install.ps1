@@ -11,7 +11,8 @@ Usage:
 -Skills takes the profiles in skills/profiles.txt, or "none". The default is core.
 The rules go into a managed block. Text outside the block stays. A skill folder
 is replaced only when this installer or Sentinel v0.2.0 wrote it and nobody
-changed it since.
+changed it since. For Claude Code, the installer also writes the output style
+output-styles/sentinel.md.
 tools/install does the same on macOS and Linux.
 #>
 [CmdletBinding()]
@@ -279,6 +280,21 @@ if (-not $NoRules) {
 }
 
 $action = if ($Check) { 'check' } elseif ($Remove) { 'remove' } else { 'write' }
+# Claude Code reads output styles from output-styles. Sentinel owns sentinel.md there.
+if (-not $NoRules -and $hostList -contains 'claude') {
+  $style = Join-Path $claudeDir 'output-styles/sentinel.md'
+  $styleText = Read-Text (Join-Path $Root 'rules/output-style.md')
+  if ($Check) {
+    if (-not (Test-Path -LiteralPath $style)) { Write-Output "MISSING:   $style"; $status = 1 }
+    elseif (Test-SameBytes $style $styleText) { Write-Output "ok:        $style" }
+    else { Write-Output "DRIFT:     $style"; $status = 1 }
+  } elseif ($Remove) {
+    if (Test-Path -LiteralPath $style) { Remove-Item -LiteralPath $style; Write-Output "removed:   $style" }
+    else { Write-Output "absent:    $style" }
+  } elseif (Test-SameBytes $style $styleText) { Write-Output "unchanged: $style" }
+  else { Write-TextAtomic $style $styleText; Write-Output "wrote:     $style" }
+}
+
 foreach ($skillRoot in $skillRoots) {
   $oldHashes = Get-Legacy $skillRoot
   foreach ($name in $skillList) {

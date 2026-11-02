@@ -1,0 +1,1 @@
+{"skill": "featuremap", "judge_files": ["README.md", "web/src/app.ts", "web/src/orders.ts", "web/src/api.ts", "shared/src/money.ts", "db/src/query.ts", "db/models/__init__.py", "db/models/order.py", "api/app/routes.py", "jobs/cleanup.rb"], "critical": ["changes no product file"]}

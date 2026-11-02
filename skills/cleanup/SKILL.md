@@ -20,6 +20,10 @@ Change nothing in this step. Run:
 - `gh api repos/{owner}/{repo} --jq .delete_branch_on_merge`
 - `git stash list`
 
+The two `gh` commands are for GitHub. On another forge, use its CLI or API for
+the same step. Find the forge from the PR URL, the remote URL, the CI files and
+the signed-in CLIs. Collect the same fields.
+
 A squash merge does not make the branch an ancestor of the default branch. So
 use the state of the PR to find merged work, not only `git branch --merged`.
 
@@ -49,7 +53,9 @@ a path by hand.
 
 If `delete_branch_on_merge` is `false`, tell the user. Give this command to
 turn it on: `gh api -X PATCH repos/{owner}/{repo} -f delete_branch_on_merge=true`.
-Run it only when the user asks, because it changes a repository setting.
+Run it only when the user asks, because it changes a repository setting. On
+another forge, find the same setting. If the forge has no such setting, skip
+this step.
 
 ## Report
 
@@ -59,4 +65,5 @@ Run it only when the user asks, because it changes a repository setting.
 - Each stash, with its message.
 - Each open PR that is stale or replaced, with its link and your
   recommendation.
-- A remote branch of a merged or closed PR can come back from the PR page.
+- On GitHub, a remote branch of a merged or closed PR can come back from the
+  PR page.

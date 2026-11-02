@@ -1,0 +1,1 @@
+{"skill": "patrol", "critical": ["the job that runs the agent gets no write access to GitHub", "never merges"], "minor": ["opens draft PRs"]}

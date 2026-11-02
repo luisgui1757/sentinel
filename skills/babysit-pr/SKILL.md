@@ -14,6 +14,11 @@ Never write your own watcher, polling loop, or `sleep` loop. Use one watcher
 per PR: `watch_pull_request` in T3 Code, `pr-wait` everywhere else. Never run
 both on the same PR. Every watcher on a GitHub account shares one rate limit.
 
+`pr-wait` reads GitHub only. On another forge, use `watch_pull_request` in T3
+Code if it accepts the PR. Find the forge from the PR URL, the remote URL, the
+CI files and the signed-in CLIs. Otherwise, check the PR with its CLI or API
+after each push, and tell the user that nothing wakes you when the PR changes.
+
 ### In T3 Code: `watch_pull_request`
 
 Handle the existing checks and comments first. Then call
@@ -98,8 +103,9 @@ narrows code.
 
 ## Base branch and merging
 
-Keep an eye on changes to `main` and rebase when needed. `pr-wait` reports when
-new base commits touch this PR's files, and when the PR becomes BEHIND or DIRTY.
+Keep an eye on changes to the base branch and rebase when needed. `pr-wait`
+reports when new base commits touch this PR's files, and when the PR becomes
+BEHIND or DIRTY.
 `watch_pull_request` reports conflicts only, so check for BEHIND yourself
 before you call the PR ready.
 If an overlapping PR makes this one obsolete, stop monitoring, report it to the
@@ -107,7 +113,8 @@ user, and ask before closing the PR unless closure was explicitly authorized.
 
 If nothing has changed, stay quiet rather than posting filler comments. Stop
 when `pr-wait` exits 0, or in T3 Code when the merge gate passes on the latest
-head. Merge only when the user explicitly requested it;
+head. With no watcher, stop after you check the current state, and report it.
+Merge only when the user explicitly requested it;
 otherwise report that the PR is ready. Right before a merge, run `git fetch` and
 check the PR again. Never merge when it is BEHIND or DIRTY, or when base commits
 that landed after the last green run touch this PR's files. Rebase, push, and

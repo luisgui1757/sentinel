@@ -1,0 +1,66 @@
+trigger: none
+pr: none
+
+schedules:
+  - cron: "41 4 * * 1"
+    displayName: patrol scan
+    branches:
+      include:
+        - main
+    always: true
+
+variables:
+  - group: patrol
+
+pool:
+  vmImage: ubuntu-latest
+
+jobs:
+  - job: agent
+    timeoutInMinutes: 60
+    steps:
+      - checkout: self
+        fetchDepth: 1
+        persistCredentials: false
+      - task: UseNode@1
+        inputs:
+          version: "22.x"
+      - task: DownloadSecureFile@1
+        name: codexConfig
+        inputs:
+          secureFile: codex-config.toml
+      - script: |
+          mkdir -p "$HOME/.codex"
+          cp "$(codexConfig.secureFilePath)" "$HOME/.codex/config.toml"
+          npm install --global @openai/codex@0.166.0
+        displayName: Install the agent
+      - script: node tools/patrol/patrol.mjs agent --prompt tools/patrol/prompts/scan.md --out "$(Agent.TempDirectory)/out" --minutes 45
+        displayName: Run the agent
+        target:
+          settableVariables: none
+        env:
+          PATROL_AGENT: codex exec --dangerously-bypass-approvals-and-sandbox --skip-git-repo-check -
+          AZURE_OPENAI_API_KEY: $(AZURE_OPENAI_API_KEY)
+      - publish: $(Agent.TempDirectory)/out
+        artifact: out
+        condition: always()
+
+  - job: publish
+    dependsOn: agent
+    condition: always()
+    timeoutInMinutes: 10
+    variables:
+      - group: patrol-write
+    steps:
+      - checkout: self
+        fetchDepth: 1
+      - task: UseNode@1
+        inputs:
+          version: "22.x"
+      - download: current
+        artifact: out
+      - script: |
+          az extension add --name azure-devops --only-show-errors
+          node tools/patrol/patrol.mjs publish --forge azure --mode issues --in "$(Pipeline.Workspace)/out" --type Bug
+        env:
+          AZURE_DEVOPS_EXT_PAT: $(PATROL_AZURE_PAT)

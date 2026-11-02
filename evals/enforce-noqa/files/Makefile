@@ -1,0 +1,2 @@
+check:
+	python3 -m unittest discover -s tests -q

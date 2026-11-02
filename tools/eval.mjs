@@ -73,7 +73,14 @@ function sessionLog(home) {
     const replies = lines.filter(l => l.type === 'response_item' && l.payload?.type === 'message' && l.payload?.role === 'assistant')
       .map(l => (l.payload.content ?? []).map(c => c.text ?? '').join(''));
     const last = replies.at(-1) ?? '(no reply)';
-    return `[codex session] model ${model}, ${replies.length} replies, last reply:\n${last.length > 300 ? `${last.slice(0, 300)} [cut]` : last}`;
+    const head = `[codex session] model ${model}, ${replies.length} replies, last reply:\n${last.length > 300 ? `${last.slice(0, 300)} [cut]` : last}`;
+    if (!lines.find(l => l.type === 'session_meta')?.payload?.source?.subagent) return head;
+    const outputs = new Map(lines.filter(l => l.payload?.type === 'function_call_output').map(l => [l.payload.call_id, String(l.payload.output ?? '')]));
+    const calls = lines.filter(l => l.payload?.type === 'function_call').map(l => {
+      const output = outputs.get(l.payload.call_id) ?? '(no result)';
+      return `[subagent ${l.payload.name}] ${String(l.payload.arguments).slice(0, 400)}\n${output.length > 300 ? `${output.slice(0, 300)} [cut]` : output}`;
+    });
+    return [head, ...calls].join('\n');
   }).join('\n\n');
 }
 
@@ -150,6 +157,8 @@ async function sandbox(auth) {
   for (const dir of [home, bin, work, path.join(home, '.codex'), path.join(home, '.claude'), path.join(home, '.config')]) await fs.mkdir(dir, { recursive: true });
   await fs.writeFile(path.join(home, '.gitconfig'), '[user]\n\tname = Alex Doe\n\temail = alex@example.com\n[init]\n\tdefaultBranch = main\n');
   await fs.writeFile(path.join(home, '.codex', 'auth.json'), auth.codex, { mode: 0o600 });
+  // Apps reach the real accounts of the Codex login, such as GitHub.
+  await fs.writeFile(path.join(home, '.codex', 'config.toml'), '[features]\napps = false\n');
   const env = Object.fromEntries(Object.entries(process.env).filter(([key]) => !hostVars.includes(key)));
   Object.assign(env, { HOME: home, PATH: `${bin}${path.delimiter}${process.env.PATH}`, CODEX_HOME: path.join(home, '.codex'),
     CLAUDE_CONFIG_DIR: path.join(home, '.claude'), XDG_CONFIG_HOME: path.join(home, '.config'), CLAUDE_CODE_OAUTH_TOKEN: auth.claude,
@@ -171,6 +180,7 @@ async function prepare(testCase, target, arm, box, baseRules) {
   }
   const install = spawnSync(path.join(root, 'tools/install'), ['--global', '--hosts', target.host, '--skills', allProfiles], { env: box.env, encoding: 'utf8' });
   if (install.status !== 0) throw new Error(`install failed: ${install.stderr}`);
+  if (arm === 'with' && testCase.output_style) await fs.writeFile(path.join(box.home, '.claude/settings.json'), `${JSON.stringify({ outputStyle: testCase.output_style })}\n`);
   const skills = target.host === 'claude' ? path.join(box.home, '.claude/skills') : path.join(box.home, '.agents/skills');
   const rulesFile = target.host === 'claude' ? path.join(box.home, '.claude/CLAUDE.md') : path.join(box.home, '.codex/AGENTS.md');
   if (arm === 'without') for (const skill of testCase.without_skills ?? (testCase.skill ? [testCase.skill] : [])) await fs.rm(path.join(skills, skill), { recursive: true, force: true });
@@ -360,8 +370,9 @@ async function main() {
   const opts = options(process.argv.slice(2));
   const config = JSON.parse(await fs.readFile(path.join(evalsDir, 'targets.json'), 'utf8'));
   const targets = config.targets.filter(t => opts.targets ? opts.targets.includes(t.id) : opts.ab ? t.default : t.routine);
-  const targetsFor = testCase => testCase.targets && opts.ab
-    ? config.targets.filter(t => testCase.targets.includes(t.id) && (!opts.targets || opts.targets.includes(t.id))) : targets;
+  const targetsFor = testCase => !testCase.targets ? targets : opts.ab
+    ? config.targets.filter(t => testCase.targets.includes(t.id) && (!opts.targets || opts.targets.includes(t.id)))
+    : targets.filter(t => config.targets.some(c => c.host === t.host && testCase.targets.includes(c.id)));
   const judges = config.judges.filter(j => !opts.judges || opts.judges.includes(j.host));
   const judgesFor = target => opts.ab || opts.judges ? judges : judges.filter(j => j.host !== target.host).slice(0, 1);
   if (opts.rejudge) return rejudge(opts, judgesFor, config);

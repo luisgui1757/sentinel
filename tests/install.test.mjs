@@ -278,6 +278,27 @@ for (const impl of impls) {
     assert.deepEqual(await fs.readdir(project), ['.claude']);
   }));
 
+  test(`${impl}: Claude Code gets the output style, and check, update and remove handle it`, () => withHome(async home => {
+    const style = path.join(home, '.claude/output-styles/sentinel.md');
+    const source = await read(path.join(root, 'rules/output-style.md'));
+    ok(install(impl, home, { global: true, hosts: 'codex' }));
+    assert.equal(await exists(style), false);
+    ok(install(impl, home, { global: true, hosts: 'claude' }));
+    assert.equal(await read(style), source);
+    await fs.writeFile(style, 'edited\n');
+    const drift = install(impl, home, { global: true, hosts: 'claude', check: true });
+    assert.equal(drift.status, 1);
+    assert.match(drift.stdout, /DRIFT: +.*sentinel\.md/);
+    ok(install(impl, home, { global: true, hosts: 'claude' }));
+    assert.equal(await read(style), source);
+    ok(install(impl, home, { global: true, hosts: 'claude', remove: true }));
+    assert.equal(await exists(style), false);
+    const project = path.join(home, 'project');
+    await fs.mkdir(project);
+    ok(install(impl, home, { project, hosts: 'claude' }));
+    assert.equal(await read(path.join(project, '.claude/output-styles/sentinel.md')), source);
+  }));
+
   test(`${impl}: an unknown host writes nothing`, () => withHome(async home => {
     assert.equal(install(impl, home, { global: true, hosts: 'codex,pi' }).status, 2);
     for (const file of globalFiles(home)) assert.equal(await exists(file), false, file);
