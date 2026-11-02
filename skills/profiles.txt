@@ -21,6 +21,5 @@ ui beast-ui
 ui doc-view
 ui frontend-design
 ui impeccable
-explain how
 ops featuremap
 ops patrol
