@@ -292,7 +292,10 @@ export function extract(root, map, files) {
     edges.push(...result.edges);
     for (const f of result.covered) coverage.get(f)?.add(entry.tool);
   }
-  for (const d of map.declared) edges.push({ from: d.from, to: d.to, kind: d.kind ?? 'declared', tool: 'declared', config: '' });
+  for (const d of map.declared) {
+    for (const p of [d.from, d.to]) if (!fs.existsSync(path.join(root, p))) throw new Error(`the declared edge ${d.from} -> ${d.to} names ${p}, which does not exist`);
+    edges.push({ from: d.from, to: d.to, kind: d.kind ?? 'declared', tool: 'declared', config: '' });
+  }
   const lines = [...new Set(edges.map(e => JSON.stringify({ from: e.from, to: e.to, kind: e.kind, tool: e.tool, config: e.config })))].sort();
   return { edges: lines.map(line => JSON.parse(line)), coverage };
 }
