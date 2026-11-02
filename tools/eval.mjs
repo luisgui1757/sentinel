@@ -371,7 +371,8 @@ async function main() {
   const config = JSON.parse(await fs.readFile(path.join(evalsDir, 'targets.json'), 'utf8'));
   const targets = config.targets.filter(t => opts.targets ? opts.targets.includes(t.id) : opts.ab ? t.default : t.routine);
   const targetsFor = testCase => !testCase.targets ? targets : opts.ab
-    ? config.targets.filter(t => testCase.targets.includes(t.id) && (!opts.targets || opts.targets.includes(t.id))) : targets.filter(t => testCase.targets.includes(t.id));
+    ? config.targets.filter(t => testCase.targets.includes(t.id) && (!opts.targets || opts.targets.includes(t.id)))
+    : targets.filter(t => config.targets.some(c => c.host === t.host && testCase.targets.includes(c.id)));
   const judges = config.judges.filter(j => !opts.judges || opts.judges.includes(j.host));
   const judgesFor = target => opts.ab || opts.judges ? judges : judges.filter(j => j.host !== target.host).slice(0, 1);
   if (opts.rejudge) return rejudge(opts, judgesFor, config);

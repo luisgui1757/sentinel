@@ -64,7 +64,8 @@ These risks stay:
      make one pipeline for each file. If the default branch is not `main`,
      change the branch in the `schedules` of the fix and scan files. Azure
      Repos starts a PR pipeline only from a branch policy. So add the verify
-     pipeline as a build validation policy on the default branch.
+     pipeline as a build validation policy on the default branch. Make it
+     optional, so that a failed test run does not block the PR.
 2. Give the agent a key:
    - GitHub: the secret `OPENAI_API_KEY`.
    - GitLab: the masked CI/CD variable `AZURE_OPENAI_API_KEY`, and a CI/CD
