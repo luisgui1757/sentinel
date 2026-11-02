@@ -50,7 +50,8 @@ These risks stay:
    - `scripts/patrol.mjs` and `prompts/` to `tools/patrol/`.
    - For GitHub: `templates/github/*.yml` to `.github/workflows/`.
    - For Azure Pipelines: `templates/azure/*.yml` to `.azure-pipelines/`, and
-     make one pipeline for each file.
+     make one pipeline for each file. If the default branch is not `main`,
+     change the branch in the `schedules` of the fix and scan files.
 2. Give the agent a key:
    - GitHub: the secret `OPENAI_API_KEY`.
    - Azure: a variable group `patrol` with the secret `AZURE_OPENAI_API_KEY`,

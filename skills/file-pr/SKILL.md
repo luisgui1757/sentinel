@@ -43,9 +43,9 @@ Before submission, check the title, description, quotes, and attachments for
 secrets and private details.
 
 Open a real PR rather than a draft so review bots run. On GitLab, a PR is a
-merge request: use `glab mr create`. On Azure Repos, use `az repos pr create`.
-On GitHub, if `gh pr create` fails because the GraphQL rate limit is used up,
-open it through REST with
+merge request: use `glab mr create --title ... --description ... --yes`. On
+Azure Repos, use `az repos pr create`. On GitHub, if `gh pr create` fails
+because the GraphQL rate limit is used up, open it through REST with
 `gh api repos/<owner>/<repo>/pulls -f title=... -f head=... -f base=... -F body=@<file>`. If the user also asked
 to babysit it, continue with the `babysit-pr` skill.
 

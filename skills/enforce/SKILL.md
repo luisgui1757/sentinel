@@ -92,9 +92,9 @@ PR:
 In Azure Pipelines, use `fetchDepth: 0` on the checkout and
 `--base "origin/$(System.PullRequest.targetBranchName)"`. Add the pipeline to a
 build validation branch policy. In GitLab CI, set `GIT_DEPTH: 0` and use
-`--base "$CI_MERGE_REQUEST_DIFF_BASE_SHA"` in a merge request pipeline. When a reviewer accepts a finding, the
-reviewer approves the PR with the check red. Or the repo adds the case to its
-config.
+`--base "$CI_MERGE_REQUEST_DIFF_BASE_SHA"` in a merge request pipeline. When a
+reviewer accepts a finding, the reviewer approves the PR with the check red.
+Or the repo adds the case to its config.
 
 ## Agent action
 

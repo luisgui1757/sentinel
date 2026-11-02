@@ -102,8 +102,9 @@ narrows code.
 
 ## Base branch and merging
 
-Keep an eye on changes to the base branch and rebase when needed. `pr-wait` reports when
-new base commits touch this PR's files, and when the PR becomes BEHIND or DIRTY.
+Keep an eye on changes to the base branch and rebase when needed. `pr-wait`
+reports when new base commits touch this PR's files, and when the PR becomes
+BEHIND or DIRTY.
 `watch_pull_request` reports conflicts only, so check for BEHIND yourself
 before you call the PR ready.
 If an overlapping PR makes this one obsolete, stop monitoring, report it to the

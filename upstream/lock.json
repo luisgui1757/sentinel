@@ -14,7 +14,7 @@
       "source": "tstack",
       "path": "skills/babysit-pr/SKILL.md",
       "sha256": "fbe43ba3ab76a466a88ef8b46dca1b41fb8101347d24a396903849865173a6ac",
-      "local": "a17c22c067dc9efb17adfd30994573dbcfd73236ae4f0f33c2503626a22f2d2e",
+      "local": "0acc558872ea51153cf711e61a4a9f1f8aa7e160805ee943ca6a2fd55c1d4698",
       "executable": false
     },
     "skills/babysit-pr/scripts/pr-wait": {
@@ -35,7 +35,7 @@
       "source": "tstack",
       "path": "skills/file-pr/SKILL.md",
       "sha256": "174a7ae52e3b9d17f2bd0eaf0a11a89d744d1249164ecbdb0e642359eee75b1b",
-      "local": "adb42aab9e2d10912732eebede5dc6c92b2c442960c6b0b0502e625b7e3f9bd9",
+      "local": "d2519f470073b610a426e878b60fe2620449b805543f6358563d1b9be2e63bda",
       "executable": false
     },
     "skills/full-send/SKILL.md": {
@@ -68,7 +68,7 @@
       "source": "tstack",
       "path": "skills/leaving-pr-comments/SKILL.md",
       "sha256": "1d110343022d0514c101dd942286cce10d6b9f5bd5b899f5a0530620d34cd295",
-      "local": "80f27f18d8d9ff6b17ef5ad72d18bef1c6f183815464a3fd933e0e203dcc85e3",
+      "local": "0c9807ad58d9bf77e50ed190606b4900b409a9f313df11e5f1bc85f668806c3b",
       "executable": false
     },
     "skills/leaving-pr-comments/agents/openai.yaml": {
@@ -614,7 +614,7 @@
       "source": "pstack",
       "path": "pstack/skills/why/SKILL.md",
       "sha256": "144d42e7712723d763e607bc0a969e5f1cdf83ec7228519d87677cc534571bed",
-      "local": "fd1c7ec81b3d19661ebea655b9015649aee0ac6474355deeeaa5bfcd685cd20a",
+      "local": "755b40fea9b03a89f8cfad26064c74a2a64db1b971f332daaae075fc97452559",
       "executable": false
     },
     "skills/why/references/epistemics.md": {
