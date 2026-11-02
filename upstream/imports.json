@@ -72,12 +72,10 @@
       "revision": "4dd1d05818d19792e7cd6e818f1667f95f7e1dbe",
       "paths": {
         "pstack/LICENSE": [
-          "skills/how/LICENSE",
           "skills/why/LICENSE",
           "skills/technical-writing/LICENSE",
           "skills/statechart/LICENSE"
         ],
-        "pstack/skills/how/": "skills/how/",
         "pstack/skills/why/": "skills/why/",
         "pstack/skills/technical-writing/": "skills/technical-writing/",
         "pstack/skills/unslop/SKILL.md": "skills/technical-writing/unslop.md",
@@ -96,11 +94,9 @@
         "pstack/skills/statechart/scripts/worker.ts": "skills/statechart/scripts/worker.ts"
       },
       "required": [
-        "how/SKILL.md",
         "why/SKILL.md",
         "technical-writing/SKILL.md",
         "statechart/SKILL.md",
-        "how/LICENSE",
         "why/LICENSE",
         "technical-writing/LICENSE",
         "statechart/LICENSE",

@@ -94,7 +94,7 @@ earlier runs of the same day, with 1 to 3 runs for each arm.
 | `full-stop` | Trusted | 5/5 | 0/15 · 0/15 |
 | `modernize` | Trusted | 2/5 | 0/9 · 1/9 |
 | `file-pr` | Trusted | 4/5 | 0/13 · 0/13 |
-| `how` | Low value | 1/5 | 0/5 · 1/5 |
+| `how` (removed) | Low value | 1/5 | 0/5 · 1/5 |
 | No-comments rule | Trusted | 5/5 | 0/13 · 0/13 |
 | Proof rule: reproduce the bug | Trusted | 3/5 | 0/15 · 0/15 |
 | Writing rule | Trusted | 2/5 | 0/15 · 0/15 |
@@ -119,6 +119,8 @@ earlier runs of the same day, with 1 to 3 runs for each arm.
 - **file-pr:** no run put the local path from a commit message into the PR
   text, with or without the skill. The gain is in the title style of the
   repository and the line that names the model and the harness.
+- **how:** removed with its `explain` profile and its case. Strong models
+  explained the code as well without it.
 - **Cleanup rule:** one Haiku run claimed an edit to the PR text that the log
   does not show.
 - **Review rule:** one Opus run said that it left no temporary files, and it

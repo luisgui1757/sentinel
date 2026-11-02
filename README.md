@@ -28,7 +28,7 @@ Start a new agent session after the install.
 | Option | Use |
 |---|---|
 | `--hosts` / `-Hosts` | `codex`, `claude`, `copilot`, `kiro`, `opencode`, or `all` |
-| `--skills` / `-Skills` | `core`, `formal`, `ui`, `explain`, `ops`, or a list. The default is `core`. Use `none` to install only the rules. |
+| `--skills` / `-Skills` | `core`, `formal`, `ui`, `ops`, or a list. The default is `core`. Use `none` to install only the rules. |
 | `--global` / `-Global` | Install into your user folder. |
 | `--project DIR` / `-Project DIR` | Install into one repository. |
 | `--no-rules` / `-NoRules` | Install only the skills. |
@@ -121,7 +121,7 @@ agent can also load each skill when its description fits the task.
 
 At xhigh, `council`, `cleanup`, `no-comments`, `technical-writing` and the
 rules for comments and cleanup changed the result on 4 or 5 models. `sol-loop`,
-`why` and `statechart` changed it on 2 or 3 models. `how` showed no gain.
+`why` and `statechart` changed it on 2 or 3 models.
 See [evals/README.md](evals/README.md).
 
 `patrol` changed the result on 5 models, and `verify-pr` on 2. As one-off
@@ -129,7 +129,7 @@ tasks, `enforce` and `featuremap` changed it on 1 model. Their scripts ran on
 real projects.
 
 Sources: `untangle`, `cleanup`, `no-comments`, `tldr`, `verify-pr`, `enforce`,
-`patrol` and `featuremap` are from Sentinel. `how`, `why`, `technical-writing` and `statechart` are
+`patrol` and `featuremap` are from Sentinel. `why`, `technical-writing` and `statechart` are
 from [pstack](https://github.com/cursor/plugins/tree/main/pstack). The other
 skills are from [tstack](https://github.com/t3dotgg/tstack). Sentinel keeps
 the T3 Code routes of tstack and adds a route for each other CLI.
@@ -146,12 +146,6 @@ state that breaks a rule.
 `statechart` needs Node 22.18 or later, Bun or Deno. On the first run, it
 installs Java and TLC with mise and needs the network. Set `TLA2TOOLS` and
 `JAVA` to use your own copies. It does not run on Windows outside WSL.
-
-The `explain` profile holds `how`: say "how does X work", and the agent
-explains the code with the files that it read. In the evals, strong models
-explained the code as well without it. It starts 1 to 5 subagents for each
-question. Install it with `--skills core,explain` if you want its
-delegated explanations.
 
 The `ops` profile holds two skills that ship scripts. Both need Node 22 or
 later. Copy the script into the repository, so that CI runs the same file.

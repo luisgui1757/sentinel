@@ -1,7 +1,7 @@
 {
   "version": 1,
   "inputs": {
-    "upstream/imports.json": "1401d83d5e276305231f512201f01124628e9cc11127a450d4f10beed0cd83c4"
+    "upstream/imports.json": "6a02a7f4751461623acbaf7de86283fa5dd2dd6a2c95fbc87753e6527f44b892"
   },
   "sources": {
     "tstack": "7de017b3fc9d50c03cf3ecb98fb71e0ca65a78bd",
@@ -567,12 +567,6 @@
       "sha256": "d91970639e9f5c37682ac7ab60094d35f1c7c1f38d731bd56396563aee10c1d3",
       "executable": false
     },
-    "skills/how/LICENSE": {
-      "source": "pstack",
-      "path": "pstack/LICENSE",
-      "sha256": "bc957ca6bee02792566a1a028d105e02e247c6e77cf057061674273da77b200e",
-      "executable": false
-    },
     "skills/why/LICENSE": {
       "source": "pstack",
       "path": "pstack/LICENSE",
@@ -591,30 +585,11 @@
       "sha256": "bc957ca6bee02792566a1a028d105e02e247c6e77cf057061674273da77b200e",
       "executable": false
     },
-    "skills/how/SKILL.md": {
-      "source": "pstack",
-      "path": "pstack/skills/how/SKILL.md",
-      "sha256": "08a00079bb15b4258874ac3ff62d4ca7e94350ffedb521d0fd296dc9dd21904e",
-      "local": "1dfb4acf44a5bb79ad2d5e5f8c758cdac03e0fb29db36d05b2f91f0cb60b8338",
-      "executable": false
-    },
-    "skills/how/references/explainer-prompt.md": {
-      "source": "pstack",
-      "path": "pstack/skills/how/references/explainer-prompt.md",
-      "sha256": "ddb89cebefc24e2b54517a331aedfe045b6971e101f45c71b8cef4cccff45bff",
-      "executable": false
-    },
-    "skills/how/references/explorer-prompt.md": {
-      "source": "pstack",
-      "path": "pstack/skills/how/references/explorer-prompt.md",
-      "sha256": "6300128385ee940fd42ecb84b0e623435440a2dc283eae54ee4a52ba56947ba1",
-      "executable": false
-    },
     "skills/why/SKILL.md": {
       "source": "pstack",
       "path": "pstack/skills/why/SKILL.md",
       "sha256": "144d42e7712723d763e607bc0a969e5f1cdf83ec7228519d87677cc534571bed",
-      "local": "c346c6ac7107a2afae4fe45cad42693144f722228ef7ffe68aae9120f7899ba6",
+      "local": "352bde51407f853a3979959b8f804124bbe94e3282fd43a1d7c1a6b9b1a36637",
       "executable": false
     },
     "skills/why/references/epistemics.md": {

@@ -1,11 +1,11 @@
 ---
 name: why
-description: "Use when the user asks why code is the way it is, where a limit or threshold came from, or whether a past decision still holds. Searches git history and pull requests, plus each MCP server of the session that holds issues, docs, chat, monitoring, errors or analytics, and gives a cited answer with a confidence level for each claim. Use how for runtime behavior."
+description: "Use when the user asks why code is the way it is, where a limit or threshold came from, or whether a past decision still holds. Searches git history and pull requests, plus each MCP server of the session that holds issues, docs, chat, monitoring, errors or analytics, and gives a cited answer with a confidence level for each claim."
 ---
 
 # Why
 
-Investigate the motivation and intent behind code. The companion `how` skill answers what the code does and how it works. `why` answers what forces led to its shape.
+Investigate the motivation and intent behind code. `why` answers what forces led to its shape.
 
 Run each investigator and the synthesizer as a subagent when the host has subagents. Use the model and effort of the current session unless the user names others. When the host has no subagents, do each step yourself, in order, with the same prompts.
 
