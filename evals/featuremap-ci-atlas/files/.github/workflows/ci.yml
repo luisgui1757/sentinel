@@ -1,0 +1,11 @@
+name: ci
+on: [push, pull_request]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Pipeline tests
+        run: PYTHONPATH=pipeline/src python3 -m unittest discover -s pipeline/tests
+      - name: Rust crates
+        run: cargo check --quiet --manifest-path crates/Cargo.toml

@@ -1,0 +1,2 @@
+TAX_RATE = 0.2
+CURRENCY = "EUR"

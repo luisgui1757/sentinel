@@ -1,0 +1,5 @@
+{
+  "name": "atlas",
+  "private": true,
+  "workspaces": ["packages/*", "packages/plugins/*"]
+}

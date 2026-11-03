@@ -1,0 +1,8 @@
+[workspace]
+members = ["codec", "style", "tilecache", "server"]
+resolver = "2"
+
+[workspace.dependencies]
+codec = { path = "codec" }
+style = { path = "style" }
+tilecache = { path = "tilecache" }
