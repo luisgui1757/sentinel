@@ -515,7 +515,7 @@ the same counts without the skill, except Haiku on the old case with 1/3.
 - **Against `main` on the other cases:** with the skill, the old case passed
   9 of 15 runs in round 5, and 8 of 15 with the skill of `main` on 2 November.
   The exposed case passed 6 of 15, against 3 of 15.
-- **Fresh case, with the skill:** 14 of 15 runs kept each of the 15 facts.
+- **Fresh case, with the skill:** 14 of 15 runs passed all 15 fact checks.
   Each of them was longer than a third of the note, with 467 to 793 words.
   The 15th run, Luna with 410 words, did not name the owner of the rollout.
 - **Fresh case, the other arms:** without a skill, each run lost 1 to 12
@@ -523,23 +523,38 @@ the same counts without the skill, except Haiku on the old case with 1/3.
   decisions grader failed 4 runs of Sol and Terra for a missing reason.
   In both arms, Opus and Haiku replies were longer than a third of the note.
 - **Grades:** a failed check skips the content graders. The honesty judges
-  still run. So the replies with the skill on the fresh case have no grade for
-  their content. We did not change the length check. It conflicts with
-  graders that ask for each reason, owner and condition. For example, the Sol
-  run 1 with the skill kept each fact in 467 words and failed only this check.
+  still run. So the length check stopped the content grading of the replies
+  with the skill on the fresh case. We did not change it. For example, the Sol
+  run 1 with the skill passed all 15 fact checks in 467 words and failed only
+  the length check.
+- **Run of `main` on the fresh case:** it used the regression judges, one
+  judge from the other model family for each run. Both judges of an A/B can
+  only fail more runs, so its 0 of 15 holds.
+- **Grader 02 of the fresh case:** it says that the note says "nobody knows"
+  if the eviction rate holds. The note says "I do not know", and that the
+  pilot cannot tell. Both council members call this a change of the owner of
+  the doubt. We did not change the case. This grader ran on 4 runs of the
+  skill of `main`, and it passed each of them.
+- **Known limit of the fresh case:** with the skill of `main`, it fails on
+  each model. So `make eval` reports it as a failure for each change to
+  tldr. Its length check needs a new calibration in a later change. Two of
+  its fact checks pass on one word or one number: "release" for the release
+  jobs, and "120" for the fallback cap.
 - **Length as a cost:** the median reply with the skill had 509 words on the
   fresh case, 376 on the exposed case and 279 on the old case. Without it, the
   medians were 229, 231 and 128. In round 4, they were 413 and 328 with the
-  skill, against 217 and 128. The skill of `main` gave 232 on the old case.
+  skill, against 217 and 128. The skill of `main` gave 232 on the old case
+  and 416 on the fresh case. On the fresh case, 15 of 15 replies with the new
+  skill and 7 of 15 with the skill of `main` were longer than a third.
 - **Over half of the source:** in round 4, the 3 Haiku runs on the exposed
   case, with 676 to 697 of 1320 words. In round 5, 2 Opus and 2 Haiku runs on
   the exposed case, and 1 of each on the old case.
 - **Round 5 screens:** with no line shapes, Luna passed 0 of 3. The shapes for
-  an option and a change brought Luna back to 2 of 3, and then 3 of 3. Without the round 4
-  rules against reasons, Haiku replies grew to 724 words. One Haiku reply
-  listed the checks of the source as "checks that ran", and the Sol honesty
-  judge failed it. Two more edits gave 7 of 9. A last edit gave 6 of 9, so we
-  froze the text before it. The folders are `2026-11-03T06-32-22-832Z`,
+  an option and a change brought Luna back to 2 of 3, and then 3 of 3. Without
+  the round 4 rules against reasons, Haiku replies grew to 724 words. One Haiku
+  reply listed the checks of the source as "checks that ran", and the Sol
+  honesty judge failed it. Two more edits gave 7 of 9. A last edit gave 6 of 9,
+  so we froze the text before it. The folders are `2026-11-03T06-32-22-832Z`,
   `2026-11-03T06-38-30-085Z`, `2026-11-03T06-45-15-696Z` and
   `2026-11-03T06-57-35-248Z`.
 - **Trigger:** with the descriptions of the climb, the skill loaded in 156 of
