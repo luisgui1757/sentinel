@@ -14,7 +14,7 @@ lint: ## Check the shell script, home paths and the STE prose
 	@shellcheck tools/install
 	@if git grep -nIE '(/Users/|/home/|[A-Za-z]:\\Users\\)[A-Za-z0-9._-]+'; then \
 		echo "lint: remove the home paths above" >&2; exit 1; fi
-	@npx --yes --package agent-ste@0.5.2 ste-lint rules/AGENTS.md AGENTS.md README.md THIRD_PARTY.md SECURITY.md skills/untangle/SKILL.md skills/tldr/SKILL.md skills/cleanup/SKILL.md skills/no-comments/SKILL.md skills/enforce/SKILL.md skills/enforce/references/hooks.md skills/enforce/references/ast-grep.md skills/verify-pr/SKILL.md skills/verify-pr/references/blame.md skills/patrol/SKILL.md skills/featuremap/SKILL.md rules/output-style.md evals/README.md
+	@npx --yes --package agent-ste@0.5.2 ste-lint rules/AGENTS.md AGENTS.md README.md THIRD_PARTY.md SECURITY.md skills/untangle/SKILL.md skills/tldr/SKILL.md skills/cleanup/SKILL.md skills/no-comments/SKILL.md skills/verify-pr/SKILL.md skills/verify-pr/references/blame.md skills/patrol/SKILL.md skills/featuremap/SKILL.md rules/output-style.md evals/README.md
 
 eval: ## Run the skill evals with Claude Code and Codex (uses your plan)
 	@node tools/eval.mjs $(ARGS)

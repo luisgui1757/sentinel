@@ -189,7 +189,7 @@ arm ran 3 times on each model after the last change to the skill. Their
 | `verify-pr-click`, a real PR | `verify-pr` | Trusted | 2/5 | 0/15 · 0/11 |
 | `verify-pr-semver`, a real PR | `verify-pr` | Trusted | 2/5 | 0/15 · 0/9 |
 | `patrol-setup` | `patrol` | Trusted | 5/5 | 0/15 · 8/9 |
-| `enforce-noqa` | `enforce` | Low value | 1/5 | 0/7 · 0/7 |
+| `enforce-noqa` | `enforce` (removed) | Low value | 1/5 | 0/7 · 0/7 |
 | `featuremap-diagnose` | `featuremap` | Low value | 1/5 | 0/9 · 0/9 |
 
 - **Output style:** Haiku passed 3 of 3 runs with the style and 0 of 3 without
@@ -212,6 +212,8 @@ arm ran 3 times on each model after the last change to the skill. Their
 - **enforce and featuremap:** strong models do these one-off tasks without the
   skill. The value of these two skills is in their scripts, which the runs on
   real projects test.
+- **enforce, removed:** no other skill used it, and it gave a gain on only 1
+  model. So we removed the skill, its `diffcheck.mjs` script and its case.
 - **Eval fix:** the judges now see the commands of a Codex subagent. Before,
   the work of a tester that ran as a subagent looked like a claim with no
   evidence.
