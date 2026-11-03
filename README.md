@@ -101,6 +101,7 @@ agent can also load each skill when its description fits the task.
 
 | Skill | Say | Result |
 |---|---|---|
+| `full-send` | "full send" | The agent does the work, proves it, files the pull request and merges it when the checks of the branch protection pass. |
 | `full-stop` | "full stop" | The agent stops when the pull request is ready for you to merge. |
 | `sol-loop` | "sol loop" | GPT Sol reviews the change in a loop until both agents agree. |
 | `council` | "council" | Claude Opus and GPT Sol review until they agree, for 3 rounds by default. Each model runs at high effort by default. Name other models, efforts or limits in the request. |
@@ -131,9 +132,10 @@ from [pstack](https://github.com/cursor/plugins/tree/main/pstack). The other
 skills are from [tstack](https://github.com/t3dotgg/tstack). Sentinel keeps
 the T3 Code routes of tstack and adds a route for each other CLI.
 
-The repository keeps tstack's `full-send` skill, but the installer does not
-install it, because it merges without a person. `full-stop` reads a copy of
-it and stops before the merge.
+`full-send` merges without a person, and only the words "full send" start
+it. It merges through the branch protection of the repository and never uses
+`--admin` or another bypass. So the checks of the branch protection are the gate.
+`full-stop` reads a copy of it and stops before the merge.
 
 The `formal` profile holds `statechart`, for code where events can occur in
 many orders, such as locks, retries, queues and protocols. It checks a TLA+

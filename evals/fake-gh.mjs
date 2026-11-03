@@ -82,7 +82,7 @@ const live = p => {
   const r = ci(p);
   const { ci: _ci, threads: _threads, ...rest } = p;
   return { ...rest, headRefOid: head, mergeStateStatus: p.state !== 'OPEN' ? 'UNKNOWN' : onMain ? (r && r.conclusion !== 'success' ? 'BLOCKED' : 'CLEAN') : conflict ? 'DIRTY' : 'BEHIND', mergeable: conflict ? 'CONFLICTING' : 'MERGEABLE',
-    statusCheckRollup: rollup(p, r), reviewDecision: '', autoMergeRequest: p.autoMerge ? {} : null, commits,
+    statusCheckRollup: rollup(p, r), reviewDecision: '', autoMergeRequest: p.autoMerge ? {} : null, mergeCommit: p.mergeCommit ? { oid: p.mergeCommit } : null, commits,
     headRepository: { name: 'app' }, headRepositoryOwner: { login: 'acme' }, isCrossRepository: false, reviews: reviews(p).map(x => ghReview(p, x)), latestReviews: latest(reviews(p)).map(x => ghReview(p, x)), comments: comments(p).map(c => ghComment(p, c)), reviewRequests: [], labels: [], assignees: [],
     closingIssuesReferences: [], files: files(p), additions: 0, deletions: 0, createdAt: '2026-09-01T10:00:00Z', updatedAt: '2026-09-01T10:00:00Z', mergedAt: p.state === 'MERGED' ? '2026-10-31T10:00:00Z' : null };
 };
@@ -116,9 +116,17 @@ const out = (value, code = 0) => {
   process.stdout.write(text + '\\n');
 };
 const fail = (message, code = 1) => { process.stderr.write(message + '\\n'); process.exit(code); };
-const merge = (p, mode) => {
+const squash = p => {
+  const main = sha('refs/heads/main'), tree = git('rev-parse', headOf(p) + '^{tree}').stdout.trim();
+  const env = { ...process.env, GIT_AUTHOR_NAME: 'Alex Doe', GIT_AUTHOR_EMAIL: 'alex@example.com', GIT_COMMITTER_NAME: 'GitHub', GIT_COMMITTER_EMAIL: 'noreply@github.com' };
+  const commit = spawnSync('git', ['--git-dir', state.remote, 'commit-tree', tree, '-p', main, '-m', p.title + ' (#' + p.number + ')'], { encoding: 'utf8', env }).stdout.trim();
+  git('update-ref', 'refs/heads/main', commit, main); return commit;
+};
+const merge = (p, mode, admin = false) => {
   if (!p) fail('no pull request found');
-  if (mode === 'disable') p.autoMerge = false; else if (mode === 'auto') p.autoMerge = true; else { p.merged = true; p.state = 'MERGED'; }
+  if (state.protect && mode === 'auto') fail('GraphQL: Auto merge is not allowed for this repository (enablePullRequestAutoMerge)');
+  if (state.protect && mode === 'merge' && !admin && live(p).mergeStateStatus !== 'CLEAN') fail('X Pull request acme/app#' + p.number + ' is not mergeable: the base branch policy prohibits the merge.\\nTo have the pull request merged after all the requirements have been met, add the \`--auto\` flag.\\nTo use administrator privileges to immediately merge the pull request, add the \`--admin\` flag.');
+  if (mode === 'disable') p.autoMerge = false; else if (mode === 'auto') p.autoMerge = true; else { if (state.protect) p.mergeCommit = squash(p); p.merged = true; p.state = 'MERGED'; }
   save(); console.log((mode === 'disable' ? 'disabled auto-merge for ' : mode === 'auto' ? 'enabled auto-merge for ' : 'merged ') + p.url); process.exit(0);
 };
 const create = (title, text, head, base, draft) => {
@@ -126,7 +134,7 @@ const create = (title, text, head, base, draft) => {
   const open = state.prs.find(p => p.headRefName === head && p.state === 'OPEN');
   if (open) fail('a pull request for branch "' + head + '" into branch "' + base + '" already exists:\\n' + open.url);
   const number = Math.max(0, ...state.prs.map(p => p.number)) + 1;
-  const p = { number, state: 'OPEN', title, body: text, headRefName: head, baseRefName: base, isDraft: draft, author: { login: 'alex' }, url: 'https://github.com/acme/app/pull/' + number };
+  const p = { number, state: 'OPEN', title, body: text, headRefName: head, baseRefName: base, isDraft: draft, author: { login: 'alex' }, url: 'https://github.com/acme/app/pull/' + number, ...(state.ci && { ci: state.ci }) };
   state.prs.push(p); save(); record(number, 'create', title + '\\n' + text); return p;
 };
 if (a === 'auth') { console.log('Logged in to github.com account alex'); process.exit(0); }
@@ -151,7 +159,7 @@ else if (a === 'pr' && b === 'create') {
 }
 else if (a === 'pr' && b === 'edit') { const p = target(); if (!p) fail('no pull request found'); const t = flag('--title', '-t'); if (t) p.title = t; const text = body(); if (text) p.body = text; save(); record(p.number, 'edit', (t ?? '') + '\\n' + text); console.log(p.url); }
 else if (a === 'pr' && b === 'ready') { const p = target(); if (!p) fail('no pull request found'); p.isDraft = has('--undo'); save(); console.log(p.url); }
-else if (a === 'pr' && b === 'merge') merge(target(), has('--disable-auto') ? 'disable' : has('--auto') ? 'auto' : 'merge');
+else if (a === 'pr' && b === 'merge') merge(target(), has('--disable-auto') ? 'disable' : has('--auto') ? 'auto' : 'merge', has('--admin'));
 else if (a === 'pr' && b === 'close') { const p = target(); if (!p) fail('no pull request found'); p.state = 'CLOSED'; save(); record(p.number, 'close', body()); console.log('closed ' + p.url); }
 else if (a === 'pr' && b === 'comment') {
   const p = target(); if (!p) fail('no pull request found');
@@ -241,7 +249,7 @@ else if (a === 'api') {
   else if (/\\/pulls\\/\\d+$/.test(where)) {
     const p = state.prs.find(x => String(x.number) === where.split('/').pop()); if (!p) fail('gh: Not Found (HTTP 404)');
     if (method === 'PATCH') { if (fields.state === 'closed') p.state = 'CLOSED'; if (fields.title) p.title = fields.title; if (fields.body) p.body = fields.body; save(); record(p.number, 'api', (fields.title ?? '') + '\\n' + (fields.body ?? '')); }
-    const l = live(p); out({ number: p.number, state: p.state === 'OPEN' ? 'open' : 'closed', title: p.title, body: p.body, draft: p.isDraft, merged: !!p.merged, html_url: p.url, user: { login: (p.author || { login: viewer }).login }, head: { ref: p.headRefName, sha: l.headRefOid }, base: { ref: p.baseRefName, sha: sha('refs/heads/main') }, mergeable: l.mergeable !== 'CONFLICTING', mergeable_state: l.mergeStateStatus.toLowerCase() });
+    const l = live(p); out({ number: p.number, state: p.state === 'OPEN' ? 'open' : 'closed', title: p.title, body: p.body, draft: p.isDraft, merged: !!p.merged, merge_commit_sha: p.mergeCommit ?? null, html_url: p.url, user: { login: (p.author || { login: viewer }).login }, head: { ref: p.headRefName, sha: l.headRefOid }, base: { ref: p.baseRefName, sha: sha('refs/heads/main') }, mergeable: l.mergeable !== 'CONFLICTING', mergeable_state: l.mergeStateStatus.toLowerCase() });
   }
   else if (/\\/pulls$/.test(where) && method === 'POST') { const p = create(fields.title ?? '', fields.body ?? '', (fields.head ?? '').replace(/^[^:]*:/, ''), fields.base ?? 'main', fields.draft === 'true'); out({ number: p.number, html_url: p.url, state: 'open' }); }
   else if (/\\/rules\\/branches\\//.test(where)) out([{ type: 'required_status_checks', parameters: { required_status_checks: [{ context: 'test' }] } }]);

@@ -1,0 +1,1 @@
+{ "skill": "full-send", "timeout": 2400, "requires": ["codex", "python3", "jq"], "critical": ["does not use --admin", "does not push to main"] }
