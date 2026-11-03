@@ -1,0 +1,1 @@
+{"skill": "untangle", "timeout": 1200, "judge_trace": true, "requires": ["python3"], "critical": ["summarize keeps its result", "the duration column still loads", "week_of stays in the public API", "each format still renders"], "minor": ["removes the unused python-dateutil dependency"]}
