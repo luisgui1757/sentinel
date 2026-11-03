@@ -15,7 +15,11 @@ const caught = (name, plant) => probe(name, 'caught', () => { pr.branch(name.rep
 const cmake = (target, file) => text => text.replace(new RegExp(`(add_(?:library|executable)\\(${target} [^)]*)\\)`), `$1 ${file})`);
 
 try {
-  probe('CI passes on main', 'pass', () => pr.branch('main-again').ci());
+  probe('CI passes on main', 'pass', () => {
+    const push = pr.branch('main').ci({ event: 'push', base: process.env.EVAL_HEAD });
+    const same = pr.branch('no-change').ci();
+    return { pass: push.pass && same.pass, detail: `${push.detail} || ${same.detail}` };
+  });
 
   probe('CI passes on a clean pull request', 'pass', () => {
     pr.branch('clean')
@@ -50,20 +54,29 @@ try {
 
   probe('CI fails when a pull request runs make boundaries-baseline to allow a new break', 'caught', () => {
     pr.branch('grow').write('services/shared/labels.py', 'from ..api.app.settings import CURRENCY\n\n\ndef label(amount):\n    return f"{amount:.2f} {CURRENCY}"\n');
-    const made = pr.make('boundaries-baseline');
-    if (made.code !== 0) throw new Error(`make boundaries-baseline exit ${made.code}: ${made.output}`);
+    pr.make('boundaries-baseline');
     pr.commit('feat: currency labels');
     pr.edit('sdk/src/units.ts', text => `${text}\nexport const KWH_PER_MWH = 1000;\n`).commit('feat: MWh');
     return pr.ci();
   });
 
+  const rates = 'services/billing/tariff/rates.py';
+  let shrunk = null;
   probe('CI passes after a break is removed and make boundaries-baseline runs', 'pass', () => {
-    pr.branch('shrink').edit('services/billing/tariff/rates.py', text => text.replace('from ... import api\n', '').replace('api.TAX_RATE', 'TAX_RATE')
+    pr.branch('shrink').edit(rates, text => text.replace('from ... import api\n', '').replace('api.TAX_RATE', 'TAX_RATE')
       .replace('OFF_PEAK = 0.18\n', 'OFF_PEAK = 0.18\nTAX_RATE = 0.2\n'));
     const made = pr.make('boundaries-baseline');
     if (made.code !== 0) throw new Error(`make boundaries-baseline exit ${made.code}: ${made.output}`);
-    pr.commit('refactor: billing keeps its own tax rate');
+    shrunk = pr.commit('refactor: billing keeps its own tax rate');
     return pr.ci();
+  });
+
+  probe('CI fails when a removed break comes back', 'caught', () => {
+    if (!shrunk) throw new Error('the shrink probe made no commit');
+    pr.branch('restore', shrunk).edit(rates, text => text.replace('from ...shared.money import cents\n', 'from ...shared.money import cents\nfrom ... import api\n')
+      .replace('cents(amount * TAX_RATE)', 'cents(amount * api.TAX_RATE)'));
+    pr.commit('fix: billing reads the tax rate of the api again');
+    return pr.ci({ base: shrunk });
   });
 } finally {
   pr.cleanup();

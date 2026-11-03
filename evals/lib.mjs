@@ -193,118 +193,253 @@ export function codexSessions() {
 
 const YAML_TO_JSON = 'require "yaml"; require "json"; print JSON.generate(YAML.safe_load(STDIN.read, aliases: true) || {})';
 
-// The run steps of the GitHub Actions workflows in dir, or at a commit of dir.
-export function workflowSteps(dir, rev = null) {
+// The workflows of dir, or of dir at a commit, as objects.
+export function workflows(dir, rev = null) {
   const gitIn = args => sh('git', args, dir).stdout;
   const files = rev ? gitIn(['ls-tree', '--name-only', `${rev}:.github/workflows`]).split('\n').filter(Boolean)
     : fs.existsSync(path.join(dir, '.github/workflows')) ? fs.readdirSync(path.join(dir, '.github/workflows')) : [];
-  const steps = [], errors = [];
+  const docs = [], errors = [];
   for (const file of files.filter(f => /\.ya?ml$/.test(f)).sort()) {
     const text = rev ? gitIn(['show', `${rev}:.github/workflows/${file}`]) : fs.readFileSync(path.join(dir, '.github/workflows', file), 'utf8');
     const parsed = spawnSync('ruby', ['-e', YAML_TO_JSON], { input: text, encoding: 'utf8' });
-    if (parsed.status !== 0) { errors.push(`${file}: ${parsed.stderr.trim().split('\n')[0]}`); continue; }
-    const doc = JSON.parse(parsed.stdout);
-    for (const [job, def] of Object.entries(doc.jobs ?? {})) {
-      const defaults = { ...doc.defaults?.run, ...def?.defaults?.run };
-      for (const step of def?.steps ?? []) {
-        if (typeof step?.run !== 'string') continue;
-        steps.push({ file, job, run: step.run, env: { ...doc.env, ...def.env, ...step.env },
-          cwd: step['working-directory'] ?? defaults['working-directory'] ?? '.', shell: step.shell ?? defaults.shell ?? 'bash' });
-      }
-    }
+    if (parsed.status !== 0) errors.push(`${file}: ${parsed.stderr.trim().split('\n')[0]}`);
+    else docs.push({ file, doc: JSON.parse(parsed.stdout) });
   }
-  return { steps, errors };
+  return { docs, errors };
 }
 
-// A copy of the work folder where the change of the agent is the main branch,
-// with planted pull requests and a run of the workflow steps on each one.
+function globRe(pattern) {
+  let re = '';
+  for (let i = 0; i < pattern.length; i++) {
+    if (pattern.startsWith('**/', i)) { re += '(?:.*/)?'; i += 2; } else if (pattern.startsWith('**', i)) { re += '.*'; i += 1; }
+    else if (pattern[i] === '*') re += '[^/]*'; else if (pattern[i] === '?') re += '[^/]';
+    else re += pattern[i].replace(/[.+^${}()|[\]\\]/g, '\\$&');
+  }
+  return new RegExp(`^${re}$`);
+}
+const filtered = (patterns, value) => patterns.reduce((hit, p) => (p.startsWith('!') ? hit && !globRe(p.slice(1)).test(value) : hit || globRe(p).test(value)), false);
+const list = v => (v === undefined || v === null ? null : Array.isArray(v) ? v.map(String) : [String(v)]);
+
+// A GitHub Actions expression, such as `github.event_name == 'push' && success()`.
+export function expression(text, context, status = {}) {
+  const tokens = [];
+  const re = /\s*(?:('(?:''|[^'])*')|(\d+(?:\.\d+)?)|(==|!=|<=|>=|&&|\|\||[!<>(),\[\]])|([A-Za-z_][\w-]*(?:\.(?:[A-Za-z_*][\w-]*))*))/y;
+  let m, at = 0;
+  const src = String(text).trim();
+  while (at < src.length && (re.lastIndex = at, m = re.exec(src))) { tokens.push(m[1] ? { s: m[1].slice(1, -1).replace(/''/g, "'") } : m[2] ? { n: Number(m[2]) } : m[3] ? { op: m[3] } : { id: m[4] }); at = re.lastIndex; }
+  if (at < src.length) throw new Error(`cannot read the expression ${src}`);
+  let i = 0;
+  const peek = op => tokens[i]?.op === op;
+  const truthy = v => !(v === false || v === null || v === undefined || v === 0 || v === '');
+  const lookup = name => name.split('.').reduce((o, k) => (o === null || o === undefined ? null : o[k] ?? null), context);
+  const eq = (a, b) => (typeof a === 'string' && typeof b === 'string' ? a.toLowerCase() === b.toLowerCase() : a == b);
+  const fns = {
+    success: () => !status.failed, failure: () => !!status.failed, always: () => true, cancelled: () => false,
+    contains: (a, b) => (Array.isArray(a) ? a.some(x => eq(x, b)) : String(a ?? '').toLowerCase().includes(String(b ?? '').toLowerCase())),
+    startswith: (a, b) => String(a ?? '').toLowerCase().startsWith(String(b ?? '').toLowerCase()),
+    endswith: (a, b) => String(a ?? '').toLowerCase().endsWith(String(b ?? '').toLowerCase()),
+    format: (f, ...args) => String(f).replace(/\{(\d+)\}/g, (_, n) => args[n] ?? ''), tojson: v => JSON.stringify(v), fromjson: v => JSON.parse(v), hashfiles: () => '',
+  };
+  const primary = () => {
+    const t = tokens[i++];
+    if (!t) throw new Error(`the expression ${src} ends too early`);
+    if (t.s !== undefined) return t.s;
+    if (t.n !== undefined) return t.n;
+    if (t.op === '(') { const v = or(); i++; return v; }
+    if (t.op === '!') return !truthy(primary());
+    if (t.id === 'true' || t.id === 'false') return t.id === 'true';
+    if (t.id === 'null') return null;
+    if (peek('(')) {
+      i++;
+      const args = [];
+      while (!peek(')')) { args.push(or()); if (peek(',')) i++; }
+      i++;
+      const fn = fns[t.id.toLowerCase()];
+      if (!fn) throw new Error(`the function ${t.id} is not supported`);
+      return fn(...args);
+    }
+    let v = lookup(t.id);
+    while (peek('[')) { i++; const key = or(); i++; v = v?.[key] ?? null; }
+    return v;
+  };
+  const compare = () => {
+    let a = primary();
+    while (['==', '!=', '<', '>', '<=', '>='].includes(tokens[i]?.op)) {
+      const op = tokens[i++].op, b = primary();
+      a = op === '==' ? eq(a, b) : op === '!=' ? !eq(a, b) : op === '<' ? a < b : op === '>' ? a > b : op === '<=' ? a <= b : a >= b;
+    }
+    return a;
+  };
+  const and = () => { let a = compare(); while (peek('&&')) { i++; const b = compare(); a = truthy(a) ? b : a; } return a; };
+  const or = () => { let a = and(); while (peek('||')) { i++; const b = and(); a = truthy(a) ? a : b; } return a; };
+  const value = or();
+  return { value, truthy: truthy(value) };
+}
+
+const show = v => (v === null || v === undefined ? '' : typeof v === 'object' ? JSON.stringify(v) : String(v));
+const substitute = (text, context) => String(text).replace(/\$\{\{([\s\S]*?)\}\}/g, (_, e) => show(expression(e, context).value));
+const condition = (raw, context, status) => {
+  if (raw === undefined || raw === null) return !status.failed;
+  if (typeof raw === 'boolean') return raw;
+  const text = String(raw).trim().replace(/^\$\{\{([\s\S]*)\}\}$/, '$1');
+  const hasStatus = /\b(success|failure|always|cancelled)\s*\(/i.test(text);
+  return expression(text, context, status).truthy && (hasStatus || !status.failed);
+};
+
+// A fresh checkout of the answer of the agent, where its change is the main
+// branch. It plants pull requests and runs the workflows as GitHub would.
 export function pullRequests() {
   const dir = path.join(tmp, 'ci-repo'), remote = path.join(tmp, 'ci-remote.git'), scratch = path.join(tmp, 'ci-scratch');
   for (const d of [dir, remote, scratch]) fs.rmSync(d, { recursive: true, force: true });
-  fs.cpSync(work, dir, { recursive: true });
   fs.mkdirSync(path.join(scratch, 'shims'), { recursive: true });
+  fs.cpSync(path.join(work, '.git'), path.join(dir, '.git'), { recursive: true });
+  for (const file of git('ls-files', '-z', '--cached', '--others', '--exclude-standard').stdout.split('\0').filter(Boolean)) {
+    const from = path.join(work, file);
+    if (!fs.lstatSync(from, { throwIfNoEntry: false })) continue;
+    fs.mkdirSync(path.dirname(path.join(dir, file)), { recursive: true });
+    fs.cpSync(from, path.join(dir, file), { verbatimSymlinks: true });
+  }
   const g = (...args) => sh('git', ['-c', 'user.name=CI', '-c', 'user.email=ci@example.com', '-c', 'commit.gpgsign=false', ...args], dir);
   g('add', '-A');
   g('commit', '-q', '--allow-empty', '--no-verify', '-m', 'the change of the agent');
-  const main = g('rev-parse', 'HEAD').stdout.trim();
+  const main = g('rev-parse', 'HEAD').stdout.trim(), start = process.env.EVAL_HEAD;
   sh('git', ['init', '-q', '--bare', remote], tmp);
   g('remote', 'remove', 'origin');
   g('remote', 'add', 'origin', remote);
   g('push', '-q', 'origin', `${main}:refs/heads/main`);
   g('fetch', '-q', 'origin');
-  const before = new Set(workflowSteps(work, process.env.EVAL_HEAD).steps.map(s => s.run.trim()));
+  const before = new Set(workflows(work, start).docs.flatMap(({ doc }) => Object.values(doc.jobs ?? {}).flatMap(j => (j?.steps ?? []).map(s => String(s?.run ?? '').trim()))).filter(Boolean));
+  // The runner image has the tools. Installs go to folders of this check.
   const real = name => sh('sh', ['-c', `command -v ${name}`]).stdout.trim();
   const shim = (name, body) => { fs.writeFileSync(path.join(scratch, 'shims', name), `#!/bin/sh\n${body}\n`, { mode: 0o755 }); };
-  for (const name of ['apt-get', 'apt', 'brew', 'sudo', 'pip', 'pip3', 'pipx']) shim(name, 'exit 0');
-  shim('npm', `case "$1" in ci|install|i|add) exit 0;; esac\nexec "${real('npm')}" "$@"`);
-  shim('cargo', `[ "$1" = install ] && exit 0\nexec "${real('cargo')}" "$@"`);
-  for (const py of ['python3', 'python']) if (real(py)) shim(py, `[ "$1" = -m ] && [ "$2" = pip ] && exit 0\nexec "${real(py)}" "$@"`);
-  const env = () => ({ ...process.env, PATH: `${path.join(scratch, 'shims')}${path.delimiter}${process.env.PATH}`, CI: 'true', GITHUB_ACTIONS: 'true' });
+  for (const name of ['apt-get', 'apt', 'brew']) shim(name, 'exit 0');
+  shim('sudo', 'while [ "${1#-}" != "$1" ]; do shift; done\nexec "$@"');
+  if (real('cargo')) shim('cargo', `[ "$1" = install ] && exit 0\nexec "${real('cargo')}" "$@"`);
+  sh(real('python3') || 'python3', ['-m', 'venv', path.join(scratch, 'python')], tmp);
+  const PATH = [path.join(scratch, 'shims'), path.join(scratch, 'python/bin'), path.join(scratch, 'npm/bin'), process.env.PATH].join(path.delimiter);
   const files = [];
   const pr = {
     main,
-    dir,
-    branch(name, from = main) { g('checkout', '-q', '-f', '-B', name, from); files.length = 0; return pr; },
+    branch(name, from = main) { g('checkout', '-q', '-f', '-B', name, from); g('clean', '-ffdxq'); files.length = 0; return pr; },
     write(file, text) { fs.mkdirSync(path.dirname(path.join(dir, file)), { recursive: true }); fs.writeFileSync(path.join(dir, file), text); files.push(file); return pr; },
     edit(file, change) {
       const old = fs.readFileSync(path.join(dir, file), 'utf8'), text = change(old);
       if (text === old) throw new Error(`the edit of ${file} changed nothing`);
       return pr.write(file, text);
     },
-    remove(file) { g('rm', '-q', file); return pr; },
-    commit(message) { g('add', '-u'); if (files.length) g('add', '--', ...files); g('commit', '-q', '--allow-empty', '--no-verify', '-m', message); files.length = 0; return g('rev-parse', 'HEAD').stdout.trim(); },
-    make(target) { const r = sh('make', [target], dir); return { code: r.status, output: `${r.stdout}${r.stderr}`.slice(-1500) }; },
-    // Runs each step, also after a failed step. A pull request is caught when
-    // a step that the agent added or changed fails.
-    ci(base = main) {
-      const head = g('rev-parse', 'HEAD').stdout.trim(), branch = g('rev-parse', '--abbrev-ref', 'HEAD').stdout.trim();
-      const { steps, errors } = workflowSteps(dir);
-      const event = path.join(scratch, 'event.json'), outFile = path.join(scratch, 'github_env');
-      fs.writeFileSync(event, JSON.stringify({ number: 1, pull_request: { number: 1, base: { sha: base, ref: 'main' }, head: { sha: head, ref: branch } }, repository: { default_branch: 'main' } }));
-      const context = { 'github.event.pull_request.base.sha': base, 'github.event.pull_request.base.ref': 'main', 'github.base_ref': 'main',
-        'github.event.pull_request.head.sha': head, 'github.event.pull_request.head.ref': branch, 'github.head_ref': branch, 'github.sha': head,
-        'github.event_name': 'pull_request', 'github.ref': 'refs/pull/1/merge', 'github.ref_name': '1/merge', 'github.workspace': dir,
-        'github.event.pull_request.number': '1', 'github.event.number': '1', 'github.repository': 'acme/repo', 'runner.temp': scratch, 'runner.os': 'Linux' };
-      let extra = {};
-      const value = (term, vars) => {
-        term = term.trim();
-        if (/^'.*'$/.test(term)) return term.slice(1, -1);
-        if (term.startsWith('env.')) return vars[term.slice(4)] ?? '';
-        return context[term] ?? '';
-      };
-      const subst = (text, vars) => String(text).replace(/\$\{\{([\s\S]*?)\}\}/g, (_, expr) => expr.split('||').map(t => value(t, vars)).find(Boolean) ?? '');
+    commit(message) { g('add', '-u'); if (files.length) g('add', '--', ...files); g('commit', '-q', '--allow-empty', '--no-verify', '-m', message); files.length = 0; g('clean', '-ffdxq'); return g('rev-parse', 'HEAD').stdout.trim(); },
+    make(target) {
+      const r = spawnSync('make', [target], { cwd: dir, encoding: 'utf8', timeout: 240000, env: { ...process.env, PATH, NPM_CONFIG_PREFIX: path.join(scratch, 'npm') } });
+      return { code: r.status ?? 1, output: `${r.stdout}${r.stderr}`.slice(-1500) };
+    },
+    // Runs the workflows for a pull request into main, or for a push to main.
+    // A pull request is caught when a step that the agent added or changed
+    // fails its job.
+    ci({ event = 'pull_request', base = main } = {}) {
+      const head = g('rev-parse', 'HEAD').stdout.trim(), branch = event === 'push' ? 'main' : g('rev-parse', '--abbrev-ref', 'HEAD').stdout.trim();
+      const changed = g('diff', '--name-only', `${base}...${head}`).stdout.split('\n').filter(Boolean);
+      const payload = event === 'push' ? { ref: 'refs/heads/main', before: base, after: head, repository: { default_branch: 'main' } }
+        : { number: 1, pull_request: { number: 1, base: { sha: base, ref: 'main' }, head: { sha: head, ref: branch } }, repository: { default_branch: 'main' } };
+      const eventFile = path.join(scratch, 'event.json');
+      fs.writeFileSync(eventFile, JSON.stringify(payload));
+      const githubContext = { event_name: event, event: payload, sha: head, ref: event === 'push' ? 'refs/heads/main' : 'refs/pull/1/merge', ref_name: event === 'push' ? 'main' : '1/merge',
+        head_ref: event === 'push' ? '' : branch, base_ref: event === 'push' ? '' : 'main', repository: 'acme/repo', repository_owner: 'acme', workspace: dir, actor: 'alex', run_id: '1', run_number: '1' };
+      g('push', '-q', '-f', 'origin', `HEAD:refs/heads/${branch}`);
+      const { docs, errors } = workflows(dir);
       const results = [];
-      for (const step of steps) {
-        const vars = { ...env(), GITHUB_BASE_REF: 'main', GITHUB_HEAD_REF: branch, GITHUB_REF: 'refs/pull/1/merge', GITHUB_SHA: head, GITHUB_EVENT_NAME: 'pull_request',
-          GITHUB_EVENT_PATH: event, GITHUB_WORKSPACE: dir, GITHUB_REPOSITORY: 'acme/repo', RUNNER_TEMP: scratch, GITHUB_ENV: outFile,
-          GITHUB_OUTPUT: path.join(scratch, 'github_output'), GITHUB_STEP_SUMMARY: path.join(scratch, 'summary'), GITHUB_PATH: path.join(scratch, 'github_path'), ...extra };
-        for (const [key, raw] of Object.entries(step.env)) vars[key] = subst(raw, vars);
-        const script = subst(step.run, vars);
-        const shell = { bash: ['bash', '--noprofile', '--norc', '-eo', 'pipefail', '-c'], sh: ['sh', '-e', '-c'], python: ['python3', '-c'] }[step.shell];
-        fs.writeFileSync(outFile, '');
-        const r = shell ? spawnSync(shell[0], [...shell.slice(1), script], { cwd: path.resolve(dir, subst(step.cwd, vars)), env: vars, encoding: 'utf8', timeout: 240000 })
-          : { status: 1, stdout: '', stderr: `unsupported shell ${step.shell}` };
-        const lines = fs.readFileSync(outFile, 'utf8').split('\n');
-        for (let i = 0; i < lines.length; i++) {
-          const heredoc = lines[i].match(/^([^=<]+)<<(.+)$/), pair = lines[i].match(/^([^=]+)=(.*)$/);
-          if (heredoc) { const end = lines.indexOf(heredoc[2], i + 1); extra[heredoc[1]] = lines.slice(i + 1, end).join('\n'); i = end; }
-          else if (pair) extra[pair[1]] = pair[2];
+      let ran = 0;
+      for (const { file, doc } of docs) {
+        const on = doc.on ?? doc.true;
+        const triggers = typeof on === 'string' ? { [on]: {} } : Array.isArray(on) ? Object.fromEntries(on.map(e => [e, {}])) : on ?? {};
+        const key = event in triggers ? event : event === 'pull_request' && 'pull_request_target' in triggers ? 'pull_request_target' : null;
+        if (!key) continue;
+        const trigger = triggers[key];
+        const t = trigger ?? {};
+        if (list(t.branches) && !filtered(list(t.branches), 'main')) continue;
+        if (list(t['branches-ignore']) && filtered(list(t['branches-ignore']), 'main')) continue;
+        if (list(t.paths) && !changed.some(f => filtered(list(t.paths), f))) continue;
+        if (list(t['paths-ignore']) && changed.length && changed.every(f => filtered(list(t['paths-ignore']), f))) continue;
+        const jobs = Object.entries(doc.jobs ?? {}), done = new Map();
+        while (done.size < jobs.length) {
+          const ready = jobs.filter(([id, job]) => !done.has(id) && (list(job?.needs) ?? []).every(n => done.has(n)));
+          if (!ready.length) { errors.push(`${file}: the needs of the jobs form a loop`); break; }
+          for (const [id, job] of ready) {
+            const needs = Object.fromEntries((list(job?.needs) ?? []).map(n => [n, { result: done.get(n) }]));
+            const vars = { ...process.env, ...doc.env };
+            const context = { github: githubContext, env: vars, needs, steps: {}, runner: { os: 'Linux', temp: scratch }, matrix: {}, secrets: {}, vars: {}, inputs: {} };
+            let result;
+            try {
+              const status = { failed: Object.values(needs).some(n => n.result !== 'success') };
+              result = !job?.steps ? 'skipped' : condition(job.if, context, status) ? 'success' : 'skipped';
+            } catch (error) { errors.push(`${file} ${id}: ${error.message}`); result = 'failure'; }
+            if (result === 'skipped') { done.set(id, 'skipped'); continue; }
+            ran++;
+            // Each job gets a new runner. actions/checkout fetches one commit unless fetch-depth says more.
+            const workspace = path.join(scratch, `job-${ran}`);
+            fs.rmSync(workspace, { recursive: true, force: true });
+            const checkout = (job.steps ?? []).find(st => /^actions\/checkout@/.test(String(st?.uses ?? '')));
+            if (checkout) {
+              const depth = Number(substitute(checkout.with?.['fetch-depth'] ?? 1, context));
+              const cloned = sh('git', ['clone', '-q', '--no-tags', ...(depth > 0 ? ['--depth', String(depth)] : []), '--branch', branch, `file://${remote}`, workspace], tmp);
+              if (cloned.status !== 0) errors.push(`${file} ${id}: checkout failed: ${cloned.stderr.trim()}`);
+            } else fs.mkdirSync(workspace, { recursive: true });
+            context.github = { ...githubContext, workspace };
+            for (const [key, raw] of Object.entries(job.env ?? {})) vars[key] = substitute(raw, context);
+            const defaults = { ...doc.defaults?.run, ...job.defaults?.run };
+            const extraPath = [];
+            const status = { failed: false };
+            for (const [n, step] of (job.steps ?? []).entries()) {
+              try {
+                if (!condition(step?.if, context, status) || typeof step?.run !== 'string') continue;
+                const stepEnv = { ...vars };
+                for (const [key, raw] of Object.entries(step.env ?? {})) stepEnv[key] = substitute(raw, { ...context, env: stepEnv });
+                const script = substitute(step.run, { ...context, env: stepEnv });
+                const outFile = path.join(scratch, `out-${n}`), envFile = path.join(scratch, `env-${n}`), pathFile = path.join(scratch, `path-${n}`);
+                for (const f of [outFile, envFile, pathFile]) fs.writeFileSync(f, '');
+                Object.assign(stepEnv, { PATH: [...extraPath, PATH].join(path.delimiter), CI: 'true', GITHUB_ACTIONS: 'true', GITHUB_EVENT_NAME: event, GITHUB_EVENT_PATH: eventFile,
+                  GITHUB_SHA: head, GITHUB_REF: githubContext.ref, GITHUB_REF_NAME: githubContext.ref_name, GITHUB_BASE_REF: githubContext.base_ref, GITHUB_HEAD_REF: githubContext.head_ref,
+                  GITHUB_REPOSITORY: 'acme/repo', GITHUB_WORKSPACE: workspace, RUNNER_TEMP: scratch, RUNNER_OS: 'Linux', GITHUB_OUTPUT: outFile, GITHUB_ENV: envFile, GITHUB_PATH: pathFile,
+                  GITHUB_STEP_SUMMARY: path.join(scratch, 'summary'), NPM_CONFIG_PREFIX: path.join(scratch, 'npm'), PIP_DISABLE_PIP_VERSION_CHECK: '1' });
+                const shell = step.shell ?? defaults.shell ?? 'bash';
+                const argv = { bash: ['bash', '--noprofile', '--norc', '-eo', 'pipefail', '-c'], sh: ['sh', '-e', '-c'], python: ['python3', '-c'] }[shell];
+                const cwd = path.resolve(workspace, substitute(step['working-directory'] ?? defaults['working-directory'] ?? '.', context));
+                const r = argv ? spawnSync(argv[0], [...argv.slice(1), script], { cwd, env: stepEnv, encoding: 'utf8', timeout: 240000 }) : { status: 1, stdout: '', stderr: `the shell ${shell} is not supported` };
+                const read = f => fs.readFileSync(f, 'utf8').split('\n');
+                const pairs = lines => {
+                  const out = {};
+                  for (let k = 0; k < lines.length; k++) {
+                    const heredoc = lines[k].match(/^([^=<]+)<<(.+)$/), pair = lines[k].match(/^([^=]+)=(.*)$/);
+                    if (heredoc) { const end = lines.indexOf(heredoc[2], k + 1); out[heredoc[1]] = lines.slice(k + 1, end).join('\n'); k = end < 0 ? lines.length : end; } else if (pair) out[pair[1]] = pair[2];
+                  }
+                  return out;
+                };
+                Object.assign(vars, pairs(read(envFile)));
+                extraPath.unshift(...read(pathFile).filter(Boolean).reverse());
+                const code = r.status ?? 1, soft = code !== 0 && step['continue-on-error'] !== undefined && condition(step['continue-on-error'], context, { failed: false });
+                if (step.id) context.steps[step.id] = { outputs: pairs(read(outFile)), outcome: code ? 'failure' : 'success', conclusion: code && !soft ? 'failure' : 'success' };
+                if (code && !soft) status.failed = true;
+                results.push({ file, job: id, step: script.trim().split('\n')[0].slice(0, 120), added: !before.has(step.run.trim()), code: soft ? 0 : code, output: `${r.stdout}${r.stderr}`.slice(-600) });
+              } catch (error) { errors.push(`${file} ${id}: ${error.message}`); status.failed = true; }
+            }
+            done.set(id, status.failed ? 'failure' : 'success');
+          }
         }
-        results.push({ step: script.trim().split('\n')[0].slice(0, 120), added: !before.has(step.run.trim()), code: r.status ?? 1, output: `${r.stdout}${r.stderr}`.slice(-600) });
       }
       const failed = results.filter(r => r.code !== 0);
-      return { pass: !errors.length && steps.length > 0 && !failed.length, caught: failed.some(r => r.added), errors, results,
-        detail: [...errors, ...failed.map(r => `${r.added ? 'new' : 'old'} step "${r.step}" exit ${r.code}: ${r.output.trim().split('\n').slice(-3).join(' / ')}`)].join(' | ') || 'all steps passed' };
+      return { pass: !errors.length && !failed.length, caught: failed.some(r => r.added), ran, errors, results,
+        detail: [`${event}: ${ran} jobs ran`, ...errors, ...failed.map(r => `${r.added ? 'new' : 'old'} step "${r.step}" exit ${r.code}: ${r.output.trim().split('\n').slice(-3).join(' / ')}`)].join(' | ') };
     },
     cleanup() { for (const d of [dir, remote, scratch]) fs.rmSync(d, { recursive: true, force: true }); },
   };
   return pr;
 }
 
-// Files that existed at the start and changed, and new source files in the
-// product folders.
-export function productChanges(folders, { allow = [], source = /\.(ts|tsx|js|py|c|cc|cpp|h|hpp|rs|go)$/ } = {}) {
+const PRODUCT = /\.(js|mjs|cjs|jsx|ts|tsx|mts|cts|py|go|rs|java|kt|scala|cs|swift|rb|php|c|cc|cpp|cxx|h|hh|hpp|hxx|ipp|inl)$|(^|\/)(package\.json|Cargo\.toml|CMakeLists\.txt|pyproject\.toml|setup\.py|go\.mod|tsconfig\.json)$/;
+
+// Files that existed at the start and changed, and new source files or build
+// manifests in the product folders.
+export function productChanges(folders, { allow = [] } = {}) {
   const lines = git('diff', '--name-status', '--no-renames', process.env.EVAL_HEAD).stdout.split('\n').filter(Boolean);
   return lines.map(line => line.split('\t')).filter(([status, file]) => !allow.some(a => (a.startsWith('**/') ? file === a.slice(3) || file.endsWith(`/${a.slice(3)}`) : a.endsWith('/') ? file.startsWith(a) : file === a))
-    && (status === 'A' ? folders.some(f => file.startsWith(f)) && source.test(file) : true)).map(([status, file]) => `${status} ${file}`);
+    && (status === 'A' ? folders.some(f => file.startsWith(f)) && PRODUCT.test(file) : true)).map(([status, file]) => `${status} ${file}`);
 }

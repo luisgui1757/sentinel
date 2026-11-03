@@ -13,13 +13,13 @@ const probe = (name, expect, plant) => {
 };
 const caught = (name, plant) => probe(name, 'caught', () => { pr.branch(name.replace(/\W+/g, '-')); plant(); pr.commit(name); return pr.ci(); });
 const cmake = (target, file) => text => text.replace(new RegExp(`(add_(?:library|executable)\\(${target} [^)]*)\\)`), `$1 ${file})`);
-const baseline = () => {
-  const made = pr.make('deps-baseline');
-  if (made.code !== 0) throw new Error(`make deps-baseline exit ${made.code}: ${made.output}`);
-};
 
 try {
-  probe('CI passes on main', 'pass', () => pr.branch('main-again').ci());
+  probe('CI passes on main', 'pass', () => {
+    const push = pr.branch('main').ci({ event: 'push', base: process.env.EVAL_HEAD });
+    const same = pr.branch('no-change').ci();
+    return { pass: push.pass && same.pass, detail: `${push.detail} || ${same.detail}` };
+  });
 
   probe('CI passes on a clean pull request', 'pass', () => {
     pr.branch('clean')
@@ -40,8 +40,10 @@ try {
   caught('CI fails on a new dynamic import of a workspace package', () => pr.write('packages/renderer/src/labels.ts',
     "export async function labelFont(zoom: number) {\n  const fonts = await import('@atlas/editor/src/fonts');\n  return `${fonts.fontSize(zoom)}px ${fonts.FONT_FAMILY}`;\n}\n"));
 
-  caught('CI fails on a second Python import from a package that already has a violation', () => pr.write('pipeline/src/pipeline/tiles/pack.py',
-    'import pipeline.export.formats as formats\n\n\ndef pack(names):\n    return {"format": formats.FORMAT, "count": len(names)}\n'));
+  caught('CI fails on a second Python import from a file that already has a violation', () => pr
+    .write('pipeline/src/pipeline/export/names.py', 'def tile_name(x, y):\n    return f"{x}_{y}"\n')
+    .edit('pipeline/src/pipeline/tiles/cut.py', text => text.replace('from pipeline.export.formats import EXTENSION\n', 'from pipeline.export.formats import EXTENSION\nimport pipeline.export.names as names\n')
+      .replace('return [f"{x}_{y}{EXTENSION}" for x, y in tiles]', 'return [f"{names.tile_name(x, y)}{EXTENSION}" for x, y in tiles]')));
 
   caught('CI fails on a new C++ include through the include folders', () => pr
     .write('native/geom/src/label.cc', '#include <atlas/font.h>\n#include <atlas/geom.h>\n\nnamespace atlas {\ndouble label_gap(Point a, Point b) { return distance(a, b) - em(12); }\n}\n')
@@ -58,17 +60,27 @@ try {
 
   probe('CI fails when a pull request runs make deps-baseline to allow a new violation', 'caught', () => {
     pr.branch('grow').write('pipeline/src/pipeline/common/paths.py', 'from pipeline.tiles.cut import TILE_SIZE\n\n\ndef tile_path(z, x, y):\n    return f"{z}/{x * TILE_SIZE}/{y * TILE_SIZE}"\n');
-    baseline();
+    pr.make('deps-baseline');
     pr.commit('feat: tile paths');
     pr.edit('packages/core/src/units.ts', text => `${text}\nexport const KM = 1000;\n`).commit('feat: km');
     return pr.ci();
   });
 
+  const glyph = 'native/text/src/glyph.cc';
+  let shrunk = null;
   probe('CI passes after a violation is removed and make deps-baseline runs', 'pass', () => {
-    pr.branch('shrink').write('native/text/src/glyph.cc', '#include <atlas/font.h>\n\nnamespace atlas {\nint glyph_alpha(char c) { return em(advance(c)) > 0.5 ? 255 : 0; }\n}\n');
-    baseline();
-    pr.commit('refactor: text computes its own alpha');
+    pr.branch('shrink').write(glyph, '#include <atlas/font.h>\n\nnamespace atlas {\nint glyph_alpha(char c) { return em(advance(c)) > 0.5 ? 255 : 0; }\n}\n');
+    const made = pr.make('deps-baseline');
+    if (made.code !== 0) throw new Error(`make deps-baseline exit ${made.code}: ${made.output}`);
+    shrunk = pr.commit('refactor: text computes its own alpha');
     return pr.ci();
+  });
+
+  probe('CI fails when a removed violation comes back', 'caught', () => {
+    if (!shrunk) throw new Error('the shrink probe made no commit');
+    pr.branch('restore', shrunk).write(glyph, '#include <atlas/fill.h>\n#include <atlas/font.h>\n\nnamespace atlas {\nint glyph_alpha(char c) { return coverage(em(advance(c))); }\n}\n');
+    pr.commit('fix: glyph alpha uses the raster coverage again');
+    return pr.ci({ base: shrunk });
   });
 } finally {
   pr.cleanup();
