@@ -209,11 +209,10 @@ arm ran 3 times on each model after the last change to the skill. Their
   a regression. They missed the real one, with and without the skill.
 - **patrol:** without the skill, 8 of 9 runs gave the agent job a GitHub token
   or write access. With the skill, no run did.
-- **enforce and featuremap:** strong models do these one-off tasks without the
-  skill. The value of these two skills is in their scripts, which the runs on
-  real projects test.
-- **enforce, removed:** no other skill used it, and it gave a gain on only 1
-  model. So we removed the skill, its `diffcheck.mjs` script and its case.
+- **featuremap:** strong models do this one-off task without the skill. Its
+  value is in its script, which the runs on real projects test.
+- **enforce, removed:** it gave a gain on only 1 model, and no other skill used
+  it. So we removed the skill, its `diffcheck.mjs` script and its case.
 - **Eval fix:** the judges now see the commands of a Codex subagent. Before,
   the work of a tester that ran as a subagent looked like a claim with no
   evidence.
