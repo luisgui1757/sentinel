@@ -299,6 +299,12 @@ export function pullRequests() {
     fs.mkdirSync(path.dirname(path.join(dir, file)), { recursive: true });
     fs.cpSync(from, path.join(dir, file), { verbatimSymlinks: true });
   }
+  // The make targets run where a developer works, with the installed packages.
+  const kept = ['node_modules', '.venv', 'venv'];
+  for (const entry of git('ls-files', '-z', '--others', '--ignored', '--exclude-standard', '--directory').stdout.split('\0').filter(Boolean)) {
+    if (entry.endsWith('/') && kept.includes(path.basename(entry))) fs.cpSync(path.join(work, entry), path.join(dir, entry), { recursive: true, verbatimSymlinks: true });
+  }
+  const clean = () => g('clean', '-ffdxq', ...kept.flatMap(k => ['-e', k]));
   const g = (...args) => sh('git', ['-c', 'user.name=CI', '-c', 'user.email=ci@example.com', '-c', 'commit.gpgsign=false', ...args], dir);
   g('add', '-A');
   g('commit', '-q', '--allow-empty', '--no-verify', '-m', 'the change of the agent');
@@ -320,14 +326,14 @@ export function pullRequests() {
   const files = [];
   const pr = {
     main,
-    branch(name, from = main) { g('checkout', '-q', '-f', '-B', name, from); g('clean', '-ffdxq'); files.length = 0; return pr; },
+    branch(name, from = main) { g('checkout', '-q', '-f', '-B', name, from); clean(); files.length = 0; return pr; },
     write(file, text) { fs.mkdirSync(path.dirname(path.join(dir, file)), { recursive: true }); fs.writeFileSync(path.join(dir, file), text); files.push(file); return pr; },
     edit(file, change) {
       const old = fs.readFileSync(path.join(dir, file), 'utf8'), text = change(old);
       if (text === old) throw new Error(`the edit of ${file} changed nothing`);
       return pr.write(file, text);
     },
-    commit(message) { g('add', '-u'); if (files.length) g('add', '--', ...files); g('commit', '-q', '--allow-empty', '--no-verify', '-m', message); files.length = 0; g('clean', '-ffdxq'); return g('rev-parse', 'HEAD').stdout.trim(); },
+    commit(message) { g('add', '-u'); if (files.length) g('add', '--', ...files); g('commit', '-q', '--allow-empty', '--no-verify', '-m', message); files.length = 0; clean(); return g('rev-parse', 'HEAD').stdout.trim(); },
     make(target) {
       const r = spawnSync('make', [target], { cwd: dir, encoding: 'utf8', timeout: 240000, env: { ...process.env, PATH, NPM_CONFIG_PREFIX: path.join(scratch, 'npm') } });
       return { code: r.status ?? 1, output: `${r.stdout}${r.stderr}`.slice(-1500) };
