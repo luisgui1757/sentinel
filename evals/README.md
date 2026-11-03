@@ -327,7 +327,7 @@ revert. It gives no tier to the untangle skill on `main`.
 
 - **tldr climb:** before the climb, the old case passed 4 of 9 runs. The four
   edits gave 1, 3, 2 and 3 of 9, so we kept none. The tldr rows measure the
-  skill on `main` before the rewrite of 3 November.
+  skill on `main`.
 - **tldr tier:** since the A/B of 31 October, one line of the skill changed:
   it keeps who holds a doubt. With 3 runs, we cannot tell if this line or noise
   moved `tldr-long-reply` from "Use with care" to "Trusted".
@@ -407,14 +407,14 @@ on the 5 default models. The folder is `2026-11-02T22-27-51-671Z`.
 | `untangle-shop` | Trusted | 4/5 | 0/15 · 0/15 |
 | `untangle-tally`, held out | Trusted | 5/5 | 0/15 · 0/15 |
 
-- **tldr decision:** no variant wins, so tldr does not change in this round.
-  F gained 3 runs on the old case, but only 1 on the held-out case. A lost 1
-  run on the old case. The form of 3 November replaced the skill later.
+- **tldr decision:** no variant wins, so tldr does not change. F gained 3
+  runs on the old case, but only 1 on the held-out case. A lost 1 run on the
+  old case.
 - **tldr per model:** with F, Opus passed 7 of 10 runs, Haiku 2 and Luna 1.
   Haiku did not load the skill in 6 of 10 baseline runs. A change to the body
-  of the skill cannot help these runs. With the description of 3 November,
-  Haiku loaded the skill in 18 of 18 runs. With F, three Haiku replies were longer than half of
-  the source.
+  of the skill cannot help these runs. With the descriptions that the climb of
+  3 November tested, Haiku loaded the skill in 42 of 42 runs. With F, three
+  Haiku replies were longer than half of the source.
 - **untangle decision:** A and F win. A passed 20 of 20 runs and F 19 of 20,
   so we ship A. E3 gained only on the old case, so it does not ship.
 - **F2 critical run:** the Claude judge said that the log shows only one `npm
@@ -426,9 +426,8 @@ on the 5 default models. The folder is `2026-11-02T22-27-51-671Z`.
   `roundCents` module. The trust tool gives 1.5 and 1.6 times as long for the
   two cases. The mean over all runs is 247 seconds with the skill and 134
   without it.
-- **Not run:** Astra P2 alone, and F plus Fable P2. Until the rewrite of 3
-  November, tldr kept the tiers of the earlier A/B of 2 November, because its
-  text did not change.
+- **Not run:** Astra P2 alone, and F plus Fable P2. tldr keeps the tiers of the
+  earlier A/B of 2 November, because its text did not change.
 - **Infrastructure:** the first A/B, in `2026-11-02T21-37-09-444Z`, stopped
   when the Claude login had less than 30 minutes left. We renewed the login
   and ran the whole A/B again.
@@ -455,72 +454,107 @@ for each arm. The folder is `2026-11-03T04-38-45-710Z`.
   of `full-stop-fix` with the skill, once on Opus and once on Sol, passed both
   runs. The folder is `2026-11-03T05-02-48-113Z`.
 
-## Results of 3 November 2026: a new form for tldr
+## Results of 3 November 2026: a climb on tldr, not shipped
 
-A climb on the failures of tldr, with a council of Fable 5.1 and Astra 6 at
-high effort. In each round, each member proposed a change, and we merged the
-two proposals. Then the old case ran 3 times on Luna, Terra and Haiku, with
-the skill only. The trigger case `neg-tldr-explain` ran 3 times on the same
-models. The held-out case ran only in the final A/B.
+Five rounds on the failures of tldr. In rounds 1 to 4, Fable 5.1 and Astra 6
+at high effort each proposed a change, and we merged the two proposals. Round
+5 answered the council grade of round 4. Each round ran the old case 3 times
+on Luna, Terra and Haiku, with the skill only. The trigger case
+`neg-tldr-explain` ran 3 times on the same models. A fresh held-out case
+decided, and the skill of `main` does not change.
 
 | Round | Change | Luna | Terra | Haiku | Kept | Folder |
 | --- | --- | --- | --- | --- | --- | --- |
-| `main` | Earlier runs of the old case. | 0/8 | 2/3 | 2/8 | - | - |
+| `main` | Earlier runs of the old case. | 0/8 | 2/3 | 2/8 | - | `2026-11-02T13-25-58-537Z`, `2026-11-02T19-12-21-505Z` |
 | 1 | A fixed form with slots replaces the rules. The certainty of the source is a fact, not a hedge. A new description names the cue words and excludes explanations. | 1/3 | 3/3 | 2/3 | Yes | `2026-11-03T04-29-04-811Z` |
 | 2 | A Limits section and an Open section. Each change keeps each part. A yes or no decision gets no empty option. Generic examples replace the words of the cases. | 3/3 | 3/3 | 1/3 | Yes | `2026-11-03T04-40-26-386Z` |
 | 3 | The answer gives no reason. Each sentence fills one slot. Key facts gives the number alone. | 3/3 | 3/3 | 1/3 | Yes | `2026-11-03T04-51-21-600Z` |
 | 4 | A part of a slot holds only what the source says. The slot of a check that did not run asks for no result. | 3/3 | 3/3 | 3/3 | Yes | `2026-11-03T05-01-53-200Z` |
+| 5 | The slots become a checklist for the agent. Labels only for several decisions or options. A reason can stay. Two line shapes stay, for an option and a change. "I do not know" is not "nobody knows". | 3/3 | 3/3 | 1/3 | Frozen | `2026-11-03T06-51-43-726Z` |
 
-The A/B used the text of round 4. It ran each case 3 times for each arm on
-the 5 default models. The folder is `2026-11-03T05-09-33-657Z`.
+`tldr-design-note` is the fresh case. Another agent wrote it after round 4,
+without the skill, the other tldr cases or their results. It is a design note
+of 1300 words, with 15 fact checks and two graders. A minor check asks for a
+reply of at most a third of the note. We froze the text of round 5 before the
+first run of this case.
 
-| Case | Skill | Tier | Gain | Critical runs, with · without |
-| --- | --- | --- | --- | --- |
-| `tldr-long-reply` | `tldr` | Trusted | 5/5 | 0/15 · 0/15 |
-| `tldr-hotfix-reply`, held out | `tldr` | Trusted | 4/5 | 0/15 · 0/15 |
+**A/B of round 4.** Each case ran 3 times for each arm on the 5 default
+models. The folder is `2026-11-03T05-09-33-657Z`.
 
-| Model | Old case, with · without | Held-out case, with · without |
-| --- | --- | --- |
-| Opus | 1/3 · 0/3 | 2/3 · 0/3 |
-| Haiku | 3/3 · 1/3 | 0/3 · 0/3 |
-| Sol | 3/3 · 0/3 | 2/3 · 0/3 |
-| Terra | 1/3 · 0/3 | 1/3 · 0/3 |
-| Luna | 2/3 · 0/3 | 1/3 · 0/3 |
+| Case | Tier | Gain | Critical runs, with · without |
+| --- | --- | --- | --- |
+| `tldr-long-reply` | Trusted | 5/5 | 0/15 · 0/15 |
+| `tldr-hotfix-reply`, exposed | Trusted | 4/5 | 0/15 · 0/15 |
 
-- **Before:** the A/B of 2 November gave a gain on 4 of 5 models on the old
-  case and on 1 of 5 on the held-out case. The held-out case was "Use with
-  care", because 4 models had a major failure in half their runs. Now only
-  Luna has that on the held-out case, and Opus and Terra on the old case.
-- **Form:** the earlier edits added rules, and the small models did not follow
-  them. In the form, each part that they dropped has a slot. Examples are the
-  gain, cost and needs of an option, the result of a missing change, a limit,
-  and each step of a doubt.
-- **Trigger:** with the new description, the skill loaded in each of the 66
-  runs with the skill on the two cases. Haiku loaded it in 18 of 18 runs. The
-  trigger case passed 41 of 41 runs and never loaded the skill.
-- **Haiku held out:** each run failed only the minor length check, with 676
-  to 697 of 1320 words. A failed check skips the judges, so these runs have no
-  grade for their content. On the old case, Haiku replies had 575 to 654 words
-  in round 1. In round 4 and the A/B, they had 457 to 546 words.
-- **Other failures:** both judges failed 2 held-out runs of Luna. Each run
-  dropped one part: the failed check of a doubt, or what breaks without a
-  change. The Sol judge alone failed the other runs. Four held-out runs kept
-  the iOS check, which the minor filler grader calls background. In 4 runs,
-  Opus and Luna made a claim wider, such as "nobody knows" for a doubt of the
-  author. In 2 old-case runs, Terra did not say that the failover was not
-  tested.
-- **Faults:** the council found no fault in a check or a grader. Both members
-  agree that the filler grader is right about the iOS check, because it
-  changes no decision on the Android release. They disagree on the verdict
-  about "cannot rule that out", so it stays.
-- **Held out:** the failure analysis of the held-out runs of 2 November
-  informed the council. The climb used only the old case, and the held-out
-  case ran only in the A/B. A new case on other material would test the
-  transfer.
-- **Cost:** the skill grew from 560 to 978 words. The trust tool gives 1.8
-  and 1.9 times as long for the two cases.
-- **Not run:** round 5, because round 4 reached the goal. Opus and Sol ran
-  only in the A/B, not in the screens.
+**A/B of round 5.** The same setup, with the fresh case. The folder is
+`2026-11-03T07-04-15-937Z`. The skill of `main` also ran on the fresh case,
+with the skill only, in `2026-11-03T07-52-34-712Z`.
+
+| Case | Tier | Gain | Critical runs, with · without |
+| --- | --- | --- | --- |
+| `tldr-design-note`, fresh | Low value | 0/5 | 0/15 · 1/15 |
+| `tldr-hotfix-reply`, exposed | Trusted | 4/5 | 0/15 · 0/15 |
+| `tldr-long-reply` | Trusted | 4/5 | 0/15 · 0/15 |
+
+| Model | Old case, round 4 · round 5 · without | Exposed case, round 4 · round 5 · without | Fresh case, round 5 · `main` · without |
+| --- | --- | --- | --- |
+| Opus | 1/3 · 1/3 · 0/3 | 2/3 · 1/3 · 0/3 | 0/3 · 0/3 · 0/3 |
+| Haiku | 3/3 · 0/3 · 0/3 | 0/3 · 1/3 · 0/3 | 0/3 · 0/3 · 0/3 |
+| Sol | 3/3 · 3/3 · 0/3 | 2/3 · 3/3 · 0/3 | 0/3 · 0/3 · 0/3 |
+| Terra | 1/3 · 3/3 · 0/3 | 1/3 · 1/3 · 0/3 | 0/3 · 0/3 · 0/3 |
+| Luna | 2/3 · 2/3 · 0/3 | 1/3 · 0/3 · 0/3 | 0/3 · 0/3 · 0/3 |
+
+The "without" columns come from the A/B of round 5. The A/B of round 4 had
+the same counts without the skill, except Haiku on the old case with 1/3.
+
+- **Decision:** the fresh case misses the goal, with a gain on 0 of 5 models.
+  A new skill ships only if it beats `main` on each case with no critical run.
+  With the skill of `main`, the fresh case also passed 0 of 15 runs. So the
+  new skill does not beat it, and `main` keeps its skill. The texts of rounds
+  4 and 5 are in the commits of the pull request.
+- **Against `main` on the other cases:** with the skill, the old case passed
+  9 of 15 runs in round 5, and 8 of 15 with the skill of `main` on 2 November.
+  The exposed case passed 6 of 15, against 3 of 15.
+- **Fresh case, with the skill:** 14 of 15 runs kept each of the 15 facts.
+  Each of them was longer than a third of the note, with 467 to 793 words.
+  The 15th run, Luna with 410 words, did not name the owner of the rollout.
+- **Fresh case, the other arms:** without a skill, each run lost 1 to 12
+  facts. With the skill of `main`, Luna and Terra lost a fact in 4 runs. The
+  decisions grader failed 4 runs of Sol and Terra for a missing reason.
+  In both arms, Opus and Haiku replies were longer than a third of the note.
+- **Grades:** a failed check skips the content graders. The honesty judges
+  still run. So the replies with the skill on the fresh case have no grade for
+  their content. We did not change the length check. It conflicts with
+  graders that ask for each reason, owner and condition. For example, the Sol
+  run 1 with the skill kept each fact in 467 words and failed only this check.
+- **Length as a cost:** the median reply with the skill had 509 words on the
+  fresh case, 376 on the exposed case and 279 on the old case. Without it, the
+  medians were 229, 231 and 128. In round 4, they were 413 and 328 with the
+  skill, against 217 and 128. The skill of `main` gave 232 on the old case.
+- **Over half of the source:** in round 4, the 3 Haiku runs on the exposed
+  case, with 676 to 697 of 1320 words. In round 5, 2 Opus and 2 Haiku runs on
+  the exposed case, and 1 of each on the old case.
+- **Round 5 screens:** with no line shapes, Luna passed 0 of 3. The shapes for
+  an option and a change brought Luna back to 2 of 3, and then 3 of 3. Without the round 4
+  rules against reasons, Haiku replies grew to 724 words. One Haiku reply
+  listed the checks of the source as "checks that ran", and the Sol honesty
+  judge failed it. Two more edits gave 7 of 9. A last edit gave 6 of 9, so we
+  froze the text before it. The folders are `2026-11-03T06-32-22-832Z`,
+  `2026-11-03T06-38-30-085Z`, `2026-11-03T06-45-15-696Z` and
+  `2026-11-03T06-57-35-248Z`.
+- **Trigger:** with the descriptions of the climb, the skill loaded in 156 of
+  156 runs on the tldr cases. Haiku loaded it in 42 of 42 runs. The trigger
+  case passed 91 of 91 runs and never loaded the skill.
+- **Exposed case:** the failure analysis of the runs of `tldr-hotfix-reply` of
+  2 November informed the council. So its gains are not independent evidence.
+  The climb used only the old case for its decisions.
+- **Disputed verdict:** the Sol judge failed Haiku run 2 with the skill for
+  "cannot rule that out", in `2026-11-02T13-44-45-452Z`, rejudged in
+  `2026-11-02T18-03-38-764Z`. Astra calls this a fault, and Fable does not. So
+  the grader stays.
+- **Infrastructure:** the first screen of round 5 did not start, because the
+  Claude login had less than 30 minutes left. We renewed the login and ran it
+  again.
 
 ## Results of 6 November 2026: featuremap in CI
 
