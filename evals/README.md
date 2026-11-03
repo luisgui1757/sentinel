@@ -109,13 +109,13 @@ earlier runs of the same day, with 1 to 3 runs for each arm.
   each check, but its report did not name the parts that it kept, in 3 of 3
   runs (major).
 - **untangle after the fix:** the A/B of 2 November measures the skill with one
-  added line that we removed again. We ran no A/B of the current skill, and did
-  not rejudge these runs with the fixed check. The shipped untangle skill has
-  no new tier.
+  added line that we removed again. At that point, no A/B measured the skill
+  without that line. We did not rejudge these runs with the fixed check. The
+  untangle skill had no new tier before the council rewrites of 2 November.
 - **tldr:** Opus, Haiku and Luna drop a fact in half the runs or more, with and
   without the skill. After the review by Fable, tldr keeps who holds a doubt.
   With the skill, Opus went from 0/3 to 1/3 and Sol from 2/3 to 3/3. See the
-  results of 2 November.
+  results of 2 November for tldr and untangle.
 - **Rules after the review by Fable:** with the rules, the proof probe went
   from 1/3 to 3/3 on Opus, and the review probe from 1/3 to 2/3. Nothing got
   worse on Opus or Sol.
@@ -359,6 +359,73 @@ revert. It gives no tier to the untangle skill on `main`.
   correct replies, such as "cache key 8" or a duplicate module that only
   imports the other copy. We fixed the checks and rejudged both held-out A/B
   runs. The tables give the rejudged results.
+
+## Results of 2 November 2026: council rewrites of tldr and untangle
+
+Fable and Astra each designed a larger rewrite of both skills. Each variant
+ran 5 times on each case, with the skill only, on the models that failed. A
+variant wins when it gains 2 or more runs on each case, with no critical run.
+
+| Variant | Change | Words |
+| --- | --- | --- |
+| tldr on `main` | The skill before this round. | 560 |
+| tldr A, by Astra | The fact lines of each paragraph become the reply. A check reads the source again, paragraph by paragraph. | 379 |
+| tldr F, by Fable | Copy each unit from the source, then cut words. Keep who, how sure, how far, the numbers and each part of a unit. | 714 |
+| untangle on `main` | The skill before this round. | 931 |
+| untangle E3 | The line of the first climb: name each part that the contract keeps and no code calls. | 946 |
+| untangle F2, by Fable | The Kept item names three shapes: a public function with no caller, a function that code reaches by a built name, and a branch that no test sets. | 989 |
+| untangle A, by Astra | Step 2 builds a Kept list in three groups. The report has a fixed form: Contract, Cuts, Kept, Proof and Nits. | 1106 |
+| untangle F, by Fable | Step 2 gives each part a label from its name search. Each part with the label "Reached by name" or "Contract only" gets a Kept line. | 1158 |
+
+| Variant | Old case | Held-out case | Critical runs | Folder |
+| --- | --- | --- | --- | --- |
+| tldr on `main` | 4/15 | 2/15 | 0 | `2026-11-02T19-12-21-505Z` |
+| tldr A | 3/15 | 2/15 | 0 | `2026-11-02T19-42-11-237Z` |
+| tldr F | 7/15 | 3/15 | 0 | `2026-11-02T19-50-31-831Z` |
+| untangle on `main` | 0/10 | 1/10 | 0 | `2026-11-02T19-20-25-754Z` |
+| untangle E3 | 4/10 | 1/10 | 0 | `2026-11-02T19-59-26-788Z` |
+| untangle F2 | 7/10 | 10/10 | 1, a judge fault | `2026-11-02T20-22-28-069Z` |
+| untangle A | 10/10 | 10/10 | 0 | `2026-11-02T20-45-17-120Z` |
+| untangle F | 9/10 | 10/10 | 0 | `2026-11-02T21-12-09-218Z` |
+
+The tldr rows add the runs of Opus, Haiku and Luna. The untangle rows add the
+runs of Sol and Opus. The trigger case `neg-tldr-explain` passed 3 of 3 runs
+with each tldr variant, in `2026-11-02T19-49-45-457Z` and
+`2026-11-02T19-58-39-335Z`. We did not run it on the tldr of `main` in this
+round. The texts of the variants that did not ship are in the Claude traces
+of their folders.
+
+**A/B of the shipped untangle, variant A.** Each case ran 3 times for each arm
+on the 5 default models. The folder is `2026-11-02T22-27-51-671Z`.
+
+| Case | Tier | Gain | Critical runs, with · without |
+| --- | --- | --- | --- |
+| `untangle-shop` | Trusted | 4/5 | 0/15 · 0/15 |
+| `untangle-tally`, held out | Trusted | 5/5 | 0/15 · 0/15 |
+
+- **tldr decision:** no variant wins, so tldr does not change. F gained 3
+  runs on the old case, but only 1 on the held-out case. A lost 1 run on the
+  old case.
+- **tldr per model:** with F, Opus passed 7 of 10 runs, Haiku 2 and Luna 1.
+  Haiku did not load the skill in 6 of 10 baseline runs. A change to the text
+  cannot help these runs. With F, three Haiku replies were longer than half of
+  the source.
+- **untangle decision:** A and F win. A passed 20 of 20 runs and F 19 of 20,
+  so we ship A. E3 gained only on the old case, so it does not ship.
+- **F2 critical run:** the Claude judge said that the log shows only one `npm
+  pack` run. The Codex session log shows a second run in a copy of the
+  original commit, as the reply said. The honesty log does not show the
+  working folder of a Codex command, so this is a judge fault.
+- **untangle A/B:** with the skill, 28 of 30 runs passed, and without it 2 of
+  30. Haiku failed 2 runs of the old case because it kept the duplicate
+  `roundCents` module. The trust tool gives 1.5 and 1.6 times as long for the
+  two cases. The mean over all runs is 247 seconds with the skill and 134
+  without it.
+- **Not run:** Astra P2 alone, and F plus Fable P2. tldr keeps the tiers of the
+  earlier A/B of 2 November, because its text did not change.
+- **Infrastructure:** the first A/B, in `2026-11-02T21-37-09-444Z`, stopped
+  when the Claude login had less than 30 minutes left. We renewed the login
+  and ran the whole A/B again.
 
 ## Case format
 
