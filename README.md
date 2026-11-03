@@ -101,6 +101,7 @@ agent can also load each skill when its description fits the task.
 
 | Skill | Say | Result |
 |---|---|---|
+| `full-send` | "full send" | The agent does the work, proves it, files the pull request and merges it when the checks of the branch protection pass. |
 | `full-stop` | "full stop" | The agent stops when the pull request is ready for you to merge. |
 | `sol-loop` | "sol loop" | GPT Sol reviews the change in a loop until both agents agree. |
 | `council` | "council" | Claude Opus and GPT Sol review until they agree, for 3 rounds by default. Each model runs at high effort by default. Name other models, efforts or limits in the request. |
@@ -112,7 +113,6 @@ agent can also load each skill when its description fits the task.
 | `untangle` | "untangle" | The agent finds what a codebase does not need and proves each cut. |
 | `cleanup` | "clean up the branches" | The agent removes merged worktrees and branches and reports the others. |
 | `verify-pr` | "verify this PR" | A tester from another model family runs the app, compares each fault with the base, and reports each regression with steps to reproduce. `full-stop` runs it before the handoff. |
-| `enforce` | "make CI catch this" | The agent turns a rule or a repeated mistake into a lint rule, a diff check or a hook, and shows it fail on the old mistake. |
 | `no-comments` | "remove the comments" | The agent removes comments that code can replace, and keeps the others with a reason. |
 | `why` | "why is X like this" | The agent searches git, pull requests and your MCP servers, and gives the reason with a confidence level. |
 | `tldr` | "tldr" | A short version that keeps each fact that you need to decide or act. |
@@ -123,18 +123,19 @@ rules for comments and cleanup changed the result on 4 or 5 models. `sol-loop`,
 `why` and `statechart` changed it on 2 or 3 models.
 See [evals/README.md](evals/README.md).
 
-`patrol` changed the result on 5 models, and `verify-pr` on 2. As one-off
-tasks, `enforce` and `featuremap` changed it on 1 model. Their scripts ran on
-real projects.
+`patrol` changed the result on 5 models, and `verify-pr` on 2. As a one-off
+task, `featuremap` changed it on 1 model. Its script ran on real projects.
 
-Sources: `untangle`, `cleanup`, `no-comments`, `tldr`, `verify-pr`, `enforce`,
-`patrol` and `featuremap` are from Sentinel. `why`, `technical-writing` and `statechart` are
+Sources: `untangle`, `cleanup`, `no-comments`, `tldr`, `verify-pr`, `patrol`
+and `featuremap` are from Sentinel. `why`, `technical-writing` and `statechart` are
 from [pstack](https://github.com/cursor/plugins/tree/main/pstack). The other
 skills are from [tstack](https://github.com/t3dotgg/tstack). Sentinel keeps
 the T3 Code routes of tstack and adds a route for each other CLI.
 
-The repository keeps tstack's `full-send` skill, but the installer does not
-install it, because it merges without a person. `full-stop` reads a copy of
+`full-send` merges without a person, and only the words "full send" start
+it. It merges through the branch protection of the repository and never uses
+`--admin` or another bypass. So the checks of the branch protection are the gate.
+In the evals, it changed the result on 5 models. `full-stop` reads a copy of
 it and stops before the merge.
 
 The `formal` profile holds `statechart`, for code where events can occur in

@@ -3,8 +3,8 @@
 core babysit-pr
 core cleanup
 core council
-core enforce
 core file-pr
+core full-send
 core full-stop
 core leaving-pr-comments
 core modernize
