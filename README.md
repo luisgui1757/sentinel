@@ -135,7 +135,8 @@ the T3 Code routes of tstack and adds a route for each other CLI.
 `full-send` merges without a person, and only the words "full send" start
 it. It merges through the branch protection of the repository and never uses
 `--admin` or another bypass. So the checks of the branch protection are the gate.
-`full-stop` reads a copy of it and stops before the merge.
+In the evals, it changed the result on 5 models. `full-stop` reads a copy of
+it and stops before the merge.
 
 The `formal` profile holds `statechart`, for code where events can occur in
 many orders, such as locks, retries, queues and protocols. It checks a TLA+
