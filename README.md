@@ -196,8 +196,10 @@ repository and run the installer again.
 - Codex reads `AGENTS.override.md` instead of `AGENTS.md` when both exist. The
   installer gives a warning in that case.
 - `babysit-pr` waits with `pr-wait`, which needs Python 3 and the GitHub CLI.
-- A Kiro custom agent loads a skill only when its `resources` list names the
-  skill with `skill://`.
+- T3 Code does not show Kiro skills in its `/` and `$` menus
+  ([pingdotgg/t3code#31645](https://github.com/pingdotgg/t3code/issues/31645)).
+  The Kiro session still lists them. A Kiro custom agent also gets the skills
+  in `~/.kiro/skills` when its `resources` list has no `skill://` entry.
 - OpenCode reads `~/.claude/skills` and `~/.agents/skills`. With Claude Code
   and Codex on the same machine, OpenCode sees each skill two times. Set
   `OPENCODE_DISABLE_CLAUDE_CODE=1` to make OpenCode ignore the Claude folders.
