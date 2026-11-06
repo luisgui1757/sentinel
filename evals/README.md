@@ -211,7 +211,8 @@ arm ran 3 times on each model after the last change to the skill. Their
 - **patrol:** without the skill, 8 of 9 runs gave the agent job a GitHub token
   or write access. With the skill, no run did.
 - **featuremap:** strong models do this one-off task without the skill. Its
-  value is in its script, which the runs on real projects test.
+  value is in its script, which the runs on real projects test. See the
+  results of 6 November for the CI cases.
 - **enforce, removed:** it gave a gain on only 1 model, and no other skill used
   it. So we removed the skill, its `diffcheck.mjs` script and its case.
 - **Eval fix:** the judges now see the commands of a Codex subagent. Before,
@@ -450,6 +451,62 @@ for each arm. The folder is `2026-11-03T04-38-45-710Z`.
 - **full-stop:** the eval now installs `full-send` next to `full-stop`. A run
   of `full-stop-fix` with the skill, once on Opus and once on Sol, passed both
   runs. The folder is `2026-11-03T05-02-48-113Z`.
+
+## Results of 6 November 2026: featuremap in CI
+
+A climb toward a gain on 4 of 5 models, with one rewrite and one fixed
+confirmation. The cases `featuremap-ci-atlas` and `featuremap-ci-grid` ask for a
+CI check of the part boundaries in all languages of a monorepo. The known list
+of breaks can only shrink. An author who did not read the skill, its
+cases or their results wrote the held-out case `featuremap-ci-confirm`. The
+folder is `2026-11-06-featuremap-confirm`.
+
+| Case | Tier | Gain | Critical runs, with · without | Time |
+| --- | --- | --- | --- | --- |
+| `featuremap-ci-atlas` | Trusted | 3/5 | 0/15 · 0/15 | 0.7x |
+| `featuremap-ci-grid` | Trusted | 2/5 | 0/15 · 0/15 | 0.8x |
+| `featuremap-ci-confirm`, held out | Trusted | 2/5 | 0/15 · 0/15 | 0.7x |
+| `featuremap-diagnose`, with the skill only | - | - | 0/5 | - |
+
+| Model | atlas, with · without | grid, with · without | held out, with · without |
+| --- | --- | --- | --- |
+| Opus | 3/3 · 3/3 | 3/3 · 1/3 | 3/3 · 1/3 |
+| Sol | 3/3 · 2/3 | 3/3 · 2/3 | 1/3 · 2/3 |
+| Terra | 3/3 · 0/3 | 3/3 · 3/3 | 3/3 · 0/3 |
+| Haiku | 3/3 · 3/3 | 2/3 · 3/3 | 1/2 · 2/3 |
+| Luna | 3/3 · 2/3 | 3/3 · 3/3 | 3/3 · 3/3 |
+
+- **Goal missed:** no case reached a gain on 4 of 5 models. The climb stopped
+  after the confirmation, as its stop rule says.
+- **Cause of the miss:** with the skill, 40 of 44 runs passed. Without it, 30
+  of 45 passed. A model that passes 3 of 3 runs without the skill cannot gain,
+  and Opus, Haiku and Luna often did. The skill reached 3 of 3 on each model in
+  `featuremap-ci-atlas`.
+- **Rewrite:** before it, each run that used the script added TS path aliases
+  to its copy. A Sol run rewrote 419 lines and hit the time limit. The script
+  now reads the `paths` of the nearest `tsconfig.json` and its parent configs.
+- **Recipe:** the skill now starts with a CI recipe. It gives the map, make targets that
+  run the CMake configure step, a CI job with the full history, and probes on
+  a scratch branch. Each run of the screen used the script with no change. In
+  the confirmation, 43 of 45 runs did. One Haiku run wrote its own checker, and
+  one Opus run changed 2 lines.
+- **Failures with the skill:** two Sol runs on the held-out case committed a
+  test that the skill forbids, and CI failed on a clean pull request. Two
+  Haiku runs reported a wrong list of breaks. One Haiku run gave no result.
+- **Before the rewrite:** the first runs of the old skill, on 18 of 60 runs,
+  showed no gain on either case. No full A/B of the old skill ran on these
+  cases.
+- **Speed:** the climb took about 2 hours of wall-clock time. The **without**
+  arm ran with `--arms without` while the skill changed. A screen of 6 runs on
+  Opus, Sol and Terra came before the confirmation.
+- **Check fix:** the held-out case first called a new checker in its test
+  folder `checks/` a change to product code. 14 of 15 runs without the skill
+  and 2 of 15 with it put a checker there. We fixed the check and rejudged the
+  case. Before the fix, the case showed a gain on 4 of 5 models, which the
+  fault caused.
+- **Script limit:** when all CMake targets live in one `CMakeLists.txt`, the
+  `cmake` tool gives each target the same folder and finds no link between
+  parts. Several runs wrote a small `jsonl` helper for it.
 
 ## Case format
 
