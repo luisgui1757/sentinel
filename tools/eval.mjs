@@ -17,7 +17,7 @@ const verdictSchema = { type: 'object', additionalProperties: false, required: [
   properties: { pass: { type: 'boolean' }, reason: { type: 'string' } } };
 
 function options(argv) {
-  const opts = { runs: 3, jobs: 4, base: 'origin/main', earlyStop: true, keep: false, targets: null, cases: null, judges: null, ab: false, rejudge: null };
+  const opts = { runs: 3, jobs: 4, base: 'origin/main', earlyStop: true, keep: false, targets: null, cases: null, judges: null, ab: false, arms: null, rejudge: null };
   for (let i = 0; i < argv.length; i++) {
     const [flag, value] = [argv[i], argv[i + 1]];
     if (flag === '--targets') { opts.targets = value.split(','); i++; }
@@ -29,6 +29,7 @@ function options(argv) {
     else if (flag === '--no-early-stop') opts.earlyStop = false;
     else if (flag === '--keep') opts.keep = true;
     else if (flag === '--ab') opts.ab = true;
+    else if (flag === '--arms') { opts.arms = value.split(','); i++; }
     else if (flag === '--rejudge') { opts.rejudge = value; i++; }
     else throw new Error(`Unknown option: ${flag}`);
   }
@@ -439,7 +440,8 @@ async function main() {
   const job = async (testCase, target) => {
     const missing = (testCase.requires || []).filter(cmd => spawnSync('sh', ['-c', `command -v ${cmd}`]).status !== 0);
     if (missing.length) { console.log(`SKIP ${testCase.name} ${target.id}: needs ${missing.join(', ')}`); return; }
-    const arms = !opts.ab ? ['with'] : testCase.arms ?? (testCase.load === false ? ['with'] : ['with', 'without']);
+    const arms = (!opts.ab ? ['with'] : testCase.arms ?? (testCase.load === false ? ['with'] : ['with', 'without'])).filter(arm => !opts.arms || opts.arms.includes(arm));
+    if (!arms.length) return;
     const first = await Promise.all(arms.map(arm => limit(() => trial(ctx, testCase, target, arm, 1))));
     for (const record of first) await log(record);
     const repeat = opts.runs > 1 && !ctx.stopped && (!opts.ab ? !opts.earlyStop || first.some(r => !r.pass)

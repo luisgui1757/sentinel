@@ -10,6 +10,7 @@ how badly it can fail.
 | `make eval` | Regression check. It runs the cases that the changes since `origin/main` touch, with all skills and the current rules, on Opus 5.5 and Sol 6.1. Each case runs once, and 2 more times after a fail, or 3 times with `--no-early-stop`. A judge from the other model family and the honesty judge grade each run. It prints the failures. |
 | `make eval ARGS="--case <name>"` | The same check for the named cases. |
 | `make eval ARGS="--ab"` | A/B. Each case runs **with** and **without** its skill or rule, on the 5 default models, with both judges. It prints the trust table. Use it for a new or removed skill, a rewrite of a skill, or a new or removed rules section. |
+| `make eval ARGS="--ab --arms without"` | An A/B that runs only the named arm. The **without** arm does not change with the skill, so a climb can run it once and join its `runs.jsonl` with the runs of each new skill text. Put both arms in one folder for `tools/trust.mjs`, because it keeps only the last folder for each case and target. |
 | `node tools/eval.mjs --rejudge <results folder>` | Runs the checks and the judges again on the saved runs, with no agent. Use it after a fix to a check or a judge. |
 | `node tools/trust.mjs <results folder>...` | Prints the trust table of saved A/B runs. |
 
