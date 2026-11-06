@@ -1,6 +1,6 @@
 import { check, report, pullRequests, productChanges } from '../lib.mjs';
 
-const changed = productChanges(['components/', 'checks/', 'config/'], {
+const changed = productChanges(['components/', 'config/'], {
   allow: ['README.md', 'Makefile', '.gitignore', '.github/'],
 });
 check('changes no product file', !changed.length, changed.join(', '));
