@@ -92,22 +92,66 @@ function workspacePackages(root, files) {
   return packages;
 }
 
-function resolveJs(exists, from, spec, packages) {
-  let base;
-  if (spec.startsWith('.')) base = path.posix.normalize(path.posix.join(path.posix.dirname(from), spec));
-  else {
-    const name = [...packages.keys()].filter(n => spec === n || spec.startsWith(`${n}/`)).sort((a, b) => b.length - a.length)[0];
-    if (name === undefined) return null;
-    const dir = packages.get(name), rest = spec.slice(name.length).replace(/^\//, '');
-    if (!rest) return dir ? `${dir}/` : null;
-    base = path.posix.join(dir, rest);
+const parseJsonc = text => JSON.parse(text
+  .replace(/("(?:\\.|[^"\\])*")|\/\/[^\n]*|\/\*[\s\S]*?\*\//g, (m, string) => string ?? '')
+  .replace(/("(?:\\.|[^"\\])*")|,(?=\s*[}\]])/g, (m, string) => string ?? ''));
+
+function tsConfig(root, file, configs) {
+  if (configs.has(file)) return configs.get(file);
+  configs.set(file, {});
+  let config;
+  try { config = parseJsonc(fs.readFileSync(path.join(root, file), 'utf8')); } catch (error) { throw new Error(`cannot read ${file}: ${error.message}`); }
+  const dir = path.posix.dirname(file), options = config.compilerOptions ?? {};
+  const parents = [config.extends ?? []].flat().filter(p => p.startsWith('.'))
+    .map(p => path.posix.join(dir, p.endsWith('.json') ? p : `${p}.json`)).filter(p => fs.existsSync(path.join(root, p)));
+  const own = {};
+  if (options.baseUrl !== undefined) own.baseUrl = path.posix.join(dir, options.baseUrl);
+  if (options.paths !== undefined) Object.assign(own, { paths: options.paths, pathsDir: dir });
+  const merged = Object.assign({}, ...parents.map(p => tsConfig(root, p, configs)), own);
+  configs.set(file, merged);
+  return merged;
+}
+
+function tsAliases(root, from, configs) {
+  for (let dir = path.posix.dirname(from); ; dir = path.posix.dirname(dir)) {
+    const file = dir === '.' ? 'tsconfig.json' : `${dir}/tsconfig.json`;
+    if (fs.existsSync(path.join(root, file))) {
+      const { paths, baseUrl, pathsDir } = tsConfig(root, file, configs);
+      return paths ? { paths, base: baseUrl ?? pathsDir } : null;
+    }
+    if (dir === '.') return null;
   }
+}
+
+function aliasTargets(spec, aliases) {
+  let best = null;
+  for (const [pattern, targets] of Object.entries(aliases?.paths ?? {})) {
+    const star = pattern.indexOf('*');
+    const [prefix, suffix] = star < 0 ? [pattern, null] : [pattern.slice(0, star), pattern.slice(star + 1)];
+    const hit = suffix === null ? spec === prefix : spec.length >= prefix.length + suffix.length && spec.startsWith(prefix) && spec.endsWith(suffix);
+    if (hit && (!best || prefix.length > best.prefix.length)) best = { prefix, targets, match: suffix === null ? '' : spec.slice(prefix.length, spec.length - suffix.length) };
+  }
+  return best ? best.targets.map(t => path.posix.normalize(path.posix.join(aliases.base, t.replace('*', best.match)))) : [];
+}
+
+function jsFile(exists, base) {
   if (base.startsWith('..')) return null;
-  const swap = { '.js': ['.ts', '.tsx'], '.jsx': ['.tsx'], '.mjs': ['.mts'], '.cjs': ['.cts'] }[path.posix.extname(base)];
-  if (!exists(base) && swap) for (const ext of swap) if (exists(base.slice(0, -path.posix.extname(base).length) + ext)) return base.slice(0, -path.posix.extname(base).length) + ext;
-  for (const ext of JS_EXT) if (exists(base + ext)) return base + ext;
-  for (const ext of JS_EXT.slice(1)) if (exists(`${base}/index${ext}`)) return `${base}/index${ext}`;
-  return spec.startsWith('.') ? null : `${base}/`;
+  const ext = path.posix.extname(base), swap = { '.js': ['.ts', '.tsx'], '.jsx': ['.tsx'], '.mjs': ['.mts'], '.cjs': ['.cts'] }[ext];
+  if (!exists(base) && swap) for (const to of swap) if (exists(base.slice(0, -ext.length) + to)) return base.slice(0, -ext.length) + to;
+  for (const to of JS_EXT) if (exists(base + to)) return base + to;
+  for (const to of JS_EXT.slice(1)) if (exists(`${base}/index${to}`)) return `${base}/index${to}`;
+  return null;
+}
+
+function resolveJs(exists, from, spec, packages, aliases) {
+  if (spec.startsWith('.')) return jsFile(exists, path.posix.normalize(path.posix.join(path.posix.dirname(from), spec)));
+  for (const target of aliasTargets(spec, aliases)) { const hit = jsFile(exists, target); if (hit) return hit; }
+  const name = [...packages.keys()].filter(n => spec === n || spec.startsWith(`${n}/`)).sort((a, b) => b.length - a.length)[0];
+  if (name === undefined) return null;
+  const dir = packages.get(name), rest = spec.slice(name.length).replace(/^\//, '');
+  if (!rest) return dir ? `${dir}/` : null;
+  const base = path.posix.join(dir, rest);
+  return base.startsWith('..') ? null : jsFile(exists, base) ?? `${base}/`;
 }
 
 function resolvePy(exists, isDir, from, mod, dots, roots) {
@@ -127,6 +171,7 @@ export function scan(root, entry, files) {
   for (const f of files) for (let d = path.posix.dirname(f); d !== '.'; d = path.posix.dirname(d)) dirs.add(d);
   const exists = f => set.has(f), isDir = d => dirs.has(d);
   const packages = files.some(f => JS.test(f)) ? workspacePackages(root, files) : new Map();
+  const configs = new Map();
   const roots = entry.roots ?? ['', 'src'];
   const includeDirs = entry.includeDirs ?? [];
   const edges = [], covered = files.filter(f => matches(entry.files, f) && (JS.test(f) || PY.test(f) || C.test(f)));
@@ -135,8 +180,9 @@ export function scan(root, entry, files) {
     const add = (to, kind) => { if (to && to !== from) edges.push({ from, to, kind, tool: 'scan', config: '' }); };
     if (JS.test(from)) {
       const code = stripJsComments(text);
+      const aliases = tsAliases(root, from, configs);
       for (const m of code.matchAll(/(?:\bimport\s+(?:type\s+)?(?:[\w*{}\s,$]+\s+from\s+)?|\bexport\s+(?:type\s+)?(?:\*(?:\s+as\s+\w+)?|\{[^}]*\})\s+from\s+|\brequire\s*\(\s*|\bimport\s*\(\s*)['"]([^'"\n]+)['"]/g)) {
-        add(resolveJs(exists, from, m[1], packages), 'import');
+        add(resolveJs(exists, from, m[1], packages, aliases), 'import');
       }
     } else if (PY.test(from)) {
       const joined = text.replace(/\r\n/g, '\n').replace(/#[^\n]*/g, '').replace(/\(([^()]*)\)/g, (m, inner) => (inner.includes('\n') ? `(${inner.replace(/\n/g, ' ')})` : m)).replace(/\\\n/g, ' ');
