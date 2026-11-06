@@ -591,6 +591,42 @@ Muse reviewed the rule before the runs.
 - **Report:** the first result, and the result of this deviation, with its
   own label. The second result does not meet the first rule.
 
+### Result of the replication
+
+The goal is not met. 3 of 5 models improve under the rule, after a fix to
+the ledger grader.
+
+| Result | Runs | Models that improve | Goal |
+| --- | --- | --- | --- |
+| First run, under the rule | 21 of 60 | 0, and 5 unclear | unclear |
+| Deviation, before the grader fix | 60 | 5 | met |
+| Deviation, after the grader fix | 60 | 3 | not met |
+
+- **Grader fix:** the ledger grader accepted two entries for the C break, but
+  not for the Rust one. A reply that also named `use journal::Amount` in
+  `engine/fx/src/lib.rs` failed. This hit 9 runs without the skill and 3 runs
+  with it. A blind review confirmed the fault, and `953ac72` fixes the
+  clause. The rejudge of both arms changed exactly these 12 runs.
+- **Joined runs:** `2026-11-06-featuremap-replication`, with the runs before
+  the fix in `before-fix.jsonl.txt`.
+
+After the fix:
+
+| Model | Passes with · without | Median cost with · without | Result |
+| --- | --- | --- | --- |
+| `opus-5.5-xhigh` | 5/6 · 3/6 | $2.91 · $3.93 | improves |
+| `haiku-5.5-xhigh` | 6/6 · 6/6 | $0.41 · $0.47 | no |
+| `gpt-6.1-sol-xhigh` | 5/6 · 1/6 | 70k · 62k tokens | improves |
+| `gpt-6.1-terra-xhigh` | 6/6 · 3/6 | 54k · 31k tokens | improves |
+| `gpt-6-luna-xhigh` | 6/6 · 6/6 | 129k · 106k tokens | no |
+
+- **Ceiling:** Haiku and Luna pass each run without the skill, so they cannot
+  improve on pass rate. The skill does not make their cost lower by 20 %.
+- **Cost:** the skill makes the median cost lower on Opus and Haiku. On the 3
+  Codex models it uses 13 % to 77 % more tokens for each run.
+- **Each case:** each case passes on 3 models, with no loss.
+- **Spend:** the 39 runs cost $44.82 of Claude agent time.
+
 ## Case format
 
 Each folder is one case. It uses the format of the Anthropic skill evals, with
