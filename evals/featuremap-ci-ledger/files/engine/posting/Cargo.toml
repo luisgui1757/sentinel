@@ -1,0 +1,7 @@
+[package]
+name = "posting"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+journal.workspace = true

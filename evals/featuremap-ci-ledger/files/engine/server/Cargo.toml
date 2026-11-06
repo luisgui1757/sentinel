@@ -1,0 +1,9 @@
+[package]
+name = "server"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+posting.workspace = true
+journal.workspace = true
+fx.workspace = true

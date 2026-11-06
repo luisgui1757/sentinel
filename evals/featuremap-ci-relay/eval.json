@@ -1,0 +1,23 @@
+{
+  "skill": "featuremap",
+  "timeout": 1500,
+  "check_timeout": 900,
+  "requires": [
+    "node",
+    "python3",
+    "cmake",
+    "cc",
+    "make",
+    "ruby"
+  ],
+  "judge_files": [
+    "README.md",
+    "control/protocol/labels.mjs",
+    "config/catalog/defaults.py",
+    "engine/wire/frame.c",
+    "engine/CMakeLists.txt"
+  ],
+  "critical": [
+    "changes no product file"
+  ]
+}

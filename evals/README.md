@@ -508,6 +508,59 @@ folder is `2026-11-06-featuremap-confirm`.
   `cmake` tool gives each target the same folder and finds no link between
   parts. Several runs wrote a small `jsonl` helper for it.
 
+## Rule for the featuremap replication, written before its runs
+
+We wrote this rule on 6 November 2026, after the results above and before any
+run of the new cases. The 90 runs above are exploratory, because the rule came
+from them. They do not count toward the rule. The council of Fable, Astra and
+Muse reviewed the rule before the runs.
+
+- **Data:** two new held-out cases, `featuremap-ci-relay` and
+  `featuremap-ci-ledger`. Two authors wrote them from the same brief. They did
+  not read the skill, `featuremap-ci-confirm`, `featuremap-diagnose` or any
+  result. They read `featuremap-ci-atlas` and `featuremap-ci-grid` for the case
+  format, so the new cases differ only in layout and languages.
+- **Freeze:** one commit holds the skill of `c5dff85`, both cases, this rule and
+  `evals/featuremap-rule.mjs`. We make it before the first run, and each run
+  uses it. The result names that commit.
+- **Runs:** 3 runs for each arm and case on `opus-5.5-xhigh`,
+  `haiku-5.5-xhigh`, `gpt-6.1-sol-xhigh`, `gpt-6.1-terra-xhigh` and
+  `gpt-6-luna-xhigh`. That is 6 runs for each arm and model, and 60 in all. We
+  add no run to replace one.
+- **Count:** each run counts. A run with a status other than `pass` or `fail`,
+  such as `error` or `skipped`, is an error and counts as a fail. A timed-out
+  run counts as a fail with its cost. A model is unclear when an arm does not
+  have the runs 1, 2 and 3 on each case, or has more than 1 error.
+- **Cost:** the cost of one run is `usage.cost_usd` for a Claude model. For a
+  Codex model, it is `usage.input_tokens` minus `usage.cached_input_tokens`,
+  plus `usage.output_tokens`. A run without usage leaves only the cost median.
+  The median of an even count is the mean of the two middle values. The cost
+  gain is unclear when an arm has fewer than 5 runs with usage. Then the model
+  is unclear when only the cost can decide it.
+- **Pass gain:** the model passes at least 2 more of its 6 runs with the skill.
+  With no real effect, chance gives it to about 19 % of models at a base pass
+  rate of 50 %. At 90 %, chance gives it to about 7 %.
+- **Cost gain:** the model passes no fewer runs with the skill, and passes at
+  least once on each case with it. Its median cost with the skill is at most
+  0.8 times the median without it.
+- **Model improves:** a pass gain or a cost gain, and no case where the model
+  passes 2 or more fewer runs with the skill.
+- **Goal:** 4 or more of the 5 models improve. The goal is unclear when the
+  unclear models could still bring the count to 4. A met goal is a result
+  under this rule, not a proof. With no real effect, chance meets it through
+  the pass gain alone for under 1 % of skills. We do not know the share of
+  the cost gain.
+- **Each case alone:** for the report only. A case passes when 2 or more
+  models pass at least 1 more run on it, and no model passes 2 or more fewer
+  runs.
+- **Script:** `node evals/featuremap-rule.mjs <results folder>` computes each
+  line above from `runs.jsonl`.
+- **Check fixes:** a fix to a check after the runs needs a review by an agent
+  that does not see the arms. Then we rejudge both arms, and we report the
+  result before and after the fix.
+- **Stop:** we stop after these 60 runs, also when the goal is not met. We
+  report an unclear result as unclear.
+
 ## Case format
 
 Each folder is one case. It uses the format of the Anthropic skill evals, with

@@ -1,0 +1,26 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Ruby tests
+        run: ruby -Igems/core/lib -Igems/api/lib -Igems/admin/lib -e 'ARGV.each { |f| require File.expand_path(f) }' tests/ruby/*_test.rb
+      - name: Python tests
+        run: PYTHONPATH=jobs python3 -m unittest discover -s tests/python
+      - name: Engine
+        run: cargo check --quiet --manifest-path engine/Cargo.toml
+      - name: Native
+        run: cmake -S native -B build && cmake --build build
