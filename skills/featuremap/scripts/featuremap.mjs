@@ -93,6 +93,7 @@ function workspacePackages(root, files) {
 }
 
 const parseJsonc = text => JSON.parse(text
+  .replace(/^\uFEFF/, '')
   .replace(/("(?:\\.|[^"\\])*")|\/\/[^\n]*|\/\*[\s\S]*?\*\//g, (m, string) => string ?? '')
   .replace(/("(?:\\.|[^"\\])*")|,(?=\s*[}\]])/g, (m, string) => string ?? ''));
 
@@ -129,7 +130,8 @@ function aliasTargets(spec, aliases) {
     const star = pattern.indexOf('*');
     const [prefix, suffix] = star < 0 ? [pattern, null] : [pattern.slice(0, star), pattern.slice(star + 1)];
     const hit = suffix === null ? spec === prefix : spec.length >= prefix.length + suffix.length && spec.startsWith(prefix) && spec.endsWith(suffix);
-    if (hit && (!best || prefix.length > best.prefix.length)) best = { prefix, targets, match: suffix === null ? '' : spec.slice(prefix.length, spec.length - suffix.length) };
+    const rank = suffix === null ? Infinity : prefix.length;
+    if (hit && (!best || rank > best.rank)) best = { rank, targets, match: suffix === null ? '' : spec.slice(prefix.length, spec.length - suffix.length) };
   }
   return best ? best.targets.map(t => path.posix.normalize(path.posix.join(aliases.base, t.replace('*', best.match)))) : [];
 }

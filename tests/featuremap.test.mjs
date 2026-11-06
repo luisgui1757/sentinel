@@ -160,9 +160,9 @@ test('check fails on new violations and gaps, passes after baseline, and catches
   await fs.rm(dir, { recursive: true, force: true });
 });
 
-test('scan resolves the TS path aliases of the nearest tsconfig.json and the configs that it extends', async () => {
+test('scan resolves the TS path aliases of the nearest tsconfig.json and the configs that it extends, with a BOM and an exact alias first', async () => {
   const { dir } = await repo({
-    'tsconfig.base.json': '{\n  // shared\n  "compilerOptions": {\n    "baseUrl": ".",\n    "paths": { "@money/*": ["packages/shared/*"], "@model": ["packages/vehicle/src/model.ts"], },\n  },\n}\n',
+    'tsconfig.base.json': '\uFEFF{\n  // shared\n  "compilerOptions": {\n    "baseUrl": ".",\n    "paths": { "@money/*": ["packages/shared/*"], "@model*": ["packages/shared/*"], "@model": ["packages/vehicle/src/model.ts"], },\n  },\n}\n',
     'packages/billing/tsconfig.json': '{ "extends": "../../tsconfig.base.json" }\n',
     'packages/billing/src/alias.ts': "import { round } from '@money/money';\nimport { model } from '@model';\nexport const total = round(model.rate);\n",
     'packages/vehicle/tsconfig.json': '{ "extends": "../../tsconfig.base", "compilerOptions": { "baseUrl": ".", "paths": { "@money/*": ["../shared/*"] } } }\n',
