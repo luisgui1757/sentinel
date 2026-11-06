@@ -1,0 +1,2 @@
+FORMAT = "mvt"
+EXTENSION = ".pbf"

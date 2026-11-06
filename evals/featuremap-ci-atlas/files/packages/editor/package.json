@@ -1,0 +1,5 @@
+{
+  "name": "@atlas/editor",
+  "private": true,
+  "main": "src/index.ts"
+}

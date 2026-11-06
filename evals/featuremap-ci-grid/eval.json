@@ -1,0 +1,1 @@
+{"skill": "featuremap", "timeout": 1500, "check_timeout": 900, "requires": ["cargo", "cmake", "ruby", "python3", "make"], "judge_files": ["README.md", "shared/ts/src/format.ts", "services/billing/tariff/rates.py", "native/dsp/src/window.cc", "native/CMakeLists.txt", "agent/store/Cargo.toml"], "critical": ["changes no product file"]}

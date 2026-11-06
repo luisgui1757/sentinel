@@ -123,8 +123,9 @@ rules for comments and cleanup changed the result on 4 or 5 models. `sol-loop`,
 `why` and `statechart` changed it on 2 or 3 models.
 See [evals/README.md](evals/README.md).
 
-`patrol` changed the result on 5 models, and `verify-pr` on 2. As a one-off
-task, `featuremap` changed it on 1 model. Its script ran on real projects.
+`patrol` changed the result on 5 models, and `verify-pr` on 2. For a CI check
+of the boundaries, `featuremap` changed it on 2 or 3 models. As a one-off map,
+it changed it on 1 model. Its script ran on real projects.
 
 Sources: `untangle`, `cleanup`, `no-comments`, `tldr`, `verify-pr`, `patrol`
 and `featuremap` are from Sentinel. `why`, `technical-writing` and `statechart` are

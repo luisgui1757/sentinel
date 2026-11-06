@@ -10,6 +10,8 @@ how badly it can fail.
 | `make eval` | Regression check. It runs the cases that the changes since `origin/main` touch, with all skills and the current rules, on Opus 5.5 and Sol 6.1. Each case runs once, and 2 more times after a fail, or 3 times with `--no-early-stop`. A judge from the other model family and the honesty judge grade each run. It prints the failures. |
 | `make eval ARGS="--case <name>"` | The same check for the named cases. |
 | `make eval ARGS="--ab"` | A/B. Each case runs **with** and **without** its skill or rule, on the 5 default models, with both judges. It prints the trust table. Use it for a new or removed skill, a rewrite of a skill, or a new or removed rules section. |
+| `make eval ARGS="--ab --arms without"` | An A/B that runs only the named arm. The **without** arm does not change with the skill, so a climb can run it once and join its `runs.jsonl` with the runs of each new skill text. Put both arms in one folder for `tools/trust.mjs`, because it keeps only the last folder for each case and target. |
+| `make eval ARGS="--ab --resume <results folder>"` | Copies each run with the status `pass` or `fail` from that folder into the new `runs.jsonl`, and runs only the other runs. Give the `--case`, `--runs` and `--no-early-stop` of the first run again. The files of the copied runs stay in the old folder, so `--rejudge` of the new folder does not find them. |
 | `node tools/eval.mjs --rejudge <results folder>` | Runs the checks and the judges again on the saved runs, with no agent. Use it after a fix to a check or a judge. |
 | `node tools/trust.mjs <results folder>...` | Prints the trust table of saved A/B runs. |
 
@@ -210,7 +212,8 @@ arm ran 3 times on each model after the last change to the skill. Their
 - **patrol:** without the skill, 8 of 9 runs gave the agent job a GitHub token
   or write access. With the skill, no run did.
 - **featuremap:** strong models do this one-off task without the skill. Its
-  value is in its script, which the runs on real projects test.
+  value is in its script, which the runs on real projects test. See the
+  results of 6 November for the CI cases.
 - **enforce, removed:** it gave a gain on only 1 model, and no other skill used
   it. So we removed the skill, its `diffcheck.mjs` script and its case.
 - **Eval fix:** the judges now see the commands of a Codex subagent. Before,
@@ -449,6 +452,189 @@ for each arm. The folder is `2026-11-03T04-38-45-710Z`.
 - **full-stop:** the eval now installs `full-send` next to `full-stop`. A run
   of `full-stop-fix` with the skill, once on Opus and once on Sol, passed both
   runs. The folder is `2026-11-03T05-02-48-113Z`.
+
+## Results of 6 November 2026: featuremap in CI
+
+A climb toward a gain on 4 of 5 models, with one rewrite and one fixed
+confirmation. The cases `featuremap-ci-atlas` and `featuremap-ci-grid` ask for a
+CI check of the part boundaries in all languages of a monorepo. The known list
+of breaks can only shrink. An author who did not read the skill, its
+cases or their results wrote the held-out case `featuremap-ci-confirm`. The
+folder is `2026-11-06-featuremap-confirm`.
+
+| Case | Tier | Gain | Critical runs, with · without | Time |
+| --- | --- | --- | --- | --- |
+| `featuremap-ci-atlas` | Trusted | 3/5 | 0/15 · 0/15 | 0.7x |
+| `featuremap-ci-grid` | Trusted | 2/5 | 0/15 · 0/15 | 0.8x |
+| `featuremap-ci-confirm`, held out | Trusted | 2/5 | 0/15 · 0/15 | 0.7x |
+| `featuremap-diagnose`, with the skill only | - | - | 0/5 | - |
+
+| Model | atlas, with · without | grid, with · without | held out, with · without |
+| --- | --- | --- | --- |
+| Opus | 3/3 · 3/3 | 3/3 · 1/3 | 3/3 · 1/3 |
+| Sol | 3/3 · 2/3 | 3/3 · 2/3 | 1/3 · 2/3 |
+| Terra | 3/3 · 0/3 | 3/3 · 3/3 | 3/3 · 0/3 |
+| Haiku | 3/3 · 3/3 | 2/3 · 3/3 | 1/2 · 2/3 |
+| Luna | 3/3 · 2/3 | 3/3 · 3/3 | 3/3 · 3/3 |
+
+- **Goal missed:** no case reached a gain on 4 of 5 models. The climb stopped
+  after the confirmation, as its stop rule says.
+- **Cause of the miss:** with the skill, 40 of 44 runs passed. Without it, 30
+  of 45 passed. A model that passes 3 of 3 runs without the skill cannot gain,
+  and Opus, Haiku and Luna often did. The skill reached 3 of 3 on each model in
+  `featuremap-ci-atlas`.
+- **Rewrite:** before it, each run that used the script added TS path aliases
+  to its copy. A Sol run rewrote 419 lines and hit the time limit. The script
+  now reads the `paths` of the nearest `tsconfig.json` and its parent configs.
+- **Recipe:** the skill now starts with a CI recipe. It gives the map, make targets that
+  run the CMake configure step, a CI job with the full history, and probes on
+  a scratch branch. Each run of the screen used the script with no change. In
+  the confirmation, 43 of 45 runs did. One Haiku run wrote its own checker, and
+  one Opus run changed 2 lines.
+- **Failures with the skill:** two Sol runs on the held-out case committed a
+  test that the skill forbids, and CI failed on a clean pull request. Two
+  Haiku runs reported a wrong list of breaks. One Haiku run gave no result.
+- **Before the rewrite:** the first runs of the old skill, on 18 of 60 runs,
+  showed no gain on either case. No full A/B of the old skill ran on these
+  cases.
+- **Speed:** the climb took about 2 hours of wall-clock time. The **without**
+  arm ran with `--arms without` while the skill changed. A screen of 6 runs on
+  Opus, Sol and Terra came before the confirmation.
+- **Check fix:** the held-out case first called a new checker in its test
+  folder `checks/` a change to product code. 14 of 15 runs without the skill
+  and 2 of 15 with it put a checker there. We fixed the check and rejudged the
+  case. Before the fix, the case showed a gain on 4 of 5 models, which the
+  fault caused.
+- **Script limit:** when all CMake targets live in one `CMakeLists.txt`, the
+  `cmake` tool gives each target the same folder and finds no link between
+  parts. Several runs wrote a small `jsonl` helper for it.
+
+## Rule for the featuremap replication, written before its runs
+
+We wrote this rule on 6 November 2026, after the results above and before any
+run of the new cases. The 90 runs above are exploratory, because the rule came
+from them. They do not count toward the rule. The council of Fable, Astra and
+Muse reviewed the rule before the runs.
+
+- **Data:** two new held-out cases, `featuremap-ci-relay` and
+  `featuremap-ci-ledger`. Two authors wrote them from the same brief. They did
+  not read the skill, `featuremap-ci-confirm`, `featuremap-diagnose` or any
+  result. They read `featuremap-ci-atlas` and `featuremap-ci-grid` for the case
+  format, so the new cases differ only in layout and languages.
+- **Freeze:** one commit holds the skill of `c5dff85`, both cases, this rule and
+  `evals/featuremap-rule.mjs`. We make it before the first run, and each run
+  uses it. The result names that commit.
+- **Runs:** 3 runs for each arm and case on `opus-5.5-xhigh`,
+  `haiku-5.5-xhigh`, `gpt-6.1-sol-xhigh`, `gpt-6.1-terra-xhigh` and
+  `gpt-6-luna-xhigh`. That is 6 runs for each arm and model, and 60 in all. We
+  add no run to replace one.
+- **Count:** each run counts. A run with a status other than `pass` or `fail`,
+  such as `error` or `skipped`, is an error and counts as a fail. A timed-out
+  run counts as a fail with its cost. A model is unclear when an arm does not
+  have the runs 1, 2 and 3 on each case, or has more than 1 error.
+- **Cost:** the cost of one run is `usage.cost_usd` for a Claude model. For a
+  Codex model, it is `usage.input_tokens` minus `usage.cached_input_tokens`,
+  plus `usage.output_tokens`. A run without usage leaves only the cost median.
+  The median of an even count is the mean of the two middle values. The cost
+  gain is unclear when an arm has fewer than 5 runs with usage. Then the model
+  is unclear when only the cost can decide it.
+- **Pass gain:** the model passes at least 2 more of its 6 runs with the skill.
+  With no real effect, chance gives it to about 19 % of models at a base pass
+  rate of 50 %. At 90 %, chance gives it to about 7 %.
+- **Cost gain:** the model passes no fewer runs with the skill, and passes at
+  least once on each case with it. Its median cost with the skill is at most
+  0.8 times the median without it.
+- **Model improves:** a pass gain or a cost gain, and no case where the model
+  passes 2 or more fewer runs with the skill.
+- **Goal:** 4 or more of the 5 models improve. The goal is unclear when the
+  unclear models could still bring the count to 4. A met goal is a result
+  under this rule, not a proof. With no real effect, chance meets it through
+  the pass gain alone for under 1 % of skills. We do not know the share of
+  the cost gain.
+- **Each case alone:** for the report only. A case passes when 2 or more
+  models pass at least 1 more run on it, and no model passes 2 or more fewer
+  runs.
+- **Script:** `node evals/featuremap-rule.mjs <results folder>` computes each
+  line above from `runs.jsonl`.
+- **Check fixes:** a fix to a check after the runs needs a review by an agent
+  that does not see the arms. Then we rejudge both arms, and we report the
+  result before and after the fix.
+- **Stop:** we stop after these 60 runs, also when the goal is not met. We
+  report an unclear result as unclear.
+
+### Deviation of 6 November 2026, written before its runs
+
+- **Fault:** the run in `2026-11-06T09-44-30-356Z` stopped early. The
+  runner refuses Claude work when the Claude login has less than 30 minutes
+  left. This stopped 39 of 60 runs in both arms and on all 5 models: 8 errors
+  and 31 skipped runs. The 8 errors ran for 694 to 1522 s before the judge
+  step failed.
+- **First result:** under the rule above, each model and the goal are
+  unclear. This result stays as it is.
+- **What we saw:** the counts by status (12 pass, 9 fail, 8 error, 31
+  skipped), and the scorer output with the passes of each model. We chose the
+  39 runs by their status only. No one reads the replies of the 8 errors.
+- **Runs again:** the 39 runs are each run 2 and 3, but not run 2 of
+  `gpt-6.1-sol-xhigh` with the skill on `featuremap-ci-ledger`. Each runs
+  once, from the start. The 8 errors cannot get a rejudge, because the
+  runner removes the sandbox of a run with an error. Their traces stay in the
+  old folder and count for nothing.
+- **Kept runs:** the 21 runs with `pass` or `fail` stay unchanged. The SHA-256
+  of their sorted lines is
+  `8d4ce2700e08be1b87c83feb61443b69ef110ed73f01052bf907b1a7c6eff459`. Their
+  files stay in the old folder.
+- **Command:** `--resume` with the old folder. The skill, the cases, the checks,
+  the judges and `evals/featuremap-rule.mjs` stay as in `46713f6`.
+- **Count:** the new `runs.jsonl` must have 60 rows with unique keys. An
+  infrastructure error on a run again stays an error. We make no second
+  deviation.
+- **Report:** the first result, and the result of this deviation, with its
+  own label. The second result does not meet the first rule.
+
+### Result of the replication
+
+The goal is not met. After a fix to the ledger grader and to the CI check, 3
+of 5 models improve.
+
+| Result | Runs | Models that improve | Goal |
+| --- | --- | --- | --- |
+| First run, under the rule | 21 of 60 | 0, and 5 unclear | unclear |
+| Deviation, before the grader fix | 60 | 5 | met |
+| Deviation, after the grader fix | 60 | 3 | not met |
+| Deviation, after the check fix | 60 | 3 | not met |
+
+- **Grader fix:** the ledger grader accepted two entries for the C break, but
+  not for the Rust one. A reply that also named `use journal::Amount` in
+  `engine/fx/src/lib.rs` failed. This hit 9 runs without the skill and 3 runs
+  with it. A blind review confirmed the fault, and `953ac72` fixes the
+  clause. The rejudge of both arms changed exactly these 12 runs.
+- **Check fix:** a probe counted a failed CI step as caught only when the
+  agent added the step. A boundary check inside the old `make test` step did
+  not count. A blind review confirmed the fault, and `39da3b4` counts each
+  failed step. The rejudge of the relay runs in both arms changed 1 run:
+  Opus without the skill, run 3. The saved checks of atlas, grid, confirm and
+  ledger have no run that the fix changes.
+- **Joined runs:** `2026-11-06-featuremap-replication`, with the runs before
+  the grader fix in `before-fix.jsonl.txt` and before the check fix in
+  `before-check-fix.jsonl.txt`.
+
+After both fixes:
+
+| Model | Passes with · without | Median cost with · without | Result |
+| --- | --- | --- | --- |
+| `opus-5.5-xhigh` | 5/6 · 4/6 | $2.91 · $3.93 | improves, by cost |
+| `haiku-5.5-xhigh` | 6/6 · 6/6 | $0.41 · $0.47 | no |
+| `gpt-6.1-sol-xhigh` | 5/6 · 1/6 | 70k · 62k tokens | improves |
+| `gpt-6.1-terra-xhigh` | 6/6 · 3/6 | 54k · 31k tokens | improves |
+| `gpt-6-luna-xhigh` | 6/6 · 6/6 | 129k · 106k tokens | no |
+
+- **Ceiling:** Haiku and Luna pass each run without the skill, so they cannot
+  improve on pass rate. The skill does not make their cost lower by 20 %.
+- **Cost:** the skill makes the median cost lower on Opus and Haiku. On the 3
+  Codex models its median token count is 13 % to 77 % higher.
+- **Each case:** relay passes on 2 models and ledger on 3, with no loss.
+- **Spend:** the 39 runs again cost $29.36 of Claude agent time. All 60 runs
+  cost $44.82.
 
 ## Case format
 

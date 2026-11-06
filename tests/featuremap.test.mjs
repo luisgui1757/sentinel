@@ -160,6 +160,26 @@ test('check fails on new violations and gaps, passes after baseline, and catches
   await fs.rm(dir, { recursive: true, force: true });
 });
 
+test('scan resolves the TS path aliases of the nearest tsconfig.json and the configs that it extends, with a BOM and an exact alias first', async () => {
+  const { dir } = await repo({
+    'tsconfig.base.json': '\uFEFF{\n  // shared\n  "compilerOptions": {\n    "baseUrl": ".",\n    "paths": { "@money/*": ["packages/shared/*"], "@model*": ["packages/shared/*"], "@model": ["packages/vehicle/src/model.ts"], },\n  },\n}\n',
+    'packages/billing/tsconfig.json': '{ "extends": "../../tsconfig.base.json" }\n',
+    'packages/billing/src/alias.ts': "import { round } from '@money/money';\nimport { model } from '@model';\nexport const total = round(model.rate);\n",
+    'packages/vehicle/tsconfig.json': '{ "extends": "../../tsconfig.base", "compilerOptions": { "baseUrl": ".", "paths": { "@money/*": ["../shared/*"] } } }\n',
+    'packages/vehicle/src/local.ts': "import { fmt } from '@money/fmt';\nexport const label = fmt;\n",
+  });
+  const { code, out, err } = fm(dir, 'extract');
+  assert.equal(code, 0, err);
+  const edges = out.trim().split('\n').map(line => JSON.parse(line));
+  const has = (from, to) => assert.ok(edges.some(e => e.from === from && e.to === to && e.kind === 'import'), `${from} -> ${to}\n${out}`);
+  has('packages/billing/src/alias.ts', 'packages/shared/money.ts');
+  has('packages/billing/src/alias.ts', 'packages/vehicle/src/model.ts');
+  has('packages/vehicle/src/local.ts', 'packages/shared/fmt.ts');
+  const check = fm(dir, 'check');
+  assert.match(check.out, /^NEW may-use billing -> vehicle: packages\/billing\/src\/alias\.ts -> packages\/vehicle\/src\/model\.ts/m);
+  await fs.rm(dir, { recursive: true, force: true });
+});
+
 test('a scan entry covers only the files that it can read', async () => {
   const { dir } = await repo({ 'featuremap.json': JSON.stringify({ ...map, extract: [{ tool: 'scan', files: ['**/*'] }] }) });
   const r = fm(dir, 'check');

@@ -1,6 +1,6 @@
 ---
 name: featuremap
-description: "Use when the user asks for a feature map, a dependency graph of the features of a repo, which features use a file, boundary rules between features or modules, or a plan to split a monorepo by feature. Writes featuremap.json, extracts edges from JS, TS, Python, C and C++ code, go list, cargo metadata and the CMake File API, checks may-use and must-not-reach rules against a baseline that can only shrink, and plans a step-by-step or a full restructure."
+description: "Use when the user asks for a feature map, a dependency graph of the features or packages of a repo, which features use a file, boundary rules between features, modules or packages, a CI check that blocks a new import or dependency across those boundaries while it keeps the known violations in a baseline, or a plan to split a monorepo by feature. Writes featuremap.json, extracts edges from JS, TS, Python, C and C++ code, go list, cargo metadata and the CMake File API, checks may-use and must-not-reach rules against a baseline that can only shrink, and plans a step-by-step or a full restructure."
 ---
 
 # Feature map
@@ -9,18 +9,100 @@ A feature map says which feature owns each source file, and which features may
 use which. A check in CI keeps the code inside those rules. One map covers the
 whole monorepo, in all its languages.
 
-Run the script with Node 22 or later:
+Copy `scripts/featuremap.mjs` from this skill to `tools/featuremap/` in the
+repo, so that CI runs the same file. Run it with Node 22 or later:
 
 ```sh
 node tools/featuremap/featuremap.mjs <command>
 ```
 
-Copy `scripts/featuremap.mjs` from this skill to `tools/featuremap/` in the
-repo, so that CI runs the same file.
+Do not rewrite the copy. It already reads the import forms in "Extractors and
+coverage". For a dependency that no extractor sees, add a `declared` edge or a
+`jsonl` entry, and report it.
+
+## Boundaries in CI
+
+Use this section when the user asks for a CI check that blocks new
+dependencies across parts. Skip Diagnose, the graph and the restructure plan.
+
+1. Write `featuremap.json` from the rules of the repo, such as a table in
+   `README.md`. Each part is a feature with an owner pattern for its folder.
+   "May use nothing" is `"mayUse": []`. A part that may use any part, such as a
+   tests folder, has no `mayUse`.
+2. Add one `extract` entry for each language. See "Extractors and coverage".
+   Give `scan` the Python package roots in `roots` and each include folder of
+   the build in `includeDirs`. For a dependency in a build manifest, use
+   `cargo` for Rust and `cmake` for links between CMake targets.
+3. Add the make targets and the CI job below. Use the target names that the
+   user asks for.
+4. Run the baseline target, then the check target. Read each violation in the
+   baseline. Each one must be a real break of the rules. When one is not, fix
+   the map, not the baseline.
+5. Prove the check on a scratch branch or a copy, and delete it after:
+   - A new break fails, also from a file that already has a break.
+   - A pull request that runs the baseline target to allow a new break fails.
+   - A removed break, then the baseline target, passes. The break then fails
+     again when it comes back.
+6. Do not commit a test that reads the current baseline of the repo. It fails
+   when somebody removes a break and shrinks the baseline.
+7. Report the known violations, the files with no extractor, and the review
+   rule for the map and the baseline.
+
+The make targets. Keep `deps-configure` only when the map has a `cmake` entry.
+Set its source folder and its build folder to those of the repo, and add the
+build folder to `.gitignore`:
+
+```make
+FEATUREMAP := node tools/featuremap/featuremap.mjs
+
+.PHONY: deps-configure deps-baseline deps-check
+deps-configure:
+	mkdir -p build/.cmake/api/v1/query
+	touch build/.cmake/api/v1/query/codemodel-v2
+	cmake -S native -B build > /dev/null
+
+deps-baseline: deps-configure
+	$(FEATUREMAP) baseline
+
+deps-check: deps-configure
+	$(FEATUREMAP) check $(if $(BASE),--base $(BASE))
+```
+
+The CI job. `check --base` reads the baseline of the base commit, so the
+checkout needs the full history:
+
+```yaml
+  boundaries:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: make deps-check BASE=${{ github.event.pull_request.base.sha || github.event.before }}
+```
+
+The job needs each tool that the map names, such as CMake or Rust. Install
+the tools that the runner image does not have.
+
+| Exit of `check` | Meaning |
+| --- | --- |
+| 0 | Nothing is new. |
+| 1 | A new violation, a new unowned file, a new file with no extractor, or a baseline that grew since `--base`. |
+| 2 | An error in the map or a tool. It comes first, so that a broken extractor never gives a pass. |
+
+`baseline` writes `featuremap.baseline.json`: each known violation by its exact
+edge, each unowned file, and each file with no extractor. A replaced violation
+is new, also when the count stays the same. Add `featuremap.json` and
+`featuremap.baseline.json` to CODEOWNERS, so that a person reviews each change
+of the rules. If the forge has no CODEOWNERS file, use its review rule for these
+two files. If it has no such rule, report it.
 
 ## Diagnose
 
-Do this first. Change no product file.
+Use this section for a feature map or a dependency graph. Change no product file.
 
 1. Find the features. Read the layout and the manifests: `package.json`
    workspaces, `Cargo.toml`, `go.mod`, `pyproject.toml`, the targets in
@@ -75,7 +157,7 @@ CMake tools give edges between folders.
 
 | Tool | Edges | Misses |
 | --- | --- | --- |
-| `scan` | JS and TS `import`, `export ... from`, `require` and `import()` with a literal path, relative or to a workspace package. Python `import` and `from`, resolved from `roots`. C and C++ `#include`, resolved from the folder of the file and from `includeDirs`. | Dynamic paths, path aliases, macros, and conditional includes |
+| `scan` | JS and TS `import`, `export ... from`, `require` and `import()` with a literal path: relative, to a workspace package, or through the `paths` of the nearest `tsconfig.json` and the configs that it extends. Python `import` and `from`, resolved from `roots`. C and C++ `#include`, resolved from the folder of the file and from `includeDirs`. | Dynamic paths, macros, and conditional includes |
 | `go` | Packages of the main module, from `go list -e -json ./...` in `dir` | Code that the build tags leave out |
 | `cargo` | Path dependencies between workspace crates, from `cargo metadata --no-deps` | Dev-dependencies |
 | `cmake` | Links between targets, from the CMake File API in `build` | Includes. Add a `scan` entry for them. |
@@ -104,29 +186,6 @@ input belongs to the parent.
 
 A file that many features use, such as one very large API module, gets one
 owner. Report it as debt, and split it later.
-
-## Check in CI
-
-```sh
-node tools/featuremap/featuremap.mjs check --base <base commit of the PR>
-```
-
-| Exit | Meaning |
-| --- | --- |
-| 0 | Nothing is new. |
-| 1 | A new violation, a new unowned file, a new file with no extractor, or a baseline that grew since `--base`. |
-| 2 | An error in the map or a tool. It comes first, so that a broken extractor never gives a pass. |
-
-`baseline` writes `featuremap.baseline.json`: each known violation by its exact
-edge, each unowned file, and each file with no extractor. A replaced violation
-is new, also when the count stays the same. When the code fixes an entry, run
-`baseline` again to shrink the file. Add `featuremap.json` and
-`featuremap.baseline.json` to CODEOWNERS, so that a person reviews each change
-of the rules. If the forge has no CODEOWNERS file, use its review rule for these
-two files. If it has no such rule, report it.
-
-In CI, install the tools that the map names, and run the CMake configure step,
-before `check`.
 
 ## Ask the map
 

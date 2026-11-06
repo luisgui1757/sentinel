@@ -17,7 +17,7 @@ const verdictSchema = { type: 'object', additionalProperties: false, required: [
   properties: { pass: { type: 'boolean' }, reason: { type: 'string' } } };
 
 function options(argv) {
-  const opts = { runs: 3, jobs: 4, base: 'origin/main', earlyStop: true, keep: false, targets: null, cases: null, judges: null, ab: false, rejudge: null };
+  const opts = { runs: 3, jobs: 4, base: 'origin/main', earlyStop: true, keep: false, targets: null, cases: null, judges: null, ab: false, arms: null, rejudge: null, resume: null };
   for (let i = 0; i < argv.length; i++) {
     const [flag, value] = [argv[i], argv[i + 1]];
     if (flag === '--targets') { opts.targets = value.split(','); i++; }
@@ -29,9 +29,12 @@ function options(argv) {
     else if (flag === '--no-early-stop') opts.earlyStop = false;
     else if (flag === '--keep') opts.keep = true;
     else if (flag === '--ab') opts.ab = true;
+    else if (flag === '--arms') { opts.arms = value.split(','); i++; }
     else if (flag === '--rejudge') { opts.rejudge = value; i++; }
+    else if (flag === '--resume') { opts.resume = value; i++; }
     else throw new Error(`Unknown option: ${flag}`);
   }
+  if (opts.arms && (!opts.ab || opts.arms.some(arm => arm !== 'with' && arm !== 'without'))) throw new Error('--arms needs --ab and takes with, without or both');
   return opts;
 }
 
@@ -429,6 +432,12 @@ async function main() {
   const ctx = { results, baseRulesFor, judgesFor, keep: opts.keep, auth: () => ({ claude: claudeToken(), codex: codexAuth() }) };
   ctx.auth();
   const limit = semaphore(opts.jobs);
+  const done = new Map();
+  if (opts.resume) for (const line of readFileSync(path.join(opts.resume, 'runs.jsonl'), 'utf8').split('\n').filter(Boolean)) {
+    const record = JSON.parse(line);
+    if (record.status === 'pass' || record.status === 'fail') done.set(`${record.case} ${record.target} ${record.arm} ${record.index}`, record);
+  }
+  const run = async (testCase, target, arm, index) => done.get(`${testCase.name} ${target.id} ${arm} ${index}`) ?? limit(() => trial(ctx, testCase, target, arm, index));
   const records = [];
   const log = async record => {
     records.push(record);
@@ -439,14 +448,15 @@ async function main() {
   const job = async (testCase, target) => {
     const missing = (testCase.requires || []).filter(cmd => spawnSync('sh', ['-c', `command -v ${cmd}`]).status !== 0);
     if (missing.length) { console.log(`SKIP ${testCase.name} ${target.id}: needs ${missing.join(', ')}`); return; }
-    const arms = !opts.ab ? ['with'] : testCase.arms ?? (testCase.load === false ? ['with'] : ['with', 'without']);
-    const first = await Promise.all(arms.map(arm => limit(() => trial(ctx, testCase, target, arm, 1))));
+    const arms = (!opts.ab ? ['with'] : testCase.arms ?? (testCase.load === false ? ['with'] : ['with', 'without'])).filter(arm => !opts.arms || opts.arms.includes(arm));
+    if (!arms.length) return;
+    const first = await Promise.all(arms.map(arm => run(testCase, target, arm, 1)));
     for (const record of first) await log(record);
     const repeat = opts.runs > 1 && !ctx.stopped && (!opts.ab ? !opts.earlyStop || first.some(r => !r.pass)
       : testCase.load !== false && (!opts.earlyStop || arms.length === 1 || first.some(r => r.status === 'error') || first[0].pass !== first[1].pass));
     if (!repeat) return;
     const more = [];
-    for (let i = 2; i <= opts.runs; i++) for (const arm of arms) more.push(limit(() => trial(ctx, testCase, target, arm, i).then(log)));
+    for (let i = 2; i <= opts.runs; i++) for (const arm of arms) more.push(run(testCase, target, arm, i).then(log));
     await Promise.all(more);
   };
   await Promise.all(cases.flatMap(testCase => targetsFor(testCase).map(target => job(testCase, target))));

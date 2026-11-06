@@ -1,0 +1,14 @@
+{
+  // Shared settings for each package.
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "baseUrl": ".",
+    "paths": {
+      "@core/*": ["packages/core/src/*"],
+      "@gl/*": ["packages/renderer/src/gl/*"],
+    },
+  },
+}

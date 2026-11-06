@@ -1,0 +1,5 @@
+{
+  "name": "@atlas/renderer",
+  "private": true,
+  "main": "src/index.ts"
+}
