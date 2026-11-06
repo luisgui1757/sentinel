@@ -593,28 +593,36 @@ Muse reviewed the rule before the runs.
 
 ### Result of the replication
 
-The goal is not met. 3 of 5 models improve under the rule, after a fix to
-the ledger grader.
+The goal is not met. After a fix to the ledger grader and to the CI check, 3
+of 5 models improve.
 
 | Result | Runs | Models that improve | Goal |
 | --- | --- | --- | --- |
 | First run, under the rule | 21 of 60 | 0, and 5 unclear | unclear |
 | Deviation, before the grader fix | 60 | 5 | met |
 | Deviation, after the grader fix | 60 | 3 | not met |
+| Deviation, after the check fix | 60 | 3 | not met |
 
 - **Grader fix:** the ledger grader accepted two entries for the C break, but
   not for the Rust one. A reply that also named `use journal::Amount` in
   `engine/fx/src/lib.rs` failed. This hit 9 runs without the skill and 3 runs
   with it. A blind review confirmed the fault, and `953ac72` fixes the
   clause. The rejudge of both arms changed exactly these 12 runs.
+- **Check fix:** a probe counted a failed CI step as caught only when the
+  agent added the step. A boundary check inside the old `make test` step did
+  not count. A blind review confirmed the fault, and `39da3b4` counts each
+  failed step. The rejudge of the relay runs in both arms changed 1 run:
+  Opus without the skill, run 3. The saved checks of atlas, grid, confirm and
+  ledger have no run that the fix changes.
 - **Joined runs:** `2026-11-06-featuremap-replication`, with the runs before
-  the fix in `before-fix.jsonl.txt`.
+  the grader fix in `before-fix.jsonl.txt` and before the check fix in
+  `before-check-fix.jsonl.txt`.
 
-After the fix:
+After both fixes:
 
 | Model | Passes with · without | Median cost with · without | Result |
 | --- | --- | --- | --- |
-| `opus-5.5-xhigh` | 5/6 · 3/6 | $2.91 · $3.93 | improves |
+| `opus-5.5-xhigh` | 5/6 · 4/6 | $2.91 · $3.93 | improves, by cost |
 | `haiku-5.5-xhigh` | 6/6 · 6/6 | $0.41 · $0.47 | no |
 | `gpt-6.1-sol-xhigh` | 5/6 · 1/6 | 70k · 62k tokens | improves |
 | `gpt-6.1-terra-xhigh` | 6/6 · 3/6 | 54k · 31k tokens | improves |
@@ -623,9 +631,10 @@ After the fix:
 - **Ceiling:** Haiku and Luna pass each run without the skill, so they cannot
   improve on pass rate. The skill does not make their cost lower by 20 %.
 - **Cost:** the skill makes the median cost lower on Opus and Haiku. On the 3
-  Codex models it uses 13 % to 77 % more tokens for each run.
-- **Each case:** each case passes on 3 models, with no loss.
-- **Spend:** the 39 runs cost $44.82 of Claude agent time.
+  Codex models its median token count is 13 % to 77 % higher.
+- **Each case:** relay passes on 2 models and ledger on 3, with no loss.
+- **Spend:** the 39 runs again cost $29.36 of Claude agent time. All 60 runs
+  cost $44.82.
 
 ## Case format
 
