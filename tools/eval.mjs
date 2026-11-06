@@ -34,6 +34,7 @@ function options(argv) {
     else if (flag === '--resume') { opts.resume = value; i++; }
     else throw new Error(`Unknown option: ${flag}`);
   }
+  if (opts.arms && (!opts.ab || opts.arms.some(arm => arm !== 'with' && arm !== 'without'))) throw new Error('--arms needs --ab and takes with, without or both');
   return opts;
 }
 

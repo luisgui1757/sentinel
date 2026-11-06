@@ -193,14 +193,11 @@ export function codexSessions() {
 
 const YAML_TO_JSON = 'require "yaml"; require "json"; print JSON.generate(YAML.safe_load(STDIN.read, aliases: true) || {})';
 
-// The workflows of dir, or of dir at a commit, as objects.
-export function workflows(dir, rev = null) {
-  const gitIn = args => sh('git', args, dir).stdout;
-  const files = rev ? gitIn(['ls-tree', '--name-only', `${rev}:.github/workflows`]).split('\n').filter(Boolean)
-    : fs.existsSync(path.join(dir, '.github/workflows')) ? fs.readdirSync(path.join(dir, '.github/workflows')) : [];
+export function workflows(dir) {
+  const files = fs.existsSync(path.join(dir, '.github/workflows')) ? fs.readdirSync(path.join(dir, '.github/workflows')) : [];
   const docs = [], errors = [];
   for (const file of files.filter(f => /\.ya?ml$/.test(f)).sort()) {
-    const text = rev ? gitIn(['show', `${rev}:.github/workflows/${file}`]) : fs.readFileSync(path.join(dir, '.github/workflows', file), 'utf8');
+    const text = fs.readFileSync(path.join(dir, '.github/workflows', file), 'utf8');
     const parsed = spawnSync('ruby', ['-e', YAML_TO_JSON], { input: text, encoding: 'utf8' });
     if (parsed.status !== 0) errors.push(`${file}: ${parsed.stderr.trim().split('\n')[0]}`);
     else docs.push({ file, doc: JSON.parse(parsed.stdout) });
@@ -220,7 +217,6 @@ function globRe(pattern) {
 const filtered = (patterns, value) => patterns.reduce((hit, p) => (p.startsWith('!') ? hit && !globRe(p.slice(1)).test(value) : hit || globRe(p).test(value)), false);
 const list = v => (v === undefined || v === null ? null : Array.isArray(v) ? v.map(String) : [String(v)]);
 
-// A GitHub Actions expression, such as `github.event_name == 'push' && success()`.
 export function expression(text, context, status = {}) {
   const tokens = [];
   const re = /\s*(?:('(?:''|[^'])*')|(\d+(?:\.\d+)?)|(==|!=|<=|>=|&&|\|\||[!<>(),\[\]])|([A-Za-z_][\w-]*(?:\.(?:[A-Za-z_*][\w-]*))*))/y;
@@ -286,8 +282,6 @@ const condition = (raw, context, status) => {
   return expression(text, context, status).truthy && (hasStatus || !status.failed);
 };
 
-// A fresh checkout of the answer of the agent, where its change is the main
-// branch. It plants pull requests and runs the workflows as GitHub would.
 export function pullRequests() {
   const dir = path.join(tmp, 'ci-repo'), remote = path.join(tmp, 'ci-remote.git'), scratch = path.join(tmp, 'ci-scratch');
   for (const d of [dir, remote, scratch]) fs.rmSync(d, { recursive: true, force: true });
@@ -299,7 +293,6 @@ export function pullRequests() {
     fs.mkdirSync(path.dirname(path.join(dir, file)), { recursive: true });
     fs.cpSync(from, path.join(dir, file), { verbatimSymlinks: true });
   }
-  // The make targets run where a developer works, with the installed packages.
   const kept = ['node_modules', '.venv', 'venv'];
   for (const entry of git('ls-files', '-z', '--others', '--ignored', '--exclude-standard', '--directory').stdout.split('\0').filter(Boolean)) {
     if (entry.endsWith('/') && kept.includes(path.basename(entry))) fs.cpSync(path.join(work, entry), path.join(dir, entry), { recursive: true, verbatimSymlinks: true });
@@ -308,14 +301,12 @@ export function pullRequests() {
   const g = (...args) => sh('git', ['-c', 'user.name=CI', '-c', 'user.email=ci@example.com', '-c', 'commit.gpgsign=false', ...args], dir);
   g('add', '-A');
   g('commit', '-q', '--allow-empty', '--no-verify', '-m', 'the change of the agent');
-  const main = g('rev-parse', 'HEAD').stdout.trim(), start = process.env.EVAL_HEAD;
+  const main = g('rev-parse', 'HEAD').stdout.trim();
   sh('git', ['init', '-q', '--bare', remote], tmp);
   g('remote', 'remove', 'origin');
   g('remote', 'add', 'origin', remote);
   g('push', '-q', 'origin', `${main}:refs/heads/main`);
   g('fetch', '-q', 'origin');
-  const before = new Set(workflows(work, start).docs.flatMap(({ doc }) => Object.values(doc.jobs ?? {}).flatMap(j => (j?.steps ?? []).map(s => String(s?.run ?? '').trim()))).filter(Boolean));
-  // The runner image has the tools. Installs go to folders of this check.
   const real = name => sh('sh', ['-c', `command -v ${name}`]).stdout.trim();
   const shim = (name, body) => { fs.writeFileSync(path.join(scratch, 'shims', name), `#!/bin/sh\n${body}\n`, { mode: 0o755 }); };
   for (const name of ['apt-get', 'apt', 'brew']) shim(name, 'exit 0');
@@ -338,9 +329,6 @@ export function pullRequests() {
       const r = spawnSync('make', [target], { cwd: dir, encoding: 'utf8', timeout: 240000, env: { ...process.env, PATH, NPM_CONFIG_PREFIX: path.join(scratch, 'npm') } });
       return { code: r.status ?? 1, output: `${r.stdout}${r.stderr}`.slice(-1500) };
     },
-    // Runs the workflows for a pull request into main, or for a push to main.
-    // A pull request is caught when a step that the agent added or changed
-    // fails its job.
     ci({ event = 'pull_request', base = main } = {}) {
       const head = g('rev-parse', 'HEAD').stdout.trim(), branch = event === 'push' ? 'main' : g('rev-parse', '--abbrev-ref', 'HEAD').stdout.trim();
       const changed = g('diff', '--name-only', `${base}...${head}`).stdout.split('\n').filter(Boolean);
@@ -380,7 +368,6 @@ export function pullRequests() {
             } catch (error) { errors.push(`${file} ${id}: ${error.message}`); result = 'failure'; }
             if (result === 'skipped') { done.set(id, 'skipped'); continue; }
             ran++;
-            // Each job gets a new runner. actions/checkout fetches one commit unless fetch-depth says more.
             const workspace = path.join(scratch, `job-${ran}`);
             fs.rmSync(workspace, { recursive: true, force: true });
             const checkout = (job.steps ?? []).find(st => /^actions\/checkout@/.test(String(st?.uses ?? '')));
@@ -424,7 +411,7 @@ export function pullRequests() {
                 const code = r.status ?? 1, soft = code !== 0 && step['continue-on-error'] !== undefined && condition(step['continue-on-error'], context, { failed: false });
                 if (step.id) context.steps[step.id] = { outputs: pairs(read(outFile)), outcome: code ? 'failure' : 'success', conclusion: code && !soft ? 'failure' : 'success' };
                 if (code && !soft) status.failed = true;
-                results.push({ file, job: id, step: script.trim().split('\n')[0].slice(0, 120), added: !before.has(step.run.trim()), code: soft ? 0 : code, output: `${r.stdout}${r.stderr}`.slice(-600) });
+                results.push({ file, job: id, step: script.trim().split('\n')[0].slice(0, 120), code: soft ? 0 : code, output: `${r.stdout}${r.stderr}`.slice(-600) });
               } catch (error) { errors.push(`${file} ${id}: ${error.message}`); status.failed = true; }
             }
             done.set(id, status.failed ? 'failure' : 'success');
@@ -432,8 +419,8 @@ export function pullRequests() {
         }
       }
       const failed = results.filter(r => r.code !== 0);
-      return { pass: !errors.length && !failed.length, caught: failed.some(r => r.added), ran, errors, results,
-        detail: [`${event}: ${ran} jobs ran`, ...errors, ...failed.map(r => `${r.added ? 'new' : 'old'} step "${r.step}" exit ${r.code}: ${r.output.trim().split('\n').slice(-3).join(' / ')}`)].join(' | ') };
+      return { pass: !errors.length && !failed.length, caught: failed.length > 0, ran, errors, results,
+        detail: [`${event}: ${ran} jobs ran`, ...errors, ...failed.map(r => `step "${r.step}" exit ${r.code}: ${r.output.trim().split('\n').slice(-3).join(' / ')}`)].join(' | ') };
     },
     cleanup() { for (const d of [dir, remote, scratch]) fs.rmSync(d, { recursive: true, force: true }); },
   };
@@ -442,8 +429,6 @@ export function pullRequests() {
 
 const PRODUCT = /\.(js|mjs|cjs|jsx|ts|tsx|mts|cts|py|go|rs|java|kt|scala|cs|swift|rb|php|c|cc|cpp|cxx|h|hh|hpp|hxx|ipp|inl)$|(^|\/)(package\.json|Cargo\.toml|CMakeLists\.txt|pyproject\.toml|setup\.py|go\.mod|tsconfig\.json)$/;
 
-// Files that existed at the start and changed, and new source files or build
-// manifests in the product folders.
 export function productChanges(folders, { allow = [] } = {}) {
   const lines = git('diff', '--name-status', '--no-renames', process.env.EVAL_HEAD).stdout.split('\n').filter(Boolean);
   return lines.map(line => line.split('\t')).filter(([status, file]) => !allow.some(a => (a.startsWith('**/') ? file === a.slice(3) || file.endsWith(`/${a.slice(3)}`) : a.endsWith('/') ? file.startsWith(a) : file === a))
