@@ -11,6 +11,7 @@ how badly it can fail.
 | `make eval ARGS="--case <name>"` | The same check for the named cases. |
 | `make eval ARGS="--ab"` | A/B. Each case runs **with** and **without** its skill or rule, on the 5 default models, with both judges. It prints the trust table. Use it for a new or removed skill, a rewrite of a skill, or a new or removed rules section. |
 | `make eval ARGS="--ab --arms without"` | An A/B that runs only the named arm. The **without** arm does not change with the skill, so a climb can run it once and join its `runs.jsonl` with the runs of each new skill text. Put both arms in one folder for `tools/trust.mjs`, because it keeps only the last folder for each case and target. |
+| `make eval ARGS="--ab --resume <results folder>"` | Copies each run with the status `pass` or `fail` from that folder into the new `runs.jsonl`, and runs only the other runs. |
 | `node tools/eval.mjs --rejudge <results folder>` | Runs the checks and the judges again on the saved runs, with no agent. Use it after a fix to a check or a judge. |
 | `node tools/trust.mjs <results folder>...` | Prints the trust table of saved A/B runs. |
 
@@ -560,6 +561,33 @@ Muse reviewed the rule before the runs.
   result before and after the fix.
 - **Stop:** we stop after these 60 runs, also when the goal is not met. We
   report an unclear result as unclear.
+
+### Deviation of 6 November 2026, written before its runs
+
+- **Fault:** the run in `2026-11-06T09-44-30-356Z` stopped early. The
+  runner refuses Claude work when the Claude login has less than 30 minutes
+  left. This stopped 39 of 60 runs in both arms and on all 5 models: 8 errors
+  and 31 skipped runs.
+- **First result:** under the rule above, each model and the goal are
+  unclear. This result stays as it is.
+- **What we saw:** the counts by status (12 pass, 9 fail, 8 error, 31
+  skipped), and the scorer output with the passes of each model. We chose the
+  39 runs by their status only. No one reads the replies of the 8 errors.
+- **Runs again:** the 39 runs are each run 2 and 3, but not run 2 of
+  `gpt-6.1-sol-xhigh` with the skill on `featuremap-ci-ledger`. Each runs
+  once, from the start. The 8 errors cannot get a rejudge, because the
+  runner removes the sandbox of a run with an error. Their traces stay in the
+  old folder and count for nothing.
+- **Kept runs:** the 21 runs with `pass` or `fail` stay unchanged. The SHA-256
+  of their sorted lines is
+  `8d4ce2700e08be1b87c83feb61443b69ef110ed73f01052bf907b1a7c6eff459`.
+- **Command:** `--resume` with the old folder. The skill, the cases, the checks,
+  the judges and `evals/featuremap-rule.mjs` stay as in `46713f6`.
+- **Count:** the new `runs.jsonl` must have 60 rows with unique keys. An
+  infrastructure error on a run again stays an error. We make no second
+  deviation.
+- **Report:** the first result, and the result of this deviation, with its
+  own label. The second result does not meet the first rule.
 
 ## Case format
 
