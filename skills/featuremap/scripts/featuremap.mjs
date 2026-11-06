@@ -133,7 +133,7 @@ function aliasTargets(spec, aliases) {
     const rank = suffix === null ? Infinity : prefix.length;
     if (hit && (!best || rank > best.rank)) best = { rank, targets, match: suffix === null ? '' : spec.slice(prefix.length, spec.length - suffix.length) };
   }
-  return best ? best.targets.map(t => path.posix.normalize(path.posix.join(aliases.base, t.replace('*', best.match)))) : [];
+  return best ? best.targets.map(t => path.posix.normalize(path.posix.join(aliases.base, t.replaceAll('*', best.match)))) : [];
 }
 
 function jsFile(exists, base) {
