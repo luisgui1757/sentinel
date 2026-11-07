@@ -538,8 +538,8 @@ the same counts without the skill, except Haiku on the old case with 1/3.
 - **Known limit of the fresh case:** with the skill of `main`, it fails on
   each model. So `make eval` reports it as a failure for each change to
   tldr. Its length check needs a new calibration in a later change. Three of
-  its fact checks pass on one word or one number: "release" for the release
-  jobs, "120" for the fallback cap, and "freeze" for the code freeze.
+  its fact checks pass on one word or one number. They are "release" for the
+  release jobs, "120" for the fallback cap, and "freeze" for the code freeze.
 - **Length as a cost:** the median reply with the skill had 509 words on the
   fresh case, 376 on the exposed case and 279 on the old case. Without it, the
   medians were 229, 231 and 128. In round 4, they were 413 and 328 with the
