@@ -187,7 +187,7 @@ test('a scan entry covers only the files that it can read', async () => {
   await fs.rm(dir, { recursive: true, force: true });
 });
 
-test('check --base fails when the baseline grows', async () => {
+test('check --base fails when the baseline grows, and takes the zero SHA of a first push', async () => {
   const { dir, git } = await repo();
   fm(dir, 'baseline');
   git('add', '-A'); git('commit', '-qm', 'baseline');
@@ -198,6 +198,8 @@ test('check --base fails when the baseline grows', async () => {
   assert.equal(grown.code, 1, grown.out);
   assert.match(grown.out, /^GREW baseline violations: may-use\|packages\/billing\/src\/fee\.ts\|packages\/vehicle\/src\/model\.ts/m);
   assert.equal(fm(dir, 'check').code, 0);
+  const firstPush = fm(dir, 'check', '--base', '0'.repeat(40));
+  assert.equal(firstPush.code, 0, firstPush.err);
   await fs.rm(dir, { recursive: true, force: true });
 });
 
