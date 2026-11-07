@@ -35,6 +35,7 @@ function options(argv) {
     else throw new Error(`Unknown option: ${flag}`);
   }
   if (opts.arms && (!opts.ab || opts.arms.some(arm => arm !== 'with' && arm !== 'without'))) throw new Error('--arms needs --ab and takes with, without or both');
+  if (opts.resume && opts.earlyStop) throw new Error('--resume needs --no-early-stop');
   return opts;
 }
 
@@ -393,6 +394,14 @@ function semaphore(limit) {
 
 async function main() {
   const opts = options(process.argv.slice(2));
+  const done = new Map();
+  if (opts.resume) for (const line of readFileSync(path.join(opts.resume, 'runs.jsonl'), 'utf8').split('\n').filter(Boolean)) {
+    const record = JSON.parse(line);
+    const key = `${record.case} ${record.target} ${record.arm} ${record.index}`;
+    if (record.status !== 'pass' && record.status !== 'fail') continue;
+    if (done.has(key)) throw new Error(`--resume: ${key} has two rows in ${opts.resume}`);
+    done.set(key, record);
+  }
   const config = JSON.parse(await fs.readFile(path.join(evalsDir, 'targets.json'), 'utf8'));
   const targets = config.targets.filter(t => opts.targets ? opts.targets.includes(t.id) : opts.ab ? t.default : t.routine);
   const targetsFor = testCase => !testCase.targets ? targets : opts.ab
@@ -432,11 +441,6 @@ async function main() {
   const ctx = { results, baseRulesFor, judgesFor, keep: opts.keep, auth: () => ({ claude: claudeToken(), codex: codexAuth() }) };
   ctx.auth();
   const limit = semaphore(opts.jobs);
-  const done = new Map();
-  if (opts.resume) for (const line of readFileSync(path.join(opts.resume, 'runs.jsonl'), 'utf8').split('\n').filter(Boolean)) {
-    const record = JSON.parse(line);
-    if (record.status === 'pass' || record.status === 'fail') done.set(`${record.case} ${record.target} ${record.arm} ${record.index}`, record);
-  }
   const run = async (testCase, target, arm, index) => done.get(`${testCase.name} ${target.id} ${arm} ${index}`) ?? limit(() => trial(ctx, testCase, target, arm, index));
   const records = [];
   const log = async record => {
