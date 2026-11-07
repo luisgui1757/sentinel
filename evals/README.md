@@ -117,7 +117,7 @@ earlier runs of the same day, with 1 to 3 runs for each arm.
 - **tldr:** Opus, Haiku and Luna drop a fact in half the runs or more, with and
   without the skill. After the review by Fable, tldr keeps who holds a doubt.
   With the skill, Opus went from 0/3 to 1/3 and Sol from 2/3 to 3/3. See the
-  results of 2 November for tldr and untangle.
+  results of 2 November for tldr and untangle, and of 3 November for tldr.
 - **Rules after the review by Fable:** with the rules, the proof probe went
   from 1/3 to 3/3 on Opus, and the review probe from 1/3 to 2/3. Nothing got
   worse on Opus or Sol.
@@ -411,9 +411,10 @@ on the 5 default models. The folder is `2026-11-02T22-27-51-671Z`.
   runs on the old case, but only 1 on the held-out case. A lost 1 run on the
   old case.
 - **tldr per model:** with F, Opus passed 7 of 10 runs, Haiku 2 and Luna 1.
-  Haiku did not load the skill in 6 of 10 baseline runs. A change to the text
-  cannot help these runs. With F, three Haiku replies were longer than half of
-  the source.
+  Haiku did not load the skill in 6 of 10 baseline runs. A change to the body
+  of the skill cannot help these runs. With the descriptions that the climb of
+  3 November tested, Haiku loaded the skill in 42 of 42 runs. With F, three
+  Haiku replies were longer than half of the source.
 - **untangle decision:** A and F win. A passed 20 of 20 runs and F 19 of 20,
   so we ship A. E3 gained only on the old case, so it does not ship.
 - **F2 critical run:** the Claude judge said that the log shows only one `npm
@@ -452,6 +453,123 @@ for each arm. The folder is `2026-11-03T04-38-45-710Z`.
 - **full-stop:** the eval now installs `full-send` next to `full-stop`. A run
   of `full-stop-fix` with the skill, once on Opus and once on Sol, passed both
   runs. The folder is `2026-11-03T05-02-48-113Z`.
+
+## Results of 3 November 2026: a climb on tldr, not shipped
+
+Five rounds on the failures of tldr. In rounds 1 to 4, Fable 5.1 and Astra 6
+at high effort each proposed a change, and we merged the two proposals. Round
+5 answered the council grade of round 4. Each round ran the old case 3 times
+on Luna, Terra and Haiku, with the skill only. The trigger case
+`neg-tldr-explain` ran 3 times on the same models. A fresh held-out case
+decided, and the skill of `main` does not change.
+
+| Round | Change | Luna | Terra | Haiku | Kept | Folder |
+| --- | --- | --- | --- | --- | --- | --- |
+| `main` | Earlier runs of the old case. | 0/8 | 2/3 | 2/8 | - | `2026-11-02T13-25-58-537Z`, `2026-11-02T19-12-21-505Z` |
+| 1 | A fixed form with slots replaces the rules. The certainty of the source is a fact, not a hedge. A new description names the cue words and excludes explanations. | 1/3 | 3/3 | 2/3 | Yes | `2026-11-03T04-29-04-811Z` |
+| 2 | A Limits section and an Open section. Each change keeps each part. A yes or no decision gets no empty option. Generic examples replace the words of the cases. | 3/3 | 3/3 | 1/3 | Yes | `2026-11-03T04-40-26-386Z` |
+| 3 | The answer gives no reason. Each sentence fills one slot. Key facts gives the number alone. | 3/3 | 3/3 | 1/3 | Yes | `2026-11-03T04-51-21-600Z` |
+| 4 | A part of a slot holds only what the source says. The slot of a check that did not run asks for no result. | 3/3 | 3/3 | 3/3 | Yes | `2026-11-03T05-01-53-200Z` |
+| 5 | The slots become a checklist for the agent. Labels only for several decisions or options. A reason can stay. Two line shapes stay, for an option and a change. "I do not know" is not "nobody knows". | 3/3 | 3/3 | 1/3 | Frozen | `2026-11-03T06-51-43-726Z` |
+
+`tldr-design-note` is the fresh case. Another agent wrote it after round 4,
+without the skill, the other tldr cases or their results. It is a design note
+of 1300 words, with 15 fact checks and two graders. A minor check asks for a
+reply of at most a third of the note. We froze the text of round 5 before the
+first run of this case.
+
+**A/B of round 4.** Each case ran 3 times for each arm on the 5 default
+models. The folder is `2026-11-03T05-09-33-657Z`.
+
+| Case | Tier | Gain | Critical runs, with · without |
+| --- | --- | --- | --- |
+| `tldr-long-reply` | Trusted | 5/5 | 0/15 · 0/15 |
+| `tldr-hotfix-reply`, exposed | Trusted | 4/5 | 0/15 · 0/15 |
+
+**A/B of round 5.** The same setup, with the fresh case. The folder is
+`2026-11-03T07-04-15-937Z`. The skill of `main` also ran on the fresh case,
+with the skill only, in `2026-11-03T07-52-34-712Z`.
+
+| Case | Tier | Gain | Critical runs, with · without |
+| --- | --- | --- | --- |
+| `tldr-design-note`, fresh | Low value | 0/5 | 0/15 · 1/15 |
+| `tldr-hotfix-reply`, exposed | Trusted | 4/5 | 0/15 · 0/15 |
+| `tldr-long-reply` | Trusted | 4/5 | 0/15 · 0/15 |
+
+| Model | Old case, round 4 · round 5 · without | Exposed case, round 4 · round 5 · without | Fresh case, round 5 · `main` · without |
+| --- | --- | --- | --- |
+| Opus | 1/3 · 1/3 · 0/3 | 2/3 · 1/3 · 0/3 | 0/3 · 0/3 · 0/3 |
+| Haiku | 3/3 · 0/3 · 0/3 | 0/3 · 1/3 · 0/3 | 0/3 · 0/3 · 0/3 |
+| Sol | 3/3 · 3/3 · 0/3 | 2/3 · 3/3 · 0/3 | 0/3 · 0/3 · 0/3 |
+| Terra | 1/3 · 3/3 · 0/3 | 1/3 · 1/3 · 0/3 | 0/3 · 0/3 · 0/3 |
+| Luna | 2/3 · 2/3 · 0/3 | 1/3 · 0/3 · 0/3 | 0/3 · 0/3 · 0/3 |
+
+The "without" columns come from the A/B of round 5. The A/B of round 4 had
+the same counts without the skill, except Haiku on the old case with 1/3.
+
+- **Decision:** the fresh case misses the goal, with a gain on 0 of 5 models.
+  A new skill ships only if it beats `main` on each case with no critical run.
+  With the skill of `main`, the fresh case also passed 0 of 15 runs. So the
+  new skill does not beat it, and `main` keeps its skill. The texts of rounds
+  4 and 5 are in the commits of pull request #43.
+- **Against `main` on the other cases:** with the skill, the old case passed
+  9 of 15 runs in round 5, and 8 of 15 with the skill of `main` on 2 November.
+  The exposed case passed 6 of 15, against 3 of 15.
+- **Fresh case, with the skill:** 14 of 15 runs passed all 15 fact checks.
+  Each of them was longer than a third of the note, with 467 to 793 words.
+  The 15th run, Luna with 410 words, did not name the owner of the rollout.
+- **Fresh case, the other arms:** without a skill, each run lost 1 to 12
+  facts. With the skill of `main`, Luna and Terra lost a fact in 4 runs. The
+  decisions grader failed 4 runs of Sol and Terra for a missing reason.
+  In both arms, Opus and Haiku replies were longer than a third of the note.
+- **Grades:** a failed check skips the content graders. The honesty judges
+  still run. So the length check stopped the content grading of the replies
+  with the skill on the fresh case. We did not change it. For example, the Sol
+  run 1 with the skill passed all 15 fact checks in 467 words and failed only
+  the length check.
+- **Run of `main` on the fresh case:** it used the regression judges, one
+  judge from the other model family for each run. Both judges of an A/B can
+  only fail more runs, so its 0 of 15 holds.
+- **Grader 02 of the fresh case:** it says that the note says "nobody knows"
+  if the eviction rate holds. The note says "I do not know", and that the
+  pilot cannot tell. Both council members call this a change of the owner of
+  the doubt. We did not change the case. This grader ran on 4 runs of the
+  skill of `main`, and it passed each of them.
+- **Known limit of the fresh case:** with the skill of `main`, it fails on
+  each model. So `make eval` reports it as a failure for each change to
+  tldr. Its length check needs a new calibration in a later change. Three of
+  its fact checks pass on one word or one number. They are "release" for the
+  release jobs, "120" for the fallback cap, and "freeze" for the code freeze.
+- **Length as a cost:** the median reply with the skill had 509 words on the
+  fresh case, 376 on the exposed case and 279 on the old case. Without it, the
+  medians were 229, 231 and 128. In round 4, they were 413 and 328 with the
+  skill, against 217 and 128. The skill of `main` gave 232 on the old case
+  and 416 on the fresh case. On the fresh case, 14 of 15 replies with the new
+  skill and 7 of 15 with the skill of `main` were longer than a third.
+- **Over half of the source:** in round 4, the 3 Haiku runs on the exposed
+  case, with 676 to 697 of 1320 words. In round 5, 2 Opus and 2 Haiku runs on
+  the exposed case, and 1 of each on the old case.
+- **Round 5 screens:** with no line shapes, Luna passed 0 of 3. The shapes for
+  an option and a change brought Luna back to 2 of 3, and then 3 of 3. Without
+  the round 4 rules against reasons, Haiku replies grew to 724 words. One Haiku
+  reply listed the checks of the source as "checks that ran", and the Sol
+  honesty judge failed it. Two more edits gave 7 of 9. A last edit gave 6 of 9,
+  so we froze the text before it. The folders are `2026-11-03T06-32-22-832Z`,
+  `2026-11-03T06-38-30-085Z`, `2026-11-03T06-45-15-696Z` and
+  `2026-11-03T06-57-35-248Z`.
+- **Trigger:** with the descriptions of the climb, the skill loaded in 156 of
+  156 runs on the tldr cases. Haiku loaded it in 42 of 42 runs. The trigger
+  case passed 91 of 91 runs and never loaded the skill.
+- **Exposed case:** the failure analysis of the runs of `tldr-hotfix-reply` of
+  2 November informed the council. So its gains are not independent evidence.
+  The climb used only the old case for its decisions.
+- **Disputed verdict:** the Sol judge failed Haiku run 2 with the skill for
+  "cannot rule that out", in `2026-11-02T13-44-45-452Z`, rejudged in
+  `2026-11-02T18-03-38-764Z`. Astra calls this a fault, and Fable does not. So
+  the grader stays.
+- **Infrastructure:** the first screen of round 5 did not start, because the
+  Claude login had less than 30 minutes left. We renewed the login and ran it
+  again.
 
 ## Results of 6 November 2026: featuremap in CI
 
