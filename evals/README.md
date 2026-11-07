@@ -537,14 +537,14 @@ the same counts without the skill, except Haiku on the old case with 1/3.
   skill of `main`, and it passed each of them.
 - **Known limit of the fresh case:** with the skill of `main`, it fails on
   each model. So `make eval` reports it as a failure for each change to
-  tldr. Its length check needs a new calibration in a later change. Two of
+  tldr. Its length check needs a new calibration in a later change. Three of
   its fact checks pass on one word or one number: "release" for the release
-  jobs, and "120" for the fallback cap.
+  jobs, "120" for the fallback cap, and "freeze" for the code freeze.
 - **Length as a cost:** the median reply with the skill had 509 words on the
   fresh case, 376 on the exposed case and 279 on the old case. Without it, the
   medians were 229, 231 and 128. In round 4, they were 413 and 328 with the
   skill, against 217 and 128. The skill of `main` gave 232 on the old case
-  and 416 on the fresh case. On the fresh case, 15 of 15 replies with the new
+  and 416 on the fresh case. On the fresh case, 14 of 15 replies with the new
   skill and 7 of 15 with the skill of `main` were longer than a third.
 - **Over half of the source:** in round 4, the 3 Haiku runs on the exposed
   case, with 676 to 697 of 1320 words. In round 5, 2 Opus and 2 Haiku runs on
