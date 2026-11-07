@@ -84,6 +84,10 @@ checkout needs the full history:
       - run: make deps-check BASE=${{ github.event.pull_request.base.sha || github.event.before }}
 ```
 
+On the first push of a branch, `github.event.before` is the zero SHA. Then
+`check` does not compare with a base. A run on a pull request compares with
+its base.
+
 The job needs each tool that the map names, such as CMake or Rust. Install
 the tools that the runner image does not have.
 

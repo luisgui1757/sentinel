@@ -403,7 +403,7 @@ export function check(root, map, { baselineFile, base } = {}) {
   const baseline = baselineFile && fs.existsSync(baselineFile) ? readBaseline(fs.readFileSync(baselineFile, 'utf8')) : { violations: [], unowned: [], uncovered: [] };
   const diff = key => ({ added: current[key].filter(x => !baseline[key].includes(x)), fixed: baseline[key].filter(x => !current[key].includes(x)) });
   const report = { result, current, violations: diff('violations'), unowned: diff('unowned'), uncovered: diff('uncovered'), grown: [] };
-  if (base && baselineFile) {
+  if (base && baselineFile && !/^0+$/.test(base)) {
     if (spawnSync('git', ['rev-parse', '--verify', '--quiet', `${base}^{commit}`], { cwd: root }).status !== 0) throw new UsageError(`--base ${base} is not a commit`);
     const rel = posix(path.relative(root, baselineFile));
     const old = spawnSync('git', ['show', `${base}:${rel}`], { cwd: root, encoding: 'utf8' });
