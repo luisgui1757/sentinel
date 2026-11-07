@@ -511,7 +511,7 @@ the same counts without the skill, except Haiku on the old case with 1/3.
   A new skill ships only if it beats `main` on each case with no critical run.
   With the skill of `main`, the fresh case also passed 0 of 15 runs. So the
   new skill does not beat it, and `main` keeps its skill. The texts of rounds
-  4 and 5 are in the commits of the pull request.
+  4 and 5 are in the commits of pull request #43.
 - **Against `main` on the other cases:** with the skill, the old case passed
   9 of 15 runs in round 5, and 8 of 15 with the skill of `main` on 2 November.
   The exposed case passed 6 of 15, against 3 of 15.
