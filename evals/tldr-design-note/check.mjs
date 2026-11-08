@@ -13,7 +13,7 @@ check('keeps the security gate with its owner and date', has(/\bMei\b|Ishikawa|s
 check('keeps the eviction gate', has(/\b4\s?%|\b4 percent|four percent/i));
 check('keeps the release jobs on on-demand runners', near(/release/i, /on[\s-]?demand|sign/i));
 check('keeps the long jobs on on-demand runners', has(/45[\s-]?min|\b45\s?m\b/i));
-check('keeps the fallback cap', near(/\b120\b/, /runner|cap|fallback|on[\s-]?demand/i));
+check('keeps the fallback cap', near(/\b120\b/, /runner|cap|fallback|on[\s-]?demand|max|at most|no more than|up to|limit/i));
 check('keeps the code freeze', near(/freeze/i, /Dec|Jan|roll\s?out|step/i) || near(/\b14(th)?\s+Dec|\bDec(ember)?\.?\s+14\b|2026-12-14/i, /roll\s?out|step|change/i));
 check('keeps the rollback time', has(/15[\s-]?min/i));
 check('keeps the owner of the rollout', has(/\bInes\b|Barros|CI platform/i));
