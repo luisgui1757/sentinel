@@ -801,14 +801,14 @@ more of 15 runs on this case, with no critical run.
 
 | Model | `main` | Round 5 |
 | --- | --- | --- |
-| Opus | 1/3 | 2/3 |
+| Opus | 2/3 | 2/3 |
 | Haiku | 2/3 | 3/3 |
-| Sol | 2/3 | 3/3 |
+| Sol | 3/3 | 3/3 |
 | Terra | 0/3 | 1/3 |
 | Luna | 0/3 | 1/3 |
-| All | 5/15 | 10/15 |
+| All | 7/15 | 10/15 |
 
-- **Decision:** round 5 passes 10 of 15 runs, against 5 of 15, and neither
+- **Decision:** round 5 passes 10 of 15 runs, against 7 of 15, and neither
   skill has a critical run. So round 5 replaces the skill of `main`. It also
   beat `main` on the old case, the exposed case and the fixed fresh case.
 - **Calibration:** before these runs, two runs without a skill, on Opus and
@@ -816,21 +816,28 @@ more of 15 runs on this case, with no critical run.
   item, not one sentence. A check no longer asks for the name of the reader.
   Grader 02 alone grades the strength of the Leo doubt. The folder is
   `2026-11-08T06-24-14-610Z`.
-- **Check fix after the runs:** the first grades gave 5 against 7. The council
-  found 6 replies, 3 for each skill, that kept each fact but failed a check.
-  Their owner or phase was in the heading above the list. A short heading now
-  gives context to its list, and the rejudge gave the table above. One `main`
-  run of Opus then failed the decisions grader, which it passed before.
-- **Failures:** with the skill of `main`, 6 runs lost a doubt. The doubt of
-  the author went in 5 runs and the question of Samir in 4. With round 5, no
-  run lost a doubt or failed a fact check. Its 5 failures came from the
-  decisions grader.
+- **Fixes after the runs:** the first grades gave 7 to round 5 and 5 to
+  `main`. The council found 6 replies, 3 for each skill, that kept each fact
+  but failed a check. Their owner or phase was in the heading above the list.
+  A short heading now gives context to its list. The checks also accept
+  "must", "only after", "until" and "identifiers" alone. Grader 01 now lets a
+  reply call the reader "you", and gives the cause of the incident as one fact.
+- **Rejudges:** a rejudge of all 30 runs gave 10 against 5. Then a rejudge of
+  the 9 runs that failed grader 01 passed 2 `main` runs. The table above has
+  the final grades.
+- **Failures:** with the skill of `main`, 6 runs lost a doubt. In 5 runs, a
+  fact check failed for the doubt of the author or the question of Samir. In
+  1 run, grader 02 failed. With round 5, no run lost a doubt or failed a fact
+  check. Grader 01 failed 5 runs of round 5 and 2 runs of `main`. Each of these
+  replies left out the cause of the incident, so a later climb can start there.
 - **Length:** the median reply had 549 words with round 5, against 422 with
   the skill of `main`. With round 5, 6 Opus and Haiku replies were longer
   than half the source, against 2 with `main`.
 - **Folders:** `2026-11-08T06-27-09-946Z` for `main` and
-  `2026-11-08T06-27-09-945Z` for round 5, with their rejudges in
-  `2026-11-08T06-43-43-601Z` and `2026-11-08T06-43-45-609Z`. Both skills
+  `2026-11-08T06-27-09-945Z` for round 5. Their rejudges are in
+  `2026-11-08T06-43-43-601Z` and `2026-11-08T06-43-45-609Z`, and the rejudges
+  of grader 01 are in `2026-11-08T07-24-33-568Z` and
+  `2026-11-08T07-24-33-570Z`. Both skills
   loaded in each run. The work used 32 agent runs and their judges.
 
 ## Case format
