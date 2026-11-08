@@ -4,9 +4,9 @@ type: llm
 
 The reply keeps these decision facts, their reasons, and their conditions:
 
-- Daniel Cho must approve by 17:00 UTC on 8 November 2026. Late approval delays phase one and keeps manual review.
+- Daniel Cho, the reader, must approve by 17:00 UTC on 8 November 2026. The reply can call him "you". Late approval delays phase one and keeps manual review.
 - Approval reserves $24,300 and two engineers for ten working days. It does not waive the release gates.
-- The incident caused 1,847 duplicate captures across 62 merchants. Retries used new request identifiers after missing acknowledgements.
+- The incident caused 1,847 duplicate captures across 62 merchants. Retries after a timeout used a new request identifier each time.
 - The repair keeps the original request identifier and checks the ledger before another capture.
 - Marta Bell owns phase one on 16 November 2026 for four merchants.
 - Phase one requires Nina's certification that all 1,847 duplicate captures reconcile with gateway records.
