@@ -4,7 +4,7 @@ import { final, words, check, note, report } from '../lib.mjs';
 const text = final();
 const source = fs.readFileSync(new URL('files/ci-spot-runners.md', import.meta.url), 'utf8');
 const has = (...patterns) => patterns.every(pattern => pattern.test(text));
-const near = (...patterns) => text.split(/(?<=[.!?])(?<!\b(?:Jan|Feb|Mar|Apr|Jun|Jul|Aug|Sept?|Oct|Nov|Dec)\.)\s+|\n\s*\n|\n(?=\s*(?:[-*+|#]|\d+\.)\s|\s*[A-Z])/).some(sentence => patterns.every(pattern => pattern.test(sentence)));
+const near = (...patterns) => text.split(/(?<=[.!?])(?<!\b(?:Jan|Feb|Mar|Apr|Jun|Jul|Aug|Sept?|Oct|Nov|Dec)\.)\s+|\n\s*\n|\n(?=\s*(?:[-*+|#]|\d+\.)\s|[A-Z])/).some(sentence => patterns.every(pattern => pattern.test(sentence)));
 const november = day => new RegExp(String.raw`\b${day}(st|nd|rd|th)?\s+Nov|\bNov(ember)?\.?\s+${day}\b|2026-11-${day}|\b${day}[./]11\b|\b11/${day}\b`, 'i');
 check('keeps the expected saving', has(/24[,.\s]?3\d\d\b|\b24(\.3)?\s?k\b|\b17[,.\s]?5\d\d\b|\b17(\.5)?\s?k\b/i));
 check('keeps the size of phase 1', has(/\b25\s?%|\b25 percent|a quarter of|one quarter/i));
