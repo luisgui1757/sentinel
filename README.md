@@ -123,7 +123,8 @@ and the rules for comments and cleanup changed the result on 4 or 5 models.
 `why` and `statechart` changed it on 2 or 3 models.
 See [evals/README.md](evals/README.md).
 
-`patrol` changed the result on 5 models, and `verify-pr` on 2. For a CI check
+The CI job version of `patrol` changed the result on 5 models, and
+`verify-pr` on 2. For a CI check
 of the boundaries, `featuremap` changed it on 2 or 3 models. As a one-off map,
 it changed it on 1 model. Its script ran on real projects.
 
@@ -151,10 +152,10 @@ installs Java and TLC with mise and needs the network. Set `TLA2TOOLS` and
 The `ops` profile holds two skills that ship scripts. Both need Node 22 or
 later. Copy the script into the repository, so that CI runs the same file.
 
-- `patrol` runs coding agents in GitHub Actions, GitLab CI or Azure
-  Pipelines. A fix job turns one ready tracker item into a draft PR. A weekly
-  scan files at most 3 defects. A PR job tests each PR. The agent job gets no
-  token that can push or open a PR, and nothing merges.
+- `patrol` runs a coding agent on a schedule on GitHub, GitLab or Azure
+  DevOps. A playbook scans for defects. A council of models votes on each
+  defect and plan. In the higher modes, one issue becomes a PR. Patrol starts in
+  demo mode, which opens no PR. A CI job tests each PR.
 - `featuremap` writes one feature map for a monorepo in many languages. It
   reads edges from JS, TS, Python, C and C++ code, `go list`, `cargo metadata`
   and the CMake File API. It checks which features may use which in CI, with a

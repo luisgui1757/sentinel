@@ -201,9 +201,13 @@ arm ran 3 times on each model after the last change to the skill. Their
 | `verify-pr-page2` | `verify-pr` | Trusted | 2/5 | 0/15 · 0/9 |
 | `verify-pr-click`, a real PR | `verify-pr` | Trusted | 2/5 | 0/15 · 0/11 |
 | `verify-pr-semver`, a real PR | `verify-pr` | Trusted | 2/5 | 0/15 · 0/9 |
-| `patrol-setup` | `patrol` | Trusted | 5/5 | 0/15 · 8/9 |
+| `patrol-setup`, the CI job version | `patrol` | Trusted | 5/5 | 0/15 · 8/9 |
 | `enforce-noqa` | `enforce` (removed) | Low value | 1/5 | 0/7 · 0/7 |
 | `featuremap-diagnose` | `featuremap` | Low value | 1/5 | 0/9 · 0/9 |
+
+On 8 November 2026, `patrol-setup` changed to test the adoption of the patrol
+playbook. The new case passed 1 of 1 run on Opus 5.5 and on GPT-6.1 Sol, with
+the skill only. It has no A/B result yet.
 
 - **Output style:** Haiku passed 3 of 3 runs with the style and 0 of 3 without
   it, and its replies went from about 400 to 130 words. Opus failed in both

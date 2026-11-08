@@ -3,4 +3,4 @@ severity: minor
 type: llm
 ---
 
-The reply tells the user how to start the job once, for example with a manual run.
+The reply tells the user how to start one patrol run by hand.
