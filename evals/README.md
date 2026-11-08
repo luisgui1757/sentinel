@@ -801,33 +801,37 @@ more of 15 runs on this case, with no critical run.
 
 | Model | `main` | Round 5 |
 | --- | --- | --- |
-| Opus | 2/3 | 1/3 |
-| Haiku | 1/3 | 1/3 |
+| Opus | 1/3 | 2/3 |
+| Haiku | 2/3 | 3/3 |
 | Sol | 2/3 | 3/3 |
 | Terra | 0/3 | 1/3 |
 | Luna | 0/3 | 1/3 |
-| All | 5/15 | 7/15 |
+| All | 5/15 | 10/15 |
 
-- **Decision:** round 5 passes 7 of 15 runs, against 5 of 15, and neither
+- **Decision:** round 5 passes 10 of 15 runs, against 5 of 15, and neither
   skill has a critical run. So round 5 replaces the skill of `main`. It also
   beat `main` on the old case, the exposed case and the fixed fresh case.
 - **Calibration:** before these runs, two runs without a skill, on Opus and
-  Sol, showed false fails. Each check now uses one paragraph or one list item,
-  not one sentence. A check no longer asks for the name of the reader. Grader
-  02 alone grades the strength of the Leo doubt. No run with a skill
-  informed the case. The folder is `2026-11-08T06-24-14-610Z`.
+  Sol, showed false fails. Each check then used one paragraph or one list
+  item, not one sentence. A check no longer asks for the name of the reader.
+  Grader 02 alone grades the strength of the Leo doubt. The folder is
+  `2026-11-08T06-24-14-610Z`.
+- **Check fix after the runs:** the first grades gave 5 against 7. The council
+  found 6 replies, 3 for each skill, that kept each fact but failed a check.
+  Their owner or phase was in the heading above the list. A short heading now
+  gives context to its list, and the rejudge gave the table above. One `main`
+  run of Opus then failed the decisions grader, which it passed before.
 - **Failures:** with the skill of `main`, 6 runs lost a doubt. The doubt of
-  the author went in 6 runs, the question of Samir in 4 and the blocker of
-  Nina in 3. With round 5, no run lost a doubt. Its runs failed the decisions
-  grader in 5 runs and lost the owner of a phase in 3 runs.
+  the author went in 5 runs and the question of Samir in 4. With round 5, no
+  run lost a doubt or failed a fact check. Its 5 failures came from the
+  decisions grader.
 - **Length:** the median reply had 549 words with round 5, against 422 with
   the skill of `main`. With round 5, 6 Opus and Haiku replies were longer
   than half the source, against 2 with `main`.
-- **Per model:** round 5 gained on Sol, Terra and Luna, tied on Haiku and lost
-  on Opus. With 3 runs for each model, one run of difference can be noise.
 - **Folders:** `2026-11-08T06-27-09-946Z` for `main` and
-  `2026-11-08T06-27-09-945Z` for round 5. Both skills loaded in each run.
-  The work used 32 agent runs and their judges.
+  `2026-11-08T06-27-09-945Z` for round 5, with their rejudges in
+  `2026-11-08T06-43-43-601Z` and `2026-11-08T06-43-45-609Z`. Both skills
+  loaded in each run. The work used 32 agent runs and their judges.
 
 ## Case format
 
