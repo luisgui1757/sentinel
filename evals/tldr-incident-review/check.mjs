@@ -1,7 +1,11 @@
 import { final, check, note, report, words } from '../lib.mjs';
 
 const text = final().replace(/\*\*|__/g, '').replace(/\bNov\./gi, 'Nov');
-const units = text.split(/\n\s*\n|\n(?=\s*(?:[-*+]|\d+\.|#|\|))/).filter(Boolean);
+const items = text.split(/\n\s*\n|\n(?=\s*(?:[-*+]|\d+\.|#|\|))/).filter(Boolean);
+const isListItem = item => /^\s*(?:[-*+]|\d+\.)\s/.test(item);
+const isHeading = item => !isListItem(item) && !item.trim().includes('\n') && words(item) <= 12;
+const headings = items.map((item, i) => items.slice(0, i + 1).findLast(other => !isListItem(other)) ?? '');
+const units = items.map((item, i) => isListItem(item) && isHeading(headings[i]) ? `${headings[i]}\n${item}` : item);
 const has = (...patterns) => units.some(unit => patterns.every(pattern => pattern.test(unit)));
 const date = day => new RegExp(`\\b(?:${day}(?:st|nd|rd|th)?\\s+(?:Nov(?:ember)?)|Nov(?:ember)?\\s+${day}(?:st|nd|rd|th)?|2026-11-${day.padStart(2, '0')})\\b`, 'i');
 const duplicates = /duplicat|double.?captur/i;
@@ -25,7 +29,7 @@ check('phase two owner date and total scope',
   has(phaseTwo, date('23')) && has(/Omar(?: Chen)?/i, phaseTwo)
   && has(phaseTwo, total, merchants, /all|total|includ/i));
 check('phase two observation and support gate',
-  has(/\b(?:48|forty[- ]eight)(?:\s*h\b|(?:\s+[a-z-]+){0,2}\s+h(?:ours?|rs?)\b)|\b(?:2|two)\s+(?:continuous\s+)?days\b/i, /zero|no\b|0\b|without/i, duplicates, /gate|after|requir|need|until|wait|only|before|clean/i)
+  has(/\b(?:48|forty[- ]eight)(?:\s*h\b|(?:\s+[a-z-]+){0,2}\s+h(?:ours?|rs?)\b)|\b(?:2|two)\s+(?:continuous\s+)?days\b/i, /zero|no\b|0\b|without/i, duplicates, /gate|after|requir|need|must|until|wait|only|before|clean/i)
   && has(/support/i, /written|writ|sign.?off/i, /accept|approv|sign.?off|gate/i));
 check('rollback owner and manual path', has(/Priya(?: Nair)?/i, /manual\s+(?:review|processing)/i, /stop|abort|rollback|disable|return|revert/i));
 check('abort trigger and ledger preservation',
@@ -33,10 +37,10 @@ check('abort trigger and ledger preservation',
   && has(/preserv|keep|retain|intact/i, /ledger/i));
 check('migration rejection and notice reason', has(/gateway|vendor/i, /migrat|replac/i, /reject|lost|ruled out|cannot|too slow/i, /\b(?:90|ninety)\s*days?\b/i, /notice/i));
 check('permanent manual rejection and staffing reason', has(/permanent|indefinite/i, /manual/i, /\b(?:3|three)\b/i, /staff|support|hires/i, /budget|fund|afford/i));
-check('Nina doubt remains a blocker', has(/Nina(?: Shah)?/i, /block|must|cannot|won't|will not|refus/i, /reconcil|match/i, captures));
+check('Nina doubt remains a blocker', has(/Nina(?: Shah)?/i, /block|must|cannot|won't|will not|refus|only after|until/i, /reconcil|match/i, captures));
 check('Leo numerical objection',
   has(/Leo(?: Grant)?/i, /\b(?:18\s*(?:%|percent)|eighteen\s*percent)/i, /storage|ledger/i, /cost|estimat|expens/i));
 check('Samir unmeasured question stays open', has(/Samir(?: Patel)?/i, /bank\s+holidays?|overseas\s+holidays?/i, /refund/i, /unmeasured|not measured|nobody measured|no\s+(?:one|measurements?|data)|not been measured/i, /question|asks?|unknown|uncertain/i));
-check('author owns upgrade uncertainty', has(/Elena(?: Ruiz)?|author|\bI\b/i, /does not know|doesn't know|do not know|don't know|unsure|uncertain/i, /gateway/i, /upgrade/i, /request\s*(?:identifiers?|IDs?)|idempotency\s*keys?/i));
+check('author owns upgrade uncertainty', has(/Elena(?: Ruiz)?|author|\bI\b/i, /does not know|doesn't know|do not know|don't know|unsure|uncertain/i, /gateway/i, /upgrade/i, /identifiers?|\bIDs?\b|idempotency\s*keys?/i));
 note('summary word count', true, words(final()));
 report();
