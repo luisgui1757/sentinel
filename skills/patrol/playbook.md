@@ -56,7 +56,7 @@ These rules take precedence over the rules of each skill that you run.
    most `config.scan.max_findings` defects. A failed scan or check ends the run
    as `Incomplete`, never as "no findings". Then record the area, the count of
    findings and the result of each check, for example
-   `--data '{"text":"server/tax · 3 findings · checks pass"}'`.
+   `--data '{"text":"src/api · 3 findings · checks pass"}'`.
 3. **Triage.** When there are no findings, no `triage` issues and nothing in
    `plan`, `ready` or `prs`, record the outcome `Idle` and stop. Otherwise send
    all findings and all `triage` issues to the council in one round. Give each
@@ -71,7 +71,7 @@ These rules take precedence over the rules of each skill that you run.
    Each seat checks each item alone and looks for another explanation first. It
    votes `confirm`, `disprove` or `unsure`. A `confirm` vote has a severity (the
    sum of the three parts), an impact, a short `why` such as
-   `money/tax · common path · irreversible`, and its evidence. Write
+   `money · common path · not reversible`, and its evidence. Write
    `OUT/findings.json` as a list. Each new finding has `title`, `body`, `key`
    and `votes`. Each existing issue has `issue` (its number) and `votes`. Each
    vote has `seat`, `vote`, `severity`, `impact`, `why` and `evidence`. Each
