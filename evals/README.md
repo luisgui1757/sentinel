@@ -21,9 +21,15 @@ In an A/B run, the arms are:
 - **without**: the same install without the skill of the case, or without
   the skills in `without_skills`. For a rule case, the rules from the `base`
   commit of the case, or from `origin/main`, replace the current rules. With
-  `"base": "none"`, the **without** arm has no rules.
+  `"base": "none"`, the **without** arm has no rules. This measures the whole
+  rules file, not one line. To measure a change to one line, run
+  `--ab --arms with` once on the old rules and once on the new rules. The
+  **with** arm uses the rules of the working tree, so change the rules file
+  between the two runs.
 
 Each run saves its diff and its work folder, so `--rejudge` can grade it again.
+Some results folders that this file names are no longer on the machine that
+ran them. For their rows, the tables are the only record.
 
 The Claude runs use your Claude login, which must have 30 minutes left. To
 skip that check, set `CLAUDE_CODE_OAUTH_TOKEN` to a token from
@@ -137,6 +143,11 @@ earlier runs of the same day, with 1 to 3 runs for each arm.
   file, and their probes stay as cheap regression checks.
 - **Small models:** Haiku and Luna fail more often. They skip steps, and some
   runs claim work that the agent did not do.
+- **Proof rule, current line:** the proof probe runs of 31 October used the
+  old line "reproduce the failure first", and Luna added no test in 3 of 3
+  runs. On 8 November 2026,
+  with the line "first add one test that fails", Luna passed 3 of 3 runs, in
+  `2026-11-08T05-54-06-375Z`.
 - **Council composition:** each council of 3 strong models found 12 of 12
   planted bugs in almost each combination, with copies or with mixed models. The
   case cannot separate them, so the default of Opus and Sol stays.
@@ -526,7 +537,7 @@ the same counts without the skill, except Haiku on the old case with 1/3.
   still run. So the length check stopped the content grading of the replies
   with the skill on the fresh case. We did not change it. For example, the Sol
   run 1 with the skill passed all 15 fact checks in 467 words and failed only
-  the length check.
+  the length check. The case fix of 8 November changed this.
 - **Run of `main` on the fresh case:** it used the regression judges, one
   judge from the other model family for each run. Both judges of an A/B can
   only fail more runs, so its 0 of 15 holds.
@@ -534,12 +545,13 @@ the same counts without the skill, except Haiku on the old case with 1/3.
   if the eviction rate holds. The note says "I do not know", and that the
   pilot cannot tell. Both council members call this a change of the owner of
   the doubt. We did not change the case. This grader ran on 4 runs of the
-  skill of `main`, and it passed each of them.
+  skill of `main`, and it passed each of them. The case fix of 8 November
+  changed this grader.
 - **Known limit of the fresh case:** with the skill of `main`, it fails on
   each model. So `make eval` reports it as a failure for each change to
-  tldr. Its length check needs a new calibration in a later change. Three of
-  its fact checks pass on one word or one number. They are "release" for the
-  release jobs, "120" for the fallback cap, and "freeze" for the code freeze.
+  tldr. On 3 November, three of its fact checks passed on one word or one
+  number. They were "release" for the release jobs, "120" for the fallback
+  cap, and "freeze" for the code freeze. The case fix of 8 November is below.
 - **Length as a cost:** the median reply with the skill had 509 words on the
   fresh case, 376 on the exposed case and 279 on the old case. Without it, the
   medians were 229, 231 and 128. In round 4, they were 413 and 328 with the
@@ -570,6 +582,27 @@ the same counts without the skill, except Haiku on the old case with 1/3.
 - **Infrastructure:** the first screen of round 5 did not start, because the
   Claude login had less than 30 minutes left. We renewed the login and ran it
   again.
+- **Case fix of 8 November 2026:** the length check is now a note, because
+  the skill sets no word count. The three one-word checks need context in
+  the same sentence, and grader 02 gives the eviction doubt to the author.
+  We wrote these fixes before the rejudge. Then we corrected the first pattern
+  for the cap, which failed a correct "no more than 120". After the rejudge,
+  the council review made the context checks stricter, and the freeze check
+  now needs its date. So one reply without a skill fails one more check, with
+  no count change.
+- **Rejudge of 8 November 2026:** the skill of `main` still passes 0 of 15
+  runs. The decisions grader fails 10 runs, and the doubts grader fails the 3
+  Opus runs. Luna and Terra lose a fact in 4 runs. The round 5 skill passes 5
+  of 15 runs, and no run without a skill passes. The tier is "Use with care",
+  with a gain on 3 of 5 models.
+- **Rejudge folders:** `2026-11-08T05-52-27-052Z` is for `main`, and
+  `2026-11-08T05-52-29-057Z` is for round 5. They used the first pattern for
+  the cap. For the Opus run 1 with the skill, `2026-11-08T06-01-07-251Z`
+  replaces the row for `main`, and `2026-11-08T06-00-43-082Z` replaces the row
+  for round 5.
+- **Decision of 8 November 2026:** we wrote the case fix after we saw the
+  results of 3 November, so the fresh case is now exposed. The rejudge does
+  not change the skill. A new climb of tldr needs a new blind case.
 
 ## Results of 6 November 2026: featuremap in CI
 
