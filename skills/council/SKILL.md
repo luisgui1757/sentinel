@@ -6,10 +6,10 @@ description: Trigger this if the user says 'council' or 'arena'.
 # Council
 
 Before a review, run the relevant checks. When the task lets you change the
-implementation, first fix the known issues and the open PR comments, then give
-the council the updated implementation. Otherwise, report them to the council
-and change no file. If the user wants to discard the implementation and
-explore new ideas, skip fixes to code being replaced.
+implementation, first fix the known issues, answer the open PR comments, and
+give the council the updated implementation. Otherwise, include them in the
+brief to the council and change no file. If the user wants to discard the
+implementation and explore new ideas, skip fixes to code being replaced.
 
 Bring in delegates to help with the user's request, usually for review or
 feedback. By default, use Claude Opus and GPT Sol, in their latest versions,
