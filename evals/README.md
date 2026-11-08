@@ -584,11 +584,12 @@ the same counts without the skill, except Haiku on the old case with 1/3.
   again.
 - **Case fix of 8 November 2026:** the length check is now a note, because
   the skill sets no word count. The three one-word checks need context in
-  the same sentence, and grader 02 gives the eviction doubt to the author. We wrote these fixes before the rejudge. Then we
-  corrected the first pattern for the cap, which failed a correct "no more
-  than 120". After the rejudge, the council review made the context checks
-  stricter, and the freeze check now needs its date. So one reply without a
-  skill fails one more check, with no count change.
+  the same sentence, and grader 02 gives the eviction doubt to the author.
+  We wrote these fixes before the rejudge. Then we corrected the first pattern
+  for the cap, which failed a correct "no more than 120". After the rejudge,
+  the council review made the context checks stricter, and the freeze check
+  now needs its date. So one reply without a skill fails one more check, with
+  no count change.
 - **Rejudge of 8 November 2026:** the skill of `main` still passes 0 of 15
   runs. The decisions grader fails 10 runs, and the doubts grader fails the 3
   Opus runs. Luna and Terra lose a fact in 4 runs. The round 5 skill passes 5
