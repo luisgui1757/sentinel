@@ -35,7 +35,9 @@ of each host. `statechart` reports a replayed violation as a bug.
 Council runs Claude Opus and GPT Sol by default, one seat each. It uses only
 the members that the user names. It fills extra seats with copies in the order
 of the user's list, and it checks the `PATH` for each CLI. It has a design
-mode.
+mode. Before a review, it fixes known issues only when the task lets it change
+the implementation. Full-stop keeps its earlier description, so that an
+emphatic "Full stop." does not trigger it.
 
 Sentinel wrote beast-ui, cleanup, doc-view, no-comments, tldr and untangle.
 The keep list of no-comments comes from the Comment Sicko agent of pstack.

@@ -28,7 +28,7 @@
       "source": "tstack",
       "path": "skills/council/SKILL.md",
       "sha256": "598fb2c7cdd48ddd9643cb22999e1b624c357aa6579aa0af0e7268ae16a8a164",
-      "local": "76a9795ac8ecd20a12242a940ef1e1984b51f7407a494394074b1bb272e81267",
+      "local": "8bb7878b57a8f1d42af944104454ba3835409bea70fd0d28d99dcfcc804420eb",
       "executable": false
     },
     "skills/file-pr/SKILL.md": {
@@ -55,7 +55,7 @@
       "source": "tstack",
       "path": "skills/full-stop/SKILL.md",
       "sha256": "091dcabfcba73e009ddb8e32c498a993a6bb60f8c223d3e21e917f4e52ab9939",
-      "local": "019972d21f8e5ae8e5ffe98afc4e4f6c9fdf90373d2a63ecd3f4aa9cbd597c60",
+      "local": "7e8c869718653261e415e32bc6cd091bebaa61f6a9780910b0b2695cf00d6e27",
       "executable": false
     },
     "skills/full-stop/agents/openai.yaml": {
