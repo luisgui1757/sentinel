@@ -118,8 +118,8 @@ agent can also load each skill when its description fits the task.
 | `tldr` | "tldr" | A short version that keeps each fact that you need to decide or act. |
 | `technical-writing` | "simplify this", "STE" | Docs, PR text and rewrites in simple technical English, without AI patterns. |
 
-At xhigh, `council`, `cleanup`, `no-comments`, `technical-writing` and the
-rules for comments and cleanup changed the result on 4 or 5 models. `sol-loop`,
+At xhigh, `council`, `cleanup`, `no-comments`, `sol-loop`, `technical-writing`
+and the rules for comments and cleanup changed the result on 4 or 5 models.
 `why` and `statechart` changed it on 2 or 3 models.
 See [evals/README.md](evals/README.md).
 
