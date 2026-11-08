@@ -522,7 +522,8 @@ the same counts without the skill, except Haiku on the old case with 1/3.
   A new skill ships only if it beats `main` on each case with no critical run.
   With the skill of `main`, the fresh case also passed 0 of 15 runs. So the
   new skill does not beat it, and `main` keeps its skill. The texts of rounds
-  4 and 5 are in the commits of pull request #43.
+  4 and 5 are in the commits of pull request #43. The blind case of 8
+  November changed this decision.
 - **Against `main` on the other cases:** with the skill, the old case passed
   9 of 15 runs in round 5, and 8 of 15 with the skill of `main` on 2 November.
   The exposed case passed 6 of 15, against 3 of 15.
@@ -602,7 +603,8 @@ the same counts without the skill, except Haiku on the old case with 1/3.
   for round 5.
 - **Decision of 8 November 2026:** we wrote the case fix after we saw the
   results of 3 November, so the fresh case is now exposed. The rejudge does
-  not change the skill. A new climb of tldr needs a new blind case.
+  not change the skill. A new climb of tldr needs a new blind case. The
+  results of 8 November for the blind case are below.
 
 ## Results of 6 November 2026: featuremap in CI
 
@@ -786,6 +788,57 @@ After both fixes:
 - **Each case:** relay passes on 2 models and ledger on 3, with no loss.
 - **Spend:** the 39 runs again cost $29.36 of Claude agent time. All 60 runs
   cost $44.82.
+
+## Results of 8 November 2026: tldr on a blind case
+
+The council asked for one blind case before a decision on the round 5 skill.
+GPT-6.1 Sol wrote `tldr-incident-review`, without the tldr skill, the other
+tldr cases or their results. It is a post-incident review of 1311 words, with
+15 fact checks and two graders.
+
+We wrote the rule before the runs. Round 5 replaces `main` only if it passes
+more of 15 runs on this case, with no critical run.
+
+| Model | `main` | Round 5 |
+| --- | --- | --- |
+| Opus | 2/3 | 2/3 |
+| Haiku | 2/3 | 3/3 |
+| Sol | 3/3 | 3/3 |
+| Terra | 0/3 | 1/3 |
+| Luna | 0/3 | 1/3 |
+| All | 7/15 | 10/15 |
+
+- **Decision:** round 5 passes 10 of 15 runs, against 7 of 15, and neither
+  skill has a critical run. So round 5 replaces the skill of `main`. It also
+  beat `main` on the old case, the exposed case and the fixed fresh case.
+- **Calibration:** before these runs, two runs without a skill, on Opus and
+  Sol, showed false fails. Each check then used one paragraph or one list
+  item, not one sentence. A check no longer asks for the name of the reader.
+  Grader 02 alone grades the strength of the Leo doubt. The folder is
+  `2026-11-08T06-24-14-610Z`.
+- **Fixes after the runs:** the first grades gave 7 to round 5 and 5 to
+  `main`. The council found 6 replies, 3 for each skill, that kept each fact
+  but failed a check. Their owner or phase was in the heading above the list.
+  A short heading now gives context to its list. The checks also accept
+  "must", "only after", "until" and "identifiers" alone. Grader 01 now lets a
+  reply call the reader "you", and gives the cause of the incident as one fact.
+- **Rejudges:** a rejudge of all 30 runs gave 10 against 5. Then a rejudge of
+  the 9 runs that failed grader 01 passed 2 `main` runs. The table above has
+  the final grades.
+- **Failures:** with the skill of `main`, 6 runs lost a doubt. In 5 runs, a
+  fact check failed for the doubt of the author or the question of Samir. In
+  1 run, grader 02 failed. With round 5, no run lost a doubt or failed a fact
+  check. Grader 01 failed 5 runs of round 5 and 2 runs of `main`. Each of these
+  replies left out the cause of the incident, so a later climb can start there.
+- **Length:** the median reply had 549 words with round 5, against 422 with
+  the skill of `main`. With round 5, 6 Opus and Haiku replies were longer
+  than half the source, against 2 with `main`.
+- **Folders:** `2026-11-08T06-27-09-946Z` for `main` and
+  `2026-11-08T06-27-09-945Z` for round 5. Their rejudges are in
+  `2026-11-08T06-43-43-601Z` and `2026-11-08T06-43-45-609Z`, and the rejudges
+  of grader 01 are in `2026-11-08T07-24-33-568Z` and
+  `2026-11-08T07-24-33-570Z`. Both skills
+  loaded in each run. The work used 32 agent runs and their judges.
 
 ## Case format
 
