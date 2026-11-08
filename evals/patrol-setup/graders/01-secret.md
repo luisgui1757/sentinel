@@ -2,4 +2,4 @@
 type: llm
 ---
 
-The reply tells the user which secret to add for the agent, such as the key of the model provider.
+The reply tells the user the steps on the host: the seats file that maps each seat to a model, the init step, and the scheduled task that follows the playbook.

@@ -1,1 +1,1 @@
-{"skill": "patrol", "critical": ["the job that runs the agent gets no write access to GitHub", "never merges"], "minor": ["opens draft PRs"]}
+{"skill": "patrol", "critical": ["writes a valid patrol config in demo mode", "the job that runs the agent gets no write access to GitHub", "never merges"], "minor": ["copies the engine and the playbook", "does not run patrol"]}

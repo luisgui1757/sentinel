@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "forge": { "kind": "github", "base": "main" },
+  "mode": "demo",
+  "lead": "opus",
+  "review": "both",
+  "scan": { "max_findings": 10 },
+  "budget": { "plans_per_run": 2, "fixes_per_day": 1, "council_calls_per_run": 60 },
+  "council": { "seats": ["fable", "astra", "muse"], "threshold": 9.0, "rounds": 3, "triage_quorum": 2 },
+  "limits": { "attempts": 3, "lock_stale_minutes": 120, "max_files": 40, "max_lines": 2000 },
+  "ranking": {
+    "groups": [
+      { "name": "money or persisted data", "impact": 5, "examples": ["a wrong total", "a saved value that changes on load"] },
+      { "name": "security", "impact": 5, "examples": ["an endpoint without an auth check", "a secret in a log"] },
+      { "name": "data loss", "impact": 4, "examples": ["a write that drops a field", "a corrupt file replaced"] },
+      { "name": "crash", "impact": 3, "examples": ["a page that throws on load", "a service that does not start"] },
+      { "name": "other", "impact": 1, "examples": ["a wrong label", "a missing help text"] }
+    ]
+  },
+  "owner_gates": [],
+  "commands": { "install": "npm ci", "check": "npm run lint", "proof": "npm test" },
+  "merge": { "method": "squash", "required_checks": ["test"] }
+}
