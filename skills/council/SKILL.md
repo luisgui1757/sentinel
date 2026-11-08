@@ -5,6 +5,11 @@ description: Trigger this if the user says 'council' or 'arena'.
 
 # Council
 
+Before an audit, address outstanding PR comments, fix known issues, and run
+relevant checks. Give council the updated implementation; do not defer known
+fixes until reviews return. If the user wants to discard the implementation
+and explore new ideas, skip fixes to code being replaced.
+
 Bring in delegates to help with the user's request, usually for review or
 feedback. By default, use Claude Opus and GPT Sol, in their latest versions,
 one seat each, at high reasoning effort. Start a delegate for each seat, also
