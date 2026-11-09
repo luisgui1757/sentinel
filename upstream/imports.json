@@ -5,7 +5,7 @@
       "id": "tstack",
       "repository": "t3dotgg/tstack",
       "ref": "main",
-      "revision": "7de017b3fc9d50c03cf3ecb98fb71e0ca65a78bd",
+      "revision": "1085050f3baed1ac724caa4a8166145fb2ac88af",
       "paths": {
         "skills/babysit-pr/": "skills/babysit-pr/",
         "skills/council/": "skills/council/",
@@ -44,7 +44,7 @@
       "id": "impeccable",
       "repository": "pbakaus/impeccable",
       "ref": "main",
-      "revision": "414603bf14c7a344edb466bb1f85690c77ce8b7d",
+      "revision": "cf7ea4a8fe56f3e186e9ffaca3124937e36e6430",
       "paths": {
         ".agents/skills/impeccable/": "skills/impeccable/",
         "LICENSE": "skills/impeccable/LICENSE",
