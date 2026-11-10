@@ -871,18 +871,21 @@ Sentinel text, and one set used the upstream text.
   prompt asked only for a review. Council now puts its results in a PR
   description only when the task lets it change that PR. With this change,
   Sol edited the PR in 0 of 3 runs, and Opus in 0 of 3.
-- **Delegates:** Sol started only 1 delegate in each of its 9 runs. It did
-  the review for its own seat, and the skill asks for a delegate for each
-  seat. This fault is older than this update, and it is not fixed.
+- **Delegates:** Sol starts the Sol seat as a native Codex subagent with
+  `spawn_agent`. The first check did not count that call, so it failed each
+  Sol run. The checks of `council-review-pr` and `council-design` now count
+  the Codex subagents of the chair thread that replied. They use this count
+  when it is larger than the count from the old event. A rejudge passes this
+  check in each of the 9 Sol runs.
 - **Not measured:** a council run in a PR that the task lets the agent
   change, such as full-send. The PR table must stay there.
 - **Folders:** Sentinel text `2026-11-10T04-23-43-754Z` and
   `2026-11-10T04-27-27-175Z`, upstream text `2026-11-10T04-23-43-758Z` and
   `2026-11-10T04-27-27-174Z`. The runs with the fix are in
-  `2026-11-10T04-37-42-864Z`. The rejudges with the PR edit check are
-  `2026-11-10T04-46-59-206Z`, `2026-11-10T04-47-14-985Z`,
-  `2026-11-10T04-47-52-359Z`, `2026-11-10T04-48-11-474Z` and
-  `2026-11-10T04-48-59-052Z`.
+  `2026-11-10T04-37-42-864Z`. The rejudges with the final checks are
+  `2026-11-10T06-11-13-648Z`, `2026-11-10T06-11-30-070Z`,
+  `2026-11-10T06-12-07-509Z`, `2026-11-10T06-12-24-647Z` and
+  `2026-11-10T06-13-01-727Z`.
 
 ## Case format
 

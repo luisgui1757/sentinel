@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { tmp, git, commands, shellParts, toolUses, events, check, report } from '../lib.mjs';
+import { tmp, git, commands, shellParts, toolUses, events, codexSessions, check, report } from '../lib.mjs';
 import { ghState, ghBodies } from '../fake-gh.mjs';
 
 const prefix = String.raw`^((\w+=\S*|timeout\s+\S+|nohup|env|time|exec|command)\s+)*(\S*\/)?`;
@@ -11,7 +11,7 @@ const launch = {
 const count = host => commands().flatMap(shellParts).filter(part => launch[host](part) && !/--help|--version|\s-h\b/.test(part)).length;
 const host = process.env.EVAL_HOST;
 const native = toolUses().filter(t => ['Task', 'Agent'].includes(t.name)).length
-  + (events().some(e => e.item?.type === 'collab_tool_call') ? 1 : 0);
+  + Math.max(events().some(e => e.item?.type === 'collab_tool_call') ? 1 : 0, codexSessions().filter(s => s.replied && s.parent && s.parent === events().find(e => e.type === 'thread.started')?.thread_id).length);
 const calls = count('claude') + count('codex') + native;
 const updates = path.join(tmp, 'remote-updates.log');
 const before = fs.readFileSync(path.join(tmp, 'refs.txt'), 'utf8').trim();

@@ -185,6 +185,7 @@ export function codexSessions() {
     const lines = fs.readFileSync(path.join(dir, file), 'utf8').split('\n').filter(Boolean).map(line => { try { return JSON.parse(line); } catch { return {}; } });
     return {
       id: lines.find(l => l.type === 'session_meta')?.payload?.id,
+      parent: lines.find(l => l.type === 'session_meta')?.payload?.source?.subagent?.thread_spawn?.parent_thread_id,
       model: lines.find(l => l.type === 'turn_context')?.payload?.model ?? '',
       replied: lines.some(l => l.type === 'response_item' && l.payload?.type === 'message' && l.payload?.role === 'assistant'),
     };
