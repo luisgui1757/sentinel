@@ -15,7 +15,7 @@ jobs:
           ruby-version: '3.4'
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
-          python-version: '3.12'
+          python-version: '3.15'
       - name: Ruby tests
         run: ruby -Igems/core/lib -Igems/api/lib -Igems/admin/lib -e 'ARGV.each { |f| require File.expand_path(f) }' tests/ruby/*_test.rb
       - name: Python tests
