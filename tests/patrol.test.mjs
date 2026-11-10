@@ -156,7 +156,7 @@ for (const kind of Object.keys(FORGES)) {
     assert.deepEqual(labels(t.s, old), [LABELS.confirmed, 'patrol:sev-medium', LABELS.triage]);
     assert.deepEqual(stateOf(t, tax), { triage: 'confirmed', severity: 8, impact: 5, why: 'impact 5' });
     assert.equal(stateOf(t, old).severity, 4);
-    assert.match(t.forge.issue(tax).body, /\| astra \| confirm \| 9 \| astra ran the test \|/);
+    assert.match(t.forge.issue(tax).body, /\n- astra: confirm, severity 9\. astra ran the test\n/);
     assert.deepEqual(queue({ id: run, ...t.d() }), { triage: [], plan: [{ id: tax, title: 'Tax total drops a field', severity: 8 }, { id: old, title: 'Old finding', severity: 4 }], ready: [] });
     const again = publishIssues({ id: run, input: out, ...t.d() });
     assert.deepEqual(again.skipped, ['Tax total drops a field (already filed)', 'Wrong label (disproved before)', 'Maybe a crash (already filed)', `#${old} (it went through Triage before)`]);
@@ -550,7 +550,7 @@ test('publish files at most scan.max_findings new findings in a run, and known f
   assert.deepEqual(result.skipped, ['Known (already filed)', 'Third (more than 2 findings)'], 'the limit counts each new finding of the run');
   const existing = String(forgeStore.addIssue(t.s, { title: 'Old', labels: ['bug'] }).id);
   publishIssues({ id: run, input: findings(t.root, [{ issue: existing, votes }]), ...t.d() });
-  assert.match(t.s.notes.filter(n => n.issue === Number(existing)).map(n => n.body).join('\n'), /patrol: the council voted confirmed\.\n\n\| Seat \| Vote/);
+  assert.match(t.s.notes.filter(n => n.issue === Number(existing)).map(n => n.body).join('\n'), /patrol: the council voted confirmed\.\n\n- fable: confirm, severity 7\. fable ran the test/);
 });
 
 test('an owner band label on an untriaged bug keeps the bug in Triage and wins over the vote', () => {

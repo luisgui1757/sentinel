@@ -603,9 +603,7 @@ export function verdict(votes, quorum, seats) {
   return { verdict: 'owner' };
 }
 
-const cell = value => String(value ?? '').replace(/\|/g, '\\|').replace(/\s*\n\s*/g, ' ');
-const votesTable = votes => ['| Seat | Vote | Severity | Evidence |', '| --- | --- | --- | --- |',
-  ...votes.map(v => `| ${cell(v.seat)} | ${cell(v.vote)} | ${cell(v.severity)} | ${cell(v.evidence)} |`)].join('\n');
+const votesList = votes => votes.map(v => `- ${flat(v.seat)}: ${flat(v.vote)}${v.severity == null ? '' : `, severity ${flat(v.severity)}`}. ${flat(v.evidence)}`).join('\n');
 
 export function publishIssues({ id, input, ...deps }) {
   const rec = open(id, deps), { forge } = deps, c = rec.config;
@@ -624,7 +622,7 @@ export function publishIssues({ id, input, ...deps }) {
       if (readState(own(forge, it.id))) { result.skipped.push(`#${it.id} (it went through Triage before)`); continue; }
       relabel(forge, it, { phase, add: labels.filter(l => !BAND_LABELS.includes(l) || !it.labels.some(b => BAND_LABELS.includes(b))) });
       writeState(forge, it.id, st);
-      forge.addNote(it.id, `patrol: the council voted ${v.verdict}.\n\n${votesTable(f.votes)}`);
+      forge.addNote(it.id, `patrol: the council voted ${v.verdict}.\n\n${votesList(f.votes)}`);
       result.updated.push({ id: it.id, verdict: v.verdict });
       continue;
     }
@@ -639,7 +637,7 @@ export function publishIssues({ id, input, ...deps }) {
       result.disproved.push(f.title);
       continue;
     }
-    const created = forge.createIssue({ title: flat(f.title).slice(0, 200), body: `${f.body.slice(0, 30000)}\n\n${votesTable(f.votes)}\n\n<!-- patrol-finding-${fp} -->\n`,
+    const created = forge.createIssue({ title: flat(f.title).slice(0, 200), body: `${f.body.slice(0, 30000)}\n\n${votesList(f.votes)}\n\n<!-- patrol-finding-${fp} -->\n`,
       labels: [LABELS.triage, ...labels, ...(phase ? [LABELS[phase]] : [])] });
     writeState(forge, created, st, []);
     filed.add(fp);
