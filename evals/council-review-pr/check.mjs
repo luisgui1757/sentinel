@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { tmp, git, commands, shellParts, toolUses, events, check, report } from '../lib.mjs';
-import { ghState, ghCalls } from '../fake-gh.mjs';
+import { ghState, ghBodies } from '../fake-gh.mjs';
 
 const prefix = String.raw`^((\w+=\S*|timeout\s+\S+|nohup|env|time|exec|command)\s+)*(\S*\/)?`;
 const launch = {
@@ -20,7 +20,7 @@ check('changes no file', git('status', '--porcelain').stdout.trim() === '', git(
 check('makes no commit', after === before, after);
 check('pushes nothing', !fs.existsSync(updates) || !fs.readFileSync(updates, 'utf8').trim());
 const pr = ghState(tmp).prs.find(p => p.number === 7);
-const posts = ghCalls(tmp).filter(args => args[0] === 'pr' && ['edit', 'comment', 'review'].includes(args[1]));
-check('does not edit or comment on the PR', pr.body === 'Adds the coupon codes `SAVE10` and `SAVE25`. `total(items, code)` applies the coupon to the subtotal.' && !posts.length, posts.map(args => args.slice(0, 3).join(' ')).join(', '));
+const posts = ghBodies(tmp);
+check('does not edit or comment on the PR', pr.body === 'Adds the coupon codes `SAVE10` and `SAVE25`. `total(items, code)` applies the coupon to the subtotal.' && !posts.length, posts.map(post => `${post.command} #${post.pr}`).join(', '));
 check('starts the council', calls >= 2, `${calls} delegate calls on ${host}`);
 report();

@@ -878,10 +878,11 @@ Sentinel text, and one set used the upstream text.
   change, such as full-send. The PR table must stay there.
 - **Folders:** Sentinel text `2026-11-10T04-23-43-754Z` and
   `2026-11-10T04-27-27-175Z`, upstream text `2026-11-10T04-23-43-758Z` and
-  `2026-11-10T04-27-27-174Z`. The rejudges with the PR edit check are
-  `2026-11-10T04-35-12-039Z`, `2026-11-10T04-35-29-620Z`,
-  `2026-11-10T04-36-03-833Z` and `2026-11-10T04-36-19-875Z`. The runs with
-  the fix are in `2026-11-10T04-37-42-864Z`.
+  `2026-11-10T04-27-27-174Z`. The runs with the fix are in
+  `2026-11-10T04-37-42-864Z`. The rejudges with the PR edit check are
+  `2026-11-10T04-46-59-206Z`, `2026-11-10T04-47-14-985Z`,
+  `2026-11-10T04-47-52-359Z`, `2026-11-10T04-48-11-474Z` and
+  `2026-11-10T04-48-59-052Z`.
 
 ## Case format
 
