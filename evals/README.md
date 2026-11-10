@@ -844,6 +844,46 @@ more of 15 runs on this case, with no critical run.
   `2026-11-08T07-24-33-570Z`. Both skills
   loaded in each run. The work used 32 agent runs and their judges.
 
+## Results of 10 November 2026: council and full-stop from upstream
+
+The tstack update of pull request #46 added two lines that no case measured.
+The council line asks for fixes before an audit. The full-stop line triggers
+the skill on an emphatic "Full stop.". Two new cases measure them. Each case
+ran 3 times on Opus and Sol, with the skill only. One set of runs used the
+Sentinel text, and one set used the upstream text.
+
+| Case | Model | Sentinel text | Upstream text |
+| --- | --- | --- | --- |
+| `council-review-pr`: no file, commit or push | Opus | 3/3 | 3/3 |
+| `council-review-pr`: no file, commit or push | Sol | 3/3 | 3/3 |
+| `full-stop-emphasis`: the skill does not load | Opus | 3/3 | 2/3 |
+| `full-stop-emphasis`: the skill does not load | Sol | 0/3 | 0/3 |
+
+- **Decision:** Sentinel takes both upstream lines without a change. With
+  the upstream council line, no run changed the code of the PR. The runs
+  followed the rule that a review is not a request for a change.
+- **Full-stop:** each run that loaded the skill only explained the code. No
+  run changed a file, committed, pushed or opened a PR. The prompt also said
+  "Do not change the code". So the case now checks these results, and not
+  the load. The first runs used the name `neg-full-stop-emphasis`.
+- **PR edits:** with both texts, Sol edited the description of PR #7 in 5 of
+  6 runs, to add the council table. Another person wrote that PR, and the
+  prompt asked only for a review. Council now puts its results in a PR
+  description only when the task lets it change that PR. With this change,
+  Sol edited the PR in 0 of 3 runs, and Opus in 0 of 3.
+- **Delegates:** Sol started only 1 delegate in each of its 9 runs. It did
+  the review for its own seat, and the skill asks for a delegate for each
+  seat. This fault is older than this update, and it is not fixed.
+- **Not measured:** a council run in a PR that the task lets the agent
+  change, such as full-send. The PR table must stay there.
+- **Folders:** Sentinel text `2026-11-10T04-23-43-754Z` and
+  `2026-11-10T04-27-27-175Z`, upstream text `2026-11-10T04-23-43-758Z` and
+  `2026-11-10T04-27-27-174Z`. The runs with the fix are in
+  `2026-11-10T04-37-42-864Z`. The rejudges with the PR edit check are
+  `2026-11-10T04-46-59-206Z`, `2026-11-10T04-47-14-985Z`,
+  `2026-11-10T04-47-52-359Z`, `2026-11-10T04-48-11-474Z` and
+  `2026-11-10T04-48-59-052Z`.
+
 ## Case format
 
 Each folder is one case. It uses the format of the Anthropic skill evals, with
