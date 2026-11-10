@@ -873,18 +873,19 @@ Sentinel text, and one set used the upstream text.
   Sol edited the PR in 0 of 3 runs, and Opus in 0 of 3.
 - **Delegates:** Sol starts the Sol seat as a native Codex subagent with
   `spawn_agent`. The first check did not count that call, so it failed each
-  Sol run. The checks of `council-review-pr` and `council-design` now also
-  count each Codex subagent session. A rejudge passes this check in each of
-  the 9 Sol runs.
+  Sol run. The checks of `council-review-pr` and `council-design` now count
+  the Codex subagents of the chair thread that replied. They use this count
+  when it is larger than the count from the old event. A rejudge passes this
+  check in each of the 9 Sol runs.
 - **Not measured:** a council run in a PR that the task lets the agent
   change, such as full-send. The PR table must stay there.
 - **Folders:** Sentinel text `2026-11-10T04-23-43-754Z` and
   `2026-11-10T04-27-27-175Z`, upstream text `2026-11-10T04-23-43-758Z` and
   `2026-11-10T04-27-27-174Z`. The runs with the fix are in
   `2026-11-10T04-37-42-864Z`. The rejudges with the final checks are
-  `2026-11-10T06-00-04-014Z`, `2026-11-10T06-00-18-912Z`,
-  `2026-11-10T06-01-02-177Z`, `2026-11-10T06-01-20-343Z` and
-  `2026-11-10T06-02-02-746Z`.
+  `2026-11-10T06-11-13-648Z`, `2026-11-10T06-11-30-070Z`,
+  `2026-11-10T06-12-07-509Z`, `2026-11-10T06-12-24-647Z` and
+  `2026-11-10T06-13-01-727Z`.
 
 ## Case format
 

@@ -9,7 +9,7 @@ const count = host => commands().flatMap(shellParts).filter(part => launch[host]
 const host = process.env.EVAL_HOST;
 const other = count(host === 'claude' ? 'codex' : 'claude');
 const native = toolUses().filter(t => ['Task', 'Agent'].includes(t.name)).length
-  + Math.max(events().some(e => e.item?.type === 'collab_tool_call') ? 1 : 0, codexSessions().filter(s => s.subagent).length);
+  + Math.max(events().some(e => e.item?.type === 'collab_tool_call') ? 1 : 0, codexSessions().filter(s => s.replied && s.parent && s.parent === events().find(e => e.type === 'thread.started')?.thread_id).length);
 const calls = other + count(host) + native;
 check('asks a model from another provider', other >= 1, `${other} calls`);
 check('asks at least two other models', calls >= 2, `${calls} delegate calls`);
