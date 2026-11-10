@@ -277,9 +277,10 @@ export function checkConfig(config) {
   if (!forges[config.forge?.kind] || !filled(config.forge.base)) problems.push('forge.kind and forge.base');
   if (!(config.council?.triage_quorum >= 1 && config.council.triage_quorum <= config.council.seats?.length)) problems.push('a council.triage_quorum from 1 to the number of seats');
   if (!Array.isArray(config.merge?.required_checks) || !filled(config.merge.method)) problems.push('merge.method and merge.required_checks');
-  const paths = gate => Array.isArray(gate?.paths) && gate.paths.length && gate.paths.every(filled);
-  if (!Array.isArray(config.owner_gates) || !config.owner_gates.every(paths)) problems.push('owner_gates, each with a list of paths');
-  if (!Array.isArray(config.ranking?.groups) || !config.ranking.groups.length) problems.push('ranking.groups');
+  const gate = g => Array.isArray(g?.paths) && g.paths.length && g.paths.every(filled) && filled(g.reason);
+  if (!Array.isArray(config.owner_gates) || !config.owner_gates.every(gate)) problems.push('owner_gates, each with a list of paths and a reason');
+  const group = g => filled(g?.name) && Number.isInteger(g.impact) && g.impact >= 0 && g.impact <= 5;
+  if (!Array.isArray(config.ranking?.groups) || !config.ranking.groups.length || !config.ranking.groups.every(group)) problems.push('ranking.groups, each with a name and an impact from 0 to 5');
   if (!['install', 'check', 'proof'].every(key => filled(config.commands?.[key]))) problems.push('commands.install, commands.check and commands.proof');
   for (const [group, keys] of Object.entries(NUMBERS)) {
     for (const key of keys) {
@@ -729,6 +730,7 @@ export function record({ id, step, data, pr, outcome, reason, calls, ...deps }) 
     relabel(forge, it, { phase: 'pr-open' });
     writeState(forge, it.id, { pr: rec.pr });
     release(rec, deps);
+    if (it.labels.includes(LABELS.hold)) throw new Ended(finish(rec, 'Incomplete', deps, `issue #${it.id} has patrol:hold`));
   }
   if (outcome) return finish(rec, outcome, deps, reason);
   save(rec, deps);

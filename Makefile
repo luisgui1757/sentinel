@@ -10,8 +10,11 @@ test: ## Run the installer and import tests
 check: ## Check the imported files against upstream/lock.json
 	@node tools/upstream.mjs --check
 
-lint: ## Check the shell script, home paths and the STE prose
+lint: ## Check the shell script, home paths, the patrol copies and the STE prose
 	@shellcheck tools/install
+	@cmp skills/patrol/scripts/patrol.mjs tools/patrol/patrol.mjs
+	@cmp skills/patrol/playbook.md tools/patrol/playbook.md
+	@cmp skills/patrol/prompts/scan.md tools/patrol/prompts/scan.md
 	@if git grep -nIE '(/Users/|/home/|[A-Za-z]:\\Users\\)[A-Za-z0-9._-]+'; then \
 		echo "lint: remove the home paths above" >&2; exit 1; fi
 	@npx --yes --package agent-ste@0.5.2 ste-lint rules/AGENTS.md AGENTS.md README.md THIRD_PARTY.md SECURITY.md skills/untangle/SKILL.md skills/tldr/SKILL.md skills/cleanup/SKILL.md skills/no-comments/SKILL.md skills/verify-pr/SKILL.md skills/verify-pr/references/blame.md skills/patrol/SKILL.md skills/featuremap/SKILL.md rules/output-style.md evals/README.md

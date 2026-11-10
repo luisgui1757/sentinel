@@ -59,16 +59,19 @@ PR with an agent from another model family.
       host. The playbook runs skills from both.
    2. Write `~/.config/sentinel/seats.json`. It maps each seat name of
       `patrol.json`, the lead and each council seat, to a model, as in the
-      example below. Write a `family` only for a model that
-      you checked. The tester is the first seat with a family other than the
-      lead.
+      example below. A seat name is only an alias. Each host maps it to a
+      model, so a host can map `opus` to another Opus version with no config
+      change. Write a `family` only for a model that you checked. The tester
+      is the first seat with a family other than the lead.
    3. Run `node tools/patrol/patrol.mjs init` once. It makes the labels and
       the pinned log issue.
    4. Start one run by hand: open a new thread with the model of the lead in
       the repository, and give it the prompt
       `Follow tools/patrol/playbook.md.`
    5. Make a scheduled task with the same model and prompt, with a new
-      worktree for each run.
+      worktree for each run. `start` compares the model of the thread with
+      the model of the lead in `seats.json`. A run on another model ends as
+      `Incomplete`.
 
 ```json
 {
@@ -87,20 +90,24 @@ PR with an agent from another model family.
 branch. A run uses the config of the default branch when it starts. A lower
 mode on the default branch also stops a run at its next gate.
 
-| Key | Meaning |
-| --- | --- |
-| `forge` | `kind` (`github`, `gitlab` or `azure`) and `base`. GitLab adds `api_url` and `project_id`, and the host needs `PATROL_GITLAB_TOKEN`. Azure DevOps adds `organization`, `project`, `repository`, `work_item_type` and `closed_state`. |
-| `mode` | `demo`, `full-stop`, `full-send` or `paused` |
-| `lead`, `council.seats` | Seat names from `seats.json` |
-| `review` | `sol-loop`, `both` or `council`: the review of the patch |
-| `scan.max_findings` | The most new defects in one run |
-| `budget` | `plans_per_run`, `fixes_per_day` and `council_calls_per_run` |
-| `council` | `threshold`, `rounds` and `triage_quorum` |
-| `limits` | `attempts`, `lock_stale_minutes`, `max_files` and `max_lines` |
-| `ranking.groups` | The defect groups with impact points and examples |
-| `owner_gates` | Paths that stop at `Ready for owner`, also in `full-send` |
-| `commands` | `install`, `check` and `proof` |
-| `merge` | `method` and `required_checks` |
+Each repository must set `ranking.groups`, `owner_gates`, `commands` and
+`merge.required_checks`. The template gives only placeholders for them. The
+other template values are safe defaults.
+
+| Key | Meaning | Template |
+| --- | --- | --- |
+| `forge` | `kind` (`github`, `gitlab` or `azure`) and `base`. GitLab adds `api_url` and `project_id`, and the host needs `PATROL_GITLAB_TOKEN`. Azure DevOps adds `organization`, `project`, `repository`, `work_item_type` and `closed_state`. | `github`, `main` |
+| `mode` | `demo`, `full-stop`, `full-send` or `paused` | `demo` |
+| `lead`, `council.seats` | Seat names from `seats.json` | Lead `opus`, seats `fable`, `astra` and `muse` |
+| `review` | `sol-loop`, `both` or `council`: the review of the patch | `both` |
+| `scan.max_findings` | The most new defects in one run | 10 |
+| `budget` | `plans_per_run`, `fixes_per_day` and `council_calls_per_run` | 2, 1, 60 |
+| `council` | `threshold`, `rounds` and `triage_quorum` | 9.0, 3, 2 |
+| `limits` | `attempts`, `lock_stale_minutes`, `max_files` and `max_lines` | 3, 120, 40, 2000 |
+| `ranking.groups` | The defect groups, each with a `name`, an `impact` from 0 to 5 and examples | Placeholder groups |
+| `owner_gates` | Paths that stop at `Ready for owner`, also in `full-send`. Each gate has `paths` and a `reason`. | None |
+| `commands` | `install`, `check` and `proof` | `npm ci`, `npm run lint`, `npm test` |
+| `merge` | `method` and `required_checks` | Method `squash`, check `test` |
 
 A task prompt can change a limit for one run, for example
 `Follow tools/patrol/playbook.md. Override: plans_per_run=3.` It cannot raise
