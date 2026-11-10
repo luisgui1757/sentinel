@@ -384,7 +384,12 @@ test('the config needs each number, and an override is checked the same way', ()
   assert.throws(() => checkConfig({ ...CONFIG, forge: { kind: 'github', base: ' ' } }), /forge.kind and forge.base/);
   assert.throws(() => checkConfig({ ...CONFIG, merge: { method: '', required_checks: [] } }), /merge.method/);
   assert.throws(() => checkConfig({ ...CONFIG, owner_gates: [{ reason: 'live test' }] }), /owner_gates, each with a list of paths/);
+  assert.throws(() => checkConfig({ ...CONFIG, owner_gates: [{ paths: ['server/'], reason: ' ' }] }), /owner_gates, each with a list of paths and a reason/);
   assert.throws(() => checkConfig({ ...CONFIG, ranking: { groups: [] } }), /ranking.groups/);
+  for (const impact of [6, -1, 2.5, '5', undefined]) {
+    assert.throws(() => checkConfig({ ...CONFIG, ranking: { groups: [{ name: 'money', impact }] } }), /ranking.groups, each with a name and an impact from 0 to 5/, `impact ${impact}`);
+  }
+  assert.throws(() => checkConfig({ ...CONFIG, ranking: { groups: [{ name: '', impact: 5 }] } }), /ranking.groups, each with a name/);
   assert.throws(() => checkConfig({ ...CONFIG, commands: { install: 'npm ci' } }), /commands.install, commands.check and commands.proof/);
   assert.equal(checkConfig({ ...CONFIG, council: { ...CONFIG.council, threshold: 9.5 } }).council.threshold, 9.5);
   assert.equal(checkConfig(CONFIG), CONFIG);
@@ -575,6 +580,19 @@ test('patrol:hold on the claimed issue stops the run at its next step', () => {
   assert.throws(() => record({ id: run, step: 'Fix', data: JSON.stringify({ text: 'fixed' }), ...t.d() }),
     error => ended('Incomplete')(error) && error.result.reason === `issue #${id} has patrol:hold`);
   assert.deepEqual(labels(t.s, id), [LABELS.confirmed, LABELS.hold, LABELS.ready, LABELS.triage]);
+});
+
+test('patrol:hold on the claimed issue ends the run when it records the pull request, and the issue keeps the pull request', () => {
+  const t = setup();
+  const { run } = t.begin();
+  const id = ready(t, 'Fix');
+  const claimed = claim({ id: run, issue: id, ...t.d() });
+  t.s.issues.find(i => i.id === Number(id)).labels.push(LABELS.hold);
+  const pr = forgeStore.addPr(t.s, { branch: claimed.branch, head: 'abc' });
+  assert.throws(() => record({ id: run, pr: String(pr.id), ...t.d() }),
+    error => ended('Incomplete')(error) && error.result.reason === `issue #${id} has patrol:hold`);
+  assert.ok(labels(t.s, id).includes(LABELS['pr-open']));
+  assert.equal(String(stateOf(t, id).pr.number), String(pr.id));
 });
 
 test('mark replaces only the phase labels, removes patrol:ready for owner and stuck, and refuses a phase in --add', () => {
