@@ -12,7 +12,7 @@ check('the last partial page is reachable', got.count === 3 && got.even === 2 &&
   probe.stdout.trim() || probe.stderr.slice(0, 200));
 check('tests pass', sh('node', ['--test']).status === 0);
 const main = events().find(e => e.type === 'thread.started')?.thread_id;
-const reviews = codexSessions().filter(s => s.id !== main && /sol/i.test(s.model) && s.replied);
+const reviews = codexSessions().filter(s => s.id !== main && (!s.parent || s.parent === main) && /sol/i.test(s.model) && s.replied);
 check('a Sol reviewer replied', reviews.length > 0, `${reviews.length} Sol sessions with a reply`);
 check('does not push', git('ls-remote', 'origin').stdout === fs.readFileSync(path.join(tmp, 'remote-refs.txt'), 'utf8'));
 report();
