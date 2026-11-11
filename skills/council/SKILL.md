@@ -11,19 +11,21 @@ fixes until reviews return. If the user wants to discard the implementation
 and explore new ideas, skip fixes to code being replaced.
 
 Bring in delegates to help with the user's request, usually for review or
-feedback. By default, use Claude Opus and GPT Sol, in their latest versions,
+feedback. By default, use Claude Fable 5.2, GPT-6 Astra and Muse Wonder Full,
 one seat each, at high reasoning effort. Start a delegate for each seat, also
 for the model that you run on. If the user names members, use only those, one
 seat each. If the user asks for more seats than members, fill the extra seats
-with copies, in the order of the user's list. Report a named member that you
-cannot reach. If you can reach only one model family, report it. Do not
-substitute a model.
+with copies, in the order of the user's list. If the user asks for fewer seats
+and names no members, use the first defaults in the order above. Report a
+member that you cannot reach. If you can reach only one model family, report
+it. Do not substitute a model.
 
 In T3 Code, use `orchestrator_capabilities` to resolve the models, then
 `delegate_task` to start one delegate per seat in parallel. Elsewhere, use
 the harness's subagent tools when they can run the model. Otherwise start each
-delegate as a background command with a CLI that runs the model. Set `<effort>` to `high`, unless the
-user names another effort:
+delegate as a background command with a CLI that runs the model. Set the
+`<effort>` of each seat to `high`, unless the user names another effort for
+that seat or for all seats:
 
 | CLI | Read-only command |
 | --- | --- |
@@ -32,6 +34,7 @@ user names another effort:
 | Copilot CLI | `copilot -p "<brief>" -s --model <id> --effort=<effort> --allow-tool 'read,shell(git diff:*),shell(git status:*),shell(git log:*),shell(git show:*)'` |
 | OpenCode | `opencode run --agent plan --model <provider>/<id> --variant <effort> "<brief>"` |
 | Kiro CLI | `kiro-cli chat --no-interactive --agent <name> --effort <effort> "<brief>"`, with the model in the agent file |
+| Muse | `muse exec --model <id> --effort <effort> --disable-write --disable-shell --approval-mode never "<brief>"`, with the diff in the brief |
 
 Copilot CLI and OpenCode can run models from several model families. Before
 you decide that a family is out of reach, check which of these CLIs are on the
@@ -56,8 +59,9 @@ Rounds: 2
 
 | Delegate | Round 1 | Round 2 |
 | --- | --- | --- |
-| Claude Opus | 7/10 | 9/10 |
-| GPT Sol | 8/10 | 10/10 |
+| Claude Fable 5.2 | 7/10 | 9/10 |
+| GPT-6 Astra | 8/10 | 10/10 |
+| Muse Wonder Full | 6/10 | 9/10 |
 ```
 
 If a delegate gives no score, write `no score`. Do not invent one.

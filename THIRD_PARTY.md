@@ -32,11 +32,11 @@ so that agents can load them. It replaces the Cursor model routes with the
 subagents of the host, and the `.cursor` folders with the project skill folders
 of each host. `statechart` reports a replayed violation as a bug.
 
-Council runs Claude Opus and GPT Sol by default, one seat each. It uses only
-the members that the user names. It fills extra seats with copies in the order
-of the user's list, and it checks the `PATH` for each CLI. It has a design
-mode. It puts its results in the description of a PR only when the task lets
-it change that PR.
+Council runs Claude Fable 5.2, GPT-6 Astra and Muse Wonder Full by default, one
+seat each. It uses only the members that the user names. It fills extra seats
+with copies in the order of the user's list, and it checks the `PATH` for each
+CLI. It has a design mode. It puts its results in the description of a PR only
+when the task lets it change that PR.
 
 Sentinel wrote beast-ui, cleanup, doc-view, no-comments, tldr and untangle.
 The keep list of no-comments comes from the Comment Sicko agent of pstack.
