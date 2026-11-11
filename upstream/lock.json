@@ -28,7 +28,7 @@
       "source": "tstack",
       "path": "skills/council/SKILL.md",
       "sha256": "598fb2c7cdd48ddd9643cb22999e1b624c357aa6579aa0af0e7268ae16a8a164",
-      "local": "598ea40a1298830c8d43e7bb9263e05b5c9e6ff7e62baf4aa3bc50f0eb6405bf",
+      "local": "d4f4ac820002c4969b8e3083ad659e2dbf7dd3ff1f65504fcfba9138ed90f250",
       "executable": false
     },
     "skills/file-pr/SKILL.md": {
