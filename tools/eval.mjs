@@ -148,6 +148,11 @@ function codexAuth() {
   return bytes;
 }
 
+function museAuth() {
+  const file = path.join(process.env.XDG_CONFIG_HOME || path.join(os.homedir(), '.config'), 'muse', 'auth.json');
+  return existsSync(file) ? readFileSync(file) : null;
+}
+
 function freePort() {
   return new Promise(resolve => {
     const server = net.createServer();
@@ -161,6 +166,11 @@ async function sandbox(auth) {
   for (const dir of [home, bin, work, path.join(home, '.codex'), path.join(home, '.claude'), path.join(home, '.config')]) await fs.mkdir(dir, { recursive: true });
   await fs.writeFile(path.join(home, '.gitconfig'), '[user]\n\tname = Alex Doe\n\temail = alex@example.com\n[init]\n\tdefaultBranch = main\n');
   await fs.writeFile(path.join(home, '.codex', 'auth.json'), auth.codex, { mode: 0o600 });
+  await fs.writeFile(path.join(home, '.claude', '.credentials.json'), JSON.stringify({ claudeAiOauth: { accessToken: auth.claude, scopes: ['user:inference'] } }), { mode: 0o600 });
+  if (auth.muse) {
+    await fs.mkdir(path.join(home, '.config', 'muse'));
+    await fs.writeFile(path.join(home, '.config', 'muse', 'auth.json'), auth.muse, { mode: 0o600 });
+  }
   // Apps reach the real accounts of the Codex login, such as GitHub.
   await fs.writeFile(path.join(home, '.codex', 'config.toml'), '[features]\napps = false\n');
   const env = Object.fromEntries(Object.entries(process.env).filter(([key]) => !hostVars.includes(key)));
@@ -300,7 +310,8 @@ Answer with JSON: {"pass": true or false, "reason": "one sentence"}.`.replace(/\
 
 async function archive(box, file, auth) {
   const tokens = JSON.parse(auth.codex).tokens ?? {};
-  const secrets = [auth.claude, tokens.access_token, tokens.refresh_token, tokens.id_token].filter(s => typeof s === 'string' && s.length > 20);
+  const muse = Object.values(auth.muse ? JSON.parse(auth.muse).providers ?? {} : {}).flatMap(p => [p.access_token, p.api_key, p.refresh_token]);
+  const secrets = [auth.claude, tokens.access_token, tokens.refresh_token, tokens.id_token, ...muse].filter(s => typeof s === 'string' && s.length > 20);
   const kept = (await fs.readdir(box.tmp)).filter(name => name !== 'home' && name !== 'bin');
   if (existsSync(path.join(box.home, '.codex', 'sessions'))) kept.push('home/.codex/sessions');
   const leaks = [];
@@ -438,7 +449,7 @@ async function main() {
   const stamp = new Date().toISOString().replace(/[:.]/g, '-');
   const results = path.join(evalsDir, 'results', stamp);
   await fs.mkdir(results, { recursive: true });
-  const ctx = { results, baseRulesFor, judgesFor, keep: opts.keep, auth: () => ({ claude: claudeToken(), codex: codexAuth() }) };
+  const ctx = { results, baseRulesFor, judgesFor, keep: opts.keep, auth: () => ({ claude: claudeToken(), codex: codexAuth(), muse: museAuth() }) };
   ctx.auth();
   const limit = semaphore(opts.jobs);
   const run = async (testCase, target, arm, index) => done.get(`${testCase.name} ${target.id} ${arm} ${index}`) ?? limit(() => trial(ctx, testCase, target, arm, index));
@@ -490,7 +501,7 @@ async function rejudge(opts, judgesFor, config) {
   }
   const results = path.join(evalsDir, 'results', new Date().toISOString().replace(/[:.]/g, '-'));
   await fs.mkdir(results, { recursive: true });
-  const ctx = { judgesFor, auth: () => ({ claude: claudeToken(), codex: codexAuth() }) };
+  const ctx = { judgesFor, auth: () => ({ claude: claudeToken(), codex: codexAuth(), muse: museAuth() }) };
   ctx.auth();
   const records = [];
   for (const old of latest.values()) {
