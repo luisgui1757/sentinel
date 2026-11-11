@@ -187,9 +187,22 @@ export function codexSessions() {
       id: lines.find(l => l.type === 'session_meta')?.payload?.id,
       parent: lines.find(l => l.type === 'session_meta')?.payload?.source?.subagent?.thread_spawn?.parent_thread_id,
       model: lines.find(l => l.type === 'turn_context')?.payload?.model ?? '',
-      replied: lines.some(l => l.type === 'response_item' && l.payload?.type === 'message' && l.payload?.role === 'assistant'),
+      replied: lines.some(l => l.type === 'response_item' && l.payload?.type === 'message' && l.payload?.role === 'assistant' && l.payload?.phase === 'final_answer'),
     };
   });
+}
+
+const launcher = String.raw`^((\w+=\S*|timeout\s+\S+|nohup|env|time|exec|command)\s+)*(\S*\/)?`;
+
+export function councilSeats() {
+  const launches = commands().flatMap(shellParts).filter(part => !/--help|--version|\s-h\b/.test(part));
+  const chair = events().find(e => e.type === 'thread.started')?.thread_id;
+  return {
+    claude: launches.filter(part => new RegExp(`${launcher}claude\\b`).test(part) && /\s(-p|--print)\b/.test(part)).length
+      + toolUses().filter(t => ['Task', 'Agent'].includes(t.name)).length,
+    codex: launches.filter(part => new RegExp(`${launcher}codex\\s+exec\\b`).test(part) && !/\bresume\b/.test(part)).length
+      + codexSessions().filter(s => s.replied && s.parent && s.parent === chair).length,
+  };
 }
 
 const YAML_TO_JSON = 'require "yaml"; require "json"; print JSON.generate(YAML.safe_load(STDIN.read, aliases: true) || {})';
