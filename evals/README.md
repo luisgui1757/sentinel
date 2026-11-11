@@ -873,10 +873,10 @@ Sentinel text, and one set used the upstream text.
   Sol edited the PR in 0 of 3 runs, and Opus in 0 of 3.
 - **Delegates:** Sol starts the Sol seat as a native Codex subagent with
   `spawn_agent`. The first check did not count that call, so it failed each
-  Sol run. The checks of `council-review-pr` and `council-design` now count
-  the Codex subagents of the chair thread that replied. They use this count
-  when it is larger than the count from the old event. A rejudge passes this
-  check in each of the 9 Sol runs.
+  Sol run. The checks of `council-review-pr` and `council-design` now need
+  one Claude seat and one Codex seat. A Codex subagent counts as a seat only
+  when the chair thread started it and it gave a final answer. A rejudge
+  passes this check in each of the 9 Sol runs.
 - **Not measured:** a council run in a PR that the task lets the agent
   change, such as full-send. The PR table must stay there.
 - **Folders:** Sentinel text `2026-11-10T04-23-43-754Z` and
