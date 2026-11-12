@@ -68,6 +68,7 @@ test('the council checks need a Muse seat that ran, when the sandbox has a Muse 
     assert.equal(await seat({ launches: launches('Score: 8/10'), muse: true }), true);
     assert.equal(await seat({ launches: launches(failed), muse: true }), false);
     assert.equal(await seat({ launches: launches(`     1\t${failed}`), muse: true }), false);
+    assert.equal(await seat({ launches: [...launches(failed), { command: 'muse exec --model muse-wonder-full-1.0 "Review"', output: `\`${failed}\` is fixed` }], muse: true }), true);
     assert.equal(await seat({ launches: launches('').slice(0, 1), muse: true }), false);
     assert.equal(await seat({ launches: launches('').slice(0, 1) }), true);
   }

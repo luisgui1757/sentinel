@@ -203,7 +203,7 @@ export function councilSeats() {
     codex: launches.filter(part => new RegExp(`${launcher}codex\\s+exec\\b`).test(part) && !/\bresume\b/.test(part)).length
       + codexSessions().filter(s => s.replied && s.parent && s.parent === chair).length,
     muse: Math.max(0, launches.filter(part => new RegExp(`${launcher}muse\\s+exec\\b`).test(part)).length
-      - new Set(toolOutputs().flatMap(output => output.match(/agent loop failed:.*$/gm) ?? [])).size),
+      - new Set(toolOutputs().flatMap(output => output.match(/agent loop failed:.*?(?:\[request_id=[^\]]*\]|$)/gm) ?? [])).size),
   };
 }
 

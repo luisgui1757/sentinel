@@ -898,7 +898,10 @@ seats, so all 8 runs passed.
 The skill now gives the IDs `claude-fable-5-2`, `gpt-6-astra` and
 `muse-wonder-full-1.0`. When the sandbox has a Muse login, the checks of
 `council-review-pr` and `council-design` also need one `muse exec` launch
-without the line `agent loop failed:`. The 8 runs of 11 November fail this
+without the line `agent loop failed:`. The sandbox writes an empty
+`muse-login` file in the run folder to show the login. With this file added
+to their saved sandbox, the 8 runs of 11 November fail this check. Older
+archives have no `muse-login` file, so a rejudge of them skips the Muse
 check.
 
 | Case | Model | Muse seat before | Muse seat after | Pass after |
