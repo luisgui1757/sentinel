@@ -19,10 +19,6 @@ export function events(text = trace()) {
   return text.split('\n').filter(line => line.startsWith('{')).map(line => { try { return JSON.parse(line); } catch { return null; } }).filter(Boolean);
 }
 
-export function toolUses() {
-  return events().flatMap(event => (event.message?.content ?? []).filter(part => part.type === 'tool_use'));
-}
-
 export function commands() {
   const found = [];
   for (const event of events()) {
@@ -165,11 +161,11 @@ function model(args) {
 }
 
 export function councilSeats() {
-  const replied = launches().filter(run => run.code === 0 && run.bytes > 0 && councilModels.includes(model(run.args)));
+  const replied = launches().filter(run => run.code === 0 && run.bytes > 0 && councilModels.includes(model(run.args))
+    && !run.args.some(arg => ['--help', '-h', 'help', '--version', '-V'].includes(arg)));
   const chair = events().find(e => e.type === 'thread.started')?.thread_id;
   return {
-    claude: replied.filter(run => run.cli === 'claude' && run.args.some(arg => arg === '-p' || arg === '--print')).length
-      + toolUses().filter(t => ['Task', 'Agent'].includes(t.name) && councilModels.includes(t.input?.model)).length,
+    claude: replied.filter(run => run.cli === 'claude' && run.args.some(arg => arg === '-p' || arg === '--print')).length,
     codex: replied.filter(run => run.cli === 'codex' && run.args.includes('exec') && !run.args.includes('resume')).length
       + codexSessions().filter(s => s.replied && s.parent && s.parent === chair && councilModels.includes(s.model)).length,
     muse: replied.filter(run => run.cli === 'muse' && run.args.includes('exec')).length,

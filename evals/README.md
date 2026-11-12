@@ -921,6 +921,39 @@ the Muse check. I added this file to each saved sandbox. Then the 8 runs of
   `2026-11-12T04-22-23-053Z`. The eval stops a case early after a pass, so
   the after runs are fewer.
 
+## Results of 12 November 2026: seats from the launch log
+
+Issue #59 listed cases where the council checks counted a seat that gave no
+review. The checks read the shell commands in the trace. They did not read
+the exit code or the output of a launch.
+
+Now the sandbox puts a logger for `claude`, `codex` and `muse` in its `bin`
+folder. The logger runs the real CLI. It writes the arguments, the exit code
+and the output size of each launch to `launches.jsonl` in the sandbox root.
+The chair and the judges run the real CLI, so they are not in the log.
+
+A seat counts when its launch exits with code 0 and gives output. The launch
+also names a default model of the council skill. A help or version call is
+not a seat.
+
+A Codex subagent counts when it gives a final answer
+with a default model. A Claude `Agent` call does not count, because it takes
+only a model alias, such as `fable`. The default GPT seat is now
+`gpt-6.1-sol`. Both cases need `claude` and `codex` on the `PATH`.
+
+| Case | Model | Pass | Seats in the log |
+| --- | --- | --- | --- |
+| `council-design` | Opus | 1/1 | Fable, Sol, Muse |
+| `council-design` | Sol | 1/1 | Fable, Muse, and a Sol subagent |
+| `council-review-pr` | Opus | 1/1 | Fable, Sol, Muse |
+| `council-review-pr` | Sol | 1/1 | Fable, Muse, and a Sol subagent |
+
+- **Known limit:** in design mode, the chair starts a judge from another
+  model family. When the judge uses a default model, it counts as a seat.
+- **Rejudge:** an archive from before this change has no `launches.jsonl`.
+  A rejudge of it fails the council check with 0 seats.
+- **Folder:** `2026-11-12T06-07-58-071Z`.
+
 ## Case format
 
 Each folder is one case. It uses the format of the Anthropic skill evals, with

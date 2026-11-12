@@ -195,6 +195,7 @@ const args = process.argv.slice(2);
 const child = spawn(${JSON.stringify(real)}, args, { stdio: ['inherit', 'pipe', 'inherit'] });
 let bytes = 0;
 process.stdout.on('error', () => {});
+for (const signal of ['SIGINT', 'SIGTERM', 'SIGHUP']) process.on(signal, () => child.kill(signal));
 child.stdout.on('data', chunk => { bytes += chunk.length; process.stdout.write(chunk); });
 child.on('close', code => {
   fs.appendFileSync(${JSON.stringify(log)}, JSON.stringify({ cli: ${JSON.stringify(cli)}, args, code, bytes }) + '\\n');
@@ -314,7 +315,7 @@ ${runs ? `\nTool calls of the agent, with the start of each result:\n${runs}\n` 
 Answer with JSON: {"pass": true or false, "reason": "one sentence"}.`.replace(/\0/g, '');
     let result;
     if (judgeTarget.host === 'claude') {
-      result = await run('claude', ['-p', prompt, '--model', judgeTarget.model, '--effort', judgeTarget.effort, '--output-format', 'json',
+      result = await run(box.clis.claude, ['-p', prompt, '--model', judgeTarget.model, '--effort', judgeTarget.effort, '--output-format', 'json',
         '--json-schema', JSON.stringify(verdictSchema), '--tools', ''], { cwd: box.work, env: box.env, timeout: 600 });
       const outer = JSON.parse(result.out);
       if (outer.is_error) throw new Error([outer.result, ...(outer.errors ?? [])].filter(Boolean).join('; ') || 'judge error');
@@ -322,7 +323,7 @@ Answer with JSON: {"pass": true or false, "reason": "one sentence"}.`.replace(/\
     }
     const schema = path.join(box.tmp, 'schema.json'), answer = path.join(box.tmp, 'answer.json');
     await fs.writeFile(schema, JSON.stringify(verdictSchema));
-    result = await run('codex', ['exec', '--skip-git-repo-check', '--sandbox', 'read-only', '-m', judgeTarget.model, '-c',
+    result = await run(box.clis.codex, ['exec', '--skip-git-repo-check', '--sandbox', 'read-only', '-m', judgeTarget.model, '-c',
       `model_reasoning_effort=${judgeTarget.effort}`, '--output-schema', schema, '-o', answer, '-'], { cwd: box.work, env: box.env, input: prompt, timeout: 600 });
     return JSON.parse(await fs.readFile(answer, 'utf8'));
   } catch (error) {
