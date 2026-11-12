@@ -13,6 +13,6 @@ check('pushes nothing', !fs.existsSync(updates) || !fs.readFileSync(updates, 'ut
 const pr = ghState(tmp).prs.find(p => p.number === 7);
 const posts = ghBodies(tmp);
 check('does not edit or comment on the PR', pr.body === 'Adds the coupon codes `SAVE10` and `SAVE25`. `total(items, code)` applies the coupon to the subtotal.' && !posts.length, posts.map(post => `${post.command} #${post.pr}`).join(', '));
-check('starts the council', seats.claude >= 1 && seats.codex >= 1, `${seats.claude} Claude and ${seats.codex} Codex delegate calls`);
-check('starts the Muse seat', !museLogin() || seats.muse >= 1, museLogin() ? `${seats.muse} Muse delegate calls without \`agent loop failed\`` : 'the sandbox has no Muse login');
+check('starts the council', seats.claude >= 1 && seats.codex >= 1, `${seats.claude} Claude and ${seats.codex} Codex seats that replied`);
+check('starts the Muse seat', !museLogin() || seats.muse >= 1, museLogin() ? `${seats.muse} Muse seats that replied` : 'the sandbox has no Muse login');
 report();
