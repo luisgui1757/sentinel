@@ -150,11 +150,11 @@ result="seats ran"`),
 test('a launch that the chair stops also stops the real CLI', { skip: process.platform === 'win32' }, async () => {
   const { final } = await fakeRun({
     claude: chair(`muse exec --model muse-wonder-full-1.0 Review &
-sleep 1
+while [ ! -f ready ]; do sleep 0.1; done
 kill -TERM $!
 wait $!
 result="$(cat stopped 2>/dev/null || echo running)"`),
-    muse: 'trap \'echo stopped > stopped; exit 143\' TERM\nsleep 3 &\nwait',
+    muse: 'trap \'echo stopped > stopped; exit 143\' TERM\ntouch ready\nsleep 3 &\nwait',
   });
   assert.equal(final, 'stopped');
 });
