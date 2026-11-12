@@ -202,8 +202,12 @@ export function councilSeats() {
       + toolUses().filter(t => ['Task', 'Agent'].includes(t.name)).length,
     codex: launches.filter(part => new RegExp(`${launcher}codex\\s+exec\\b`).test(part) && !/\bresume\b/.test(part)).length
       + codexSessions().filter(s => s.replied && s.parent && s.parent === chair).length,
+    muse: Math.max(0, launches.filter(part => new RegExp(`${launcher}muse\\s+exec\\b`).test(part)).length
+      - new Set(toolOutputs().flatMap(output => output.match(/^agent loop failed:.*$/gm) ?? [])).size),
   };
 }
+
+export const museLogin = () => fs.existsSync(path.join(process.env.EVAL_HOME, '.config', 'muse', 'auth.json'));
 
 const YAML_TO_JSON = 'require "yaml"; require "json"; print JSON.generate(YAML.safe_load(STDIN.read, aliases: true) || {})';
 

@@ -12,7 +12,7 @@ import { trustTable, failureList } from './trust.mjs';
 const root = fileURLToPath(new URL('../', import.meta.url));
 const evalsDir = path.join(root, 'evals');
 const hostVars = ['CODEX_HOME', 'CLAUDE_CONFIG_DIR', 'COPILOT_HOME', 'KIRO_HOME', 'XDG_CONFIG_HOME', 'ANTHROPIC_API_KEY',
-  'OPENAI_API_KEY', 'CODEX_API_KEY', 'CLAUDE_CODE_OAUTH_TOKEN', 'GH_TOKEN', 'GITHUB_TOKEN'];
+  'OPENAI_API_KEY', 'CODEX_API_KEY', 'CLAUDE_CODE_OAUTH_TOKEN', 'GH_TOKEN', 'GITHUB_TOKEN', 'META_API_KEY'];
 const verdictSchema = { type: 'object', additionalProperties: false, required: ['pass', 'reason'],
   properties: { pass: { type: 'boolean' }, reason: { type: 'string' } } };
 
