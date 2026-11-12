@@ -11,8 +11,9 @@ fixes until reviews return. If the user wants to discard the implementation
 and explore new ideas, skip fixes to code being replaced.
 
 Bring in delegates to help with the user's request, usually for review or
-feedback. By default, use Claude Fable 5.2, GPT-6 Astra and Muse Wonder Full,
-one seat each, at high reasoning effort. Start a delegate for each seat, also
+feedback. By default, use Claude Fable 5.2 (`claude-fable-5-2`), GPT-6 Astra
+(`gpt-6-astra`) and Muse Wonder Full (`muse-wonder-full-1.0`), one seat each,
+at high reasoning effort. Start a delegate for each seat, also
 for the model that you run on. If the user names members, use only those, one
 seat each. If the user asks for more seats than members, fill the extra seats
 with copies, in the order of the user's list. If the user asks for fewer seats

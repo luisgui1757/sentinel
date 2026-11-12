@@ -1,11 +1,11 @@
 {
   "version": 1,
   "inputs": {
-    "upstream/imports.json": "9abd845da89389e3b7fb90b5ca41407e23adf7f1750a392009efefbc6b327074"
+    "upstream/imports.json": "8b71a610494159a1d39d83269808c5a9306fbc5f8c3b14fe4b5e008d2262c497"
   },
   "sources": {
     "tstack": "1085050f3baed1ac724caa4a8166145fb2ac88af",
-    "impeccable": "924bbd194d02e5e15a227e75b5901fb0d7a4ecad",
+    "impeccable": "b4bff1626c344067788c2679f048a20057c7cc5a",
     "frontend-design": "dbd4588f9e1033efb41dad4bef2f7947c8993d44",
     "pstack": "4dd1d05818d19792e7cd6e818f1667f95f7e1dbe"
   },
@@ -28,7 +28,7 @@
       "source": "tstack",
       "path": "skills/council/SKILL.md",
       "sha256": "598fb2c7cdd48ddd9643cb22999e1b624c357aa6579aa0af0e7268ae16a8a164",
-      "local": "d4f4ac820002c4969b8e3083ad659e2dbf7dd3ff1f65504fcfba9138ed90f250",
+      "local": "8dee3c0208c82fa8d9d9db619a193f012ac61f5ea7e47c28b574a036a7afa5c1",
       "executable": false
     },
     "skills/file-pr/SKILL.md": {
@@ -155,8 +155,8 @@
     "skills/impeccable/SKILL.md": {
       "source": "impeccable",
       "path": ".agents/skills/impeccable/SKILL.md",
-      "sha256": "ec5c81f17af6476cafd351875d9109b7d03329e05b3f845cb2d0bbbd4bc31b2c",
-      "local": "bfb5a857525ff1873ed816bba3582db05aa54a36afa9ff006d7a2515b2d66200",
+      "sha256": "c6921e830b7a565ebbe9aabe11516d34092062cd7fa2b442f030134857bf86a8",
+      "local": "d55a726b99361f88444ca1fe1ac78f033afac2c51d80ea122d66f9ea8332a6c6",
       "executable": false
     },
     "skills/impeccable/agents/impeccable_asset_producer.toml": {
@@ -174,7 +174,7 @@
     "skills/impeccable/agents/impeccable_finish_reviewer.toml": {
       "source": "impeccable",
       "path": ".agents/skills/impeccable/agents/impeccable_finish_reviewer.toml",
-      "sha256": "f52cdfbaeea0623c31c25442cab373e93f10e96c65838cd8b672cd345f610d7e",
+      "sha256": "992a2f0308e5c33ec614a34fd50035ba078e43f9e0a018247f62e6b845b321a1",
       "executable": false
     },
     "skills/impeccable/agents/impeccable_manual_edit_applier.toml": {
@@ -192,7 +192,7 @@
     "skills/impeccable/reference/adapt.md": {
       "source": "impeccable",
       "path": ".agents/skills/impeccable/reference/adapt.md",
-      "sha256": "9807cdc112b8bcbdeff9cd2516cda4d07129f1d47f29df4d57645344f34950c1",
+      "sha256": "f68b42ac3ba8d0953bcf43a93c9fca0d8a603e05230abdbf09096d3a53f7abcc",
       "executable": false
     },
     "skills/impeccable/reference/adapt.native.md": {
@@ -216,13 +216,13 @@
     "skills/impeccable/reference/audit.md": {
       "source": "impeccable",
       "path": ".agents/skills/impeccable/reference/audit.md",
-      "sha256": "5ba9e3a090fc4c4d212c8cbfa5a48f7454ceb10fa81a284b4a7b4e8351ece2f1",
+      "sha256": "c1cc198c61bf4cc32416210f490e9245ecf58d57c17d4a0659f79da0f6ffac2b",
       "executable": false
     },
     "skills/impeccable/reference/audit.native.md": {
       "source": "impeccable",
       "path": ".agents/skills/impeccable/reference/audit.native.md",
-      "sha256": "2898eff507738f9102107809e671df3e69f889dee30073030fe96fb2483d8ea3",
+      "sha256": "6cc2f43ba8f8642292b59093c54d53fa5c45cd6813773dc5a08ed527dbd91346",
       "executable": false
     },
     "skills/impeccable/reference/bolder.md": {
@@ -264,7 +264,7 @@
     "skills/impeccable/reference/critique.md": {
       "source": "impeccable",
       "path": ".agents/skills/impeccable/reference/critique.md",
-      "sha256": "c210c9506877c6c8d88880a337fddd95d4315daf70ed6bc631ee6520481f1a0c",
+      "sha256": "0b1fef797791eb6ef968a5d5b628c0c5b630ddd7926c83d5b942bf9494aee509",
       "executable": false
     },
     "skills/impeccable/reference/degraded/asset-producer.md": {
@@ -282,7 +282,7 @@
     "skills/impeccable/reference/degraded/finish-reviewer.md": {
       "source": "impeccable",
       "path": ".agents/skills/impeccable/reference/degraded/finish-reviewer.md",
-      "sha256": "04ba3571cd0f405dffb6b51d892add0e4f19fd7e2bc4815320f2bd2ab5bd2a8a",
+      "sha256": "cb47276e5195f65b42c54b693f8f9b2078f93b6aa55a301ada797790df2bf37b",
       "executable": false
     },
     "skills/impeccable/reference/degraded/manual-edit-applier.md": {
@@ -300,7 +300,7 @@
     "skills/impeccable/reference/distill.md": {
       "source": "impeccable",
       "path": ".agents/skills/impeccable/reference/distill.md",
-      "sha256": "8b9283510e38f0d190652f300ea0793acfb5a514b38b991fdc0a289bade83391",
+      "sha256": "dcf3b5ccf15d5d048114291129685faf9639d15f4def15ab0a68e4acdc1ef94a",
       "executable": false
     },
     "skills/impeccable/reference/doctor.md": {
@@ -390,13 +390,13 @@
     "skills/impeccable/reference/new-work.md": {
       "source": "impeccable",
       "path": ".agents/skills/impeccable/reference/new-work.md",
-      "sha256": "4d9410bf9dfdb0890769a2f45e634be809392ac293abd91ee9553e8eabb18fe5",
+      "sha256": "1bdd209c4799e1aedbf5a564900c05f6e1f88f0aaf9449025dd1bec804b59d43",
       "executable": false
     },
     "skills/impeccable/reference/onboard.md": {
       "source": "impeccable",
       "path": ".agents/skills/impeccable/reference/onboard.md",
-      "sha256": "a2b8fd01ea12139b39b3285393f805bb8c326e11b2234dbff4c26c17b4e9c280",
+      "sha256": "fde093391d5b8ce6a68c99c60be993f14486ec6be0bc12415fdc93b39c56c192",
       "executable": false
     },
     "skills/impeccable/reference/operate.md": {
@@ -414,7 +414,7 @@
     "skills/impeccable/reference/overdrive.md": {
       "source": "impeccable",
       "path": ".agents/skills/impeccable/reference/overdrive.md",
-      "sha256": "0a0d4ae6eea720c6d6e1c073fc77192d7c2100f78a44d9a8d262ddf22270cf4d",
+      "sha256": "ad0465df104431974d2cca39a910c84c72afad3addb1ddd4c8bf418dffdb653c",
       "executable": false
     },
     "skills/impeccable/reference/polish.md": {
@@ -426,7 +426,7 @@
     "skills/impeccable/reference/quieter.md": {
       "source": "impeccable",
       "path": ".agents/skills/impeccable/reference/quieter.md",
-      "sha256": "9e03b55c6bbdd4acba28cfa9c3b74ba1a4448cdbd35a7200990ab460c6eecaa0",
+      "sha256": "e3bfcb08302cf14347f2a09de6460b1ec8df12dbf2c7d8474bede9a159298c3a",
       "executable": false
     },
     "skills/impeccable/reference/region-map.md": {
@@ -462,7 +462,7 @@
     "skills/impeccable/scripts/VERSION": {
       "source": "impeccable",
       "path": ".agents/skills/impeccable/scripts/VERSION",
-      "sha256": "b6961620d618f9cb3418be09f15e730af410a3e0a3e1d3a649c8892bfa7317d4",
+      "sha256": "b0569383609842116bc78ee560cb5a7aee44bdbe59d85efc7b7316cb72389862",
       "executable": false
     },
     "skills/impeccable/scripts/command-metadata.json": {
@@ -486,19 +486,19 @@
     "skills/impeccable/scripts/engine-checksums.txt": {
       "source": "impeccable",
       "path": ".agents/skills/impeccable/scripts/engine-checksums.txt",
-      "sha256": "d1acb01e7e1ab1e5a1f691af710146de82c1915a3e360ae94e9d8eaa6fc3c875",
+      "sha256": "5a374b368586a029b4bd4a2610cde9fb1c586b99b88c496519eeda1f09cf5550",
       "executable": false
     },
     "skills/impeccable/scripts/impeccable": {
       "source": "impeccable",
       "path": ".agents/skills/impeccable/scripts/impeccable",
-      "sha256": "137173707b882616104b9d621b53bea37f135de09461add3301b9fcb3d7de461",
+      "sha256": "9a82c1d8a5fc34b0edb3040cf25098c7c5a662e703118e99f96bacd543ed6d68",
       "executable": true
     },
     "skills/impeccable/scripts/impeccable.cmd": {
       "source": "impeccable",
       "path": ".agents/skills/impeccable/scripts/impeccable.cmd",
-      "sha256": "96a9281207f81c6974a552b9538cdd3ac7d5005a3baf7eeddeb3556f86cae9a6",
+      "sha256": "d779a2f3ad945568f4c9265d9a282578721fa6755fae3b83bb7ffd2752b58eb2",
       "executable": false
     },
     "skills/impeccable/scripts/live-browser-dom.js": {
@@ -522,7 +522,7 @@
     "skills/impeccable/scripts/live-browser.js": {
       "source": "impeccable",
       "path": ".agents/skills/impeccable/scripts/live-browser.js",
-      "sha256": "e8e6a4c013254e241a5a33977424581215c987a533968eadda759e2488ae09e5",
+      "sha256": "144335146f4f5a3a06be4b5daab24cac82653510c0007ad3786dbd3ef1a02f6e",
       "executable": false
     },
     "skills/impeccable/scripts/modern-screenshot.umd.js": {

@@ -12,7 +12,7 @@ import { trustTable, failureList } from './trust.mjs';
 const root = fileURLToPath(new URL('../', import.meta.url));
 const evalsDir = path.join(root, 'evals');
 const hostVars = ['CODEX_HOME', 'CLAUDE_CONFIG_DIR', 'COPILOT_HOME', 'KIRO_HOME', 'XDG_CONFIG_HOME', 'ANTHROPIC_API_KEY',
-  'OPENAI_API_KEY', 'CODEX_API_KEY', 'CLAUDE_CODE_OAUTH_TOKEN', 'GH_TOKEN', 'GITHUB_TOKEN'];
+  'OPENAI_API_KEY', 'CODEX_API_KEY', 'CLAUDE_CODE_OAUTH_TOKEN', 'GH_TOKEN', 'GITHUB_TOKEN', 'META_API_KEY'];
 const verdictSchema = { type: 'object', additionalProperties: false, required: ['pass', 'reason'],
   properties: { pass: { type: 'boolean' }, reason: { type: 'string' } } };
 
@@ -170,6 +170,7 @@ async function sandbox(auth) {
   if (auth.muse) {
     await fs.mkdir(path.join(home, '.config', 'muse'));
     await fs.writeFile(path.join(home, '.config', 'muse', 'auth.json'), auth.muse, { mode: 0o600 });
+    await fs.writeFile(path.join(tmp, 'muse-login'), '');
   }
   // Apps reach the real accounts of the Codex login, such as GitHub.
   await fs.writeFile(path.join(home, '.codex', 'config.toml'), '[features]\napps = false\n');
