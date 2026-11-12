@@ -162,7 +162,7 @@ function model(args) {
 
 export function councilSeats() {
   const replied = launches().filter(run => run.code === 0 && run.bytes > 0 && councilModels.includes(model(run.args))
-    && !run.args.some(arg => ['--help', '-h', 'help', '--version', '-V'].includes(arg)));
+    && !run.args.some(arg => ['--help', '-h', 'help', '--version', '-V', '-v'].includes(arg)));
   const chair = events().find(e => e.type === 'thread.started')?.thread_id;
   return {
     claude: replied.filter(run => run.cli === 'claude' && run.args.some(arg => arg === '-p' || arg === '--print')).length,
