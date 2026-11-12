@@ -33,10 +33,7 @@ async function evalCheck(name, check, { launches = [], wait = false, sessions = 
   await fs.writeFile(path.join(dir, 'remote-refs.txt'), '');
   await fs.writeFile(path.join(dir, 'refs.txt'), '');
   await fs.writeFile(path.join(dir, 'gh-state.json'), JSON.stringify({ prs: [{ number: 7 }] }));
-  if (muse) {
-    await fs.mkdir(path.join(home, '.config', 'muse'), { recursive: true });
-    await fs.writeFile(path.join(home, '.config', 'muse', 'auth.json'), '{}');
-  }
+  if (muse) await fs.writeFile(path.join(dir, 'muse-login'), '');
   spawnSync('git', ['init', '-q'], { cwd: work });
   const trace = [{ type: 'thread.started', thread_id: 'chair' },
     ...launches.map(launch => ({ type: 'item.completed', item: { type: 'command_execution', command: launch.command ?? launch, aggregated_output: launch.output ?? '' } })),
@@ -70,6 +67,7 @@ test('the council checks need a Muse seat that ran, when the sandbox has a Muse 
     const seat = options => evalCheck(name, check, { sessions: [sol], ...options });
     assert.equal(await seat({ launches: launches('Score: 8/10'), muse: true }), true);
     assert.equal(await seat({ launches: launches(failed), muse: true }), false);
+    assert.equal(await seat({ launches: launches(`     1\t${failed}`), muse: true }), false);
     assert.equal(await seat({ launches: launches('').slice(0, 1), muse: true }), false);
     assert.equal(await seat({ launches: launches('').slice(0, 1) }), true);
   }
@@ -112,5 +110,6 @@ echo '{"type":"result","result":"claude='"$claude"' muse='"$muse"' meta='"$meta"
   await fs.rm(dir, { recursive: true, force: true });
   assert.equal(final, 'claude=1 muse=1 meta=');
   assert.match(saved, /work\//);
+  assert.match(saved, /muse-login/);
   assert.doesNotMatch(saved, /muse\.json/);
 });

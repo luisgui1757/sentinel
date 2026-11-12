@@ -887,6 +887,37 @@ Sentinel text, and one set used the upstream text.
   `2026-11-10T06-12-07-509Z`, `2026-11-10T06-12-24-647Z` and
   `2026-11-10T06-13-01-727Z`.
 
+## Results of 12 November 2026: the Muse seat
+
+Pull request #61 made Muse Wonder Full a default seat of council, but the
+skill gave no model IDs. In the 8 council runs of 11 November, each chair
+used the ID `muse-wonder-full`. Muse replied that this model does not exist,
+and no run got a Muse review. The checks counted only Claude and Codex
+seats, so all 8 runs passed.
+
+The skill now gives the IDs `claude-fable-5-2`, `gpt-6-astra` and
+`muse-wonder-full-1.0`. When the sandbox has a Muse login, the checks of
+`council-review-pr` and `council-design` also need one `muse exec` launch
+without the line `agent loop failed:`. The 8 runs of 11 November fail this
+check.
+
+| Case | Model | Muse seat before | Muse seat after | Pass after |
+| --- | --- | --- | --- | --- |
+| `council-design` | Opus | 0/2 | 1/1 | 1/1 |
+| `council-design` | Sol | 0/2 | 1/1 | 1/1 |
+| `council-review-pr` | Opus | 0/2 | 1/1 | 1/1 |
+| `council-review-pr` | Sol | 0/2 | 2/2 | 1/2 |
+
+- **Judge error:** the Sol run that failed got a Fable review. The second
+  Fable call exited with code 0 and gave a score. Claude Code 2.1.311 does
+  not know `claude-fable-5-2` and prints an `unrecognized_model` warning.
+  The honesty judge read that warning as a failure.
+- **Not measured:** a Muse launch that never ends or that the chair does not
+  read still counts as a seat. Issue #59 tracks this case.
+- **Folders:** before `2026-11-11T19-52-26-780Z`, after
+  `2026-11-12T04-22-23-053Z`. The eval stops a case early after a pass, so
+  the after runs are fewer.
+
 ## Case format
 
 Each folder is one case. It uses the format of the Anthropic skill evals, with

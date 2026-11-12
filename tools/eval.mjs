@@ -170,6 +170,7 @@ async function sandbox(auth) {
   if (auth.muse) {
     await fs.mkdir(path.join(home, '.config', 'muse'));
     await fs.writeFile(path.join(home, '.config', 'muse', 'auth.json'), auth.muse, { mode: 0o600 });
+    await fs.writeFile(path.join(tmp, 'muse-login'), '');
   }
   // Apps reach the real accounts of the Codex login, such as GitHub.
   await fs.writeFile(path.join(home, '.codex', 'config.toml'), '[features]\napps = false\n');
