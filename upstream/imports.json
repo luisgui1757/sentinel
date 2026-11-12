@@ -44,7 +44,7 @@
       "id": "impeccable",
       "repository": "pbakaus/impeccable",
       "ref": "main",
-      "revision": "924bbd194d02e5e15a227e75b5901fb0d7a4ecad",
+      "revision": "b4bff1626c344067788c2679f048a20057c7cc5a",
       "paths": {
         ".agents/skills/impeccable/": "skills/impeccable/",
         "LICENSE": "skills/impeccable/LICENSE",
