@@ -104,7 +104,7 @@ agent can also load each skill when its description fits the task.
 | `full-send` | "full send" | The agent does the work, proves it, files the pull request and merges it when the checks of the branch protection pass. |
 | `full-stop` | "full stop" | The agent stops when the pull request is ready for you to merge. |
 | `sol-loop` | "sol loop" | GPT Sol reviews the change in a loop until both agents agree. |
-| `council` | "council" | Claude Fable 5.2, GPT-6 Astra and Muse Wonder Full review until they agree, for 3 rounds by default. Each model runs at high effort by default. Name fewer seats, other models, efforts or limits in the request. |
+| `council` | "council" | Claude Fable 5.2, GPT-6.1 Sol and Muse Wonder Full review until they agree, for 3 rounds by default. Each model runs at high effort by default. Name fewer seats, other models, efforts or limits in the request. |
 | `council` | "arena", or a design request to the council | Each model writes its own plan. A judge scores the plans without model names. The agent merges the best parts into one plan. |
 | `file-pr` | "file a PR" | The agent files a short pull request. |
 | `babysit-pr` | "babysit" | The agent watches CI and review bots and fixes real findings. |
