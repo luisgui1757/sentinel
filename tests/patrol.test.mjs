@@ -5,7 +5,7 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import test from 'node:test';
+import test, { after, before } from 'node:test';
 import { Ended, LABELS, agent, azure, card, claim, gate, github, gitlab, checkConfig, init, lock, mark, override, own, pick, queue, publishComment, publishIssues, readConfig, readRun, readState,
   record, start, verdict } from '../skills/patrol/scripts/patrol.mjs';
 import { azRun, curlRun, forgeStore, ghRun, store } from './fixtures/patrol-forge.mjs';
@@ -13,7 +13,10 @@ import { azRun, curlRun, forgeStore, ghRun, store } from './fixtures/patrol-forg
 const here = path.dirname(fileURLToPath(import.meta.url));
 const skill = path.join(here, '..', 'skills', 'patrol');
 const engine = path.join(skill, 'scripts', 'patrol.mjs');
-const temp = prefix => fs.mkdtempSync(path.join(os.tmpdir(), prefix));
+let scratch;
+before(() => { scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'patrol-test-')); });
+after(() => fs.rmSync(scratch, { recursive: true, force: true }));
+const temp = prefix => fs.mkdtempSync(path.join(scratch, prefix));
 const git = (cwd, ...args) => {
   const result = spawnSync('git', args, { cwd, encoding: 'utf8' });
   assert.equal(result.status, 0, `git ${args.join(' ')}: ${result.stderr}`);

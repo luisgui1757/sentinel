@@ -28,7 +28,7 @@ jobs:
         with:
           node-version: "26.13.0"
       - name: Installer and import tests
-        run: node --test "tests/*.test.mjs"
+        run: node --test --test-global-setup=tests/tmpdir-setup.mjs "tests/*.test.mjs"
 
   lint:
     name: lint

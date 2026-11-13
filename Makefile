@@ -5,7 +5,7 @@ help: ## Show the targets
 	@grep -hE '^[a-z][a-z-]+:.*##' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*## "}; {printf "  %-8s %s\n", $$1, $$2}'
 
 test: ## Run the installer and import tests
-	@node --test 'tests/*.test.mjs'
+	@node --test --test-global-setup=tests/tmpdir-setup.mjs 'tests/*.test.mjs'
 
 check: ## Check the imported files against upstream/lock.json
 	@node tools/upstream.mjs --check
