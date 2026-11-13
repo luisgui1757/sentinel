@@ -120,7 +120,7 @@ Then add this to `~/.gitconfig-work`:
 `hasconfig` needs git 2.36 or later. To match a folder, use `gitdir:~/work/`
 in place of `hasconfig:...`. A repository with no remote matches only
 `gitdir:`. On a machine for work only, set the value in `~/.gitconfig`. Write
-each URL pattern in the form that `git remote -v` prints.
+each URL pattern in the form that `git config --get remote.origin.url` prints.
 
 Linked worktrees use the setting of their repository. Run
 `git config --get sentinel.attribution` in a repository to see the value. Each
