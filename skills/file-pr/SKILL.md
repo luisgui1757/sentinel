@@ -39,7 +39,7 @@ changes, for example `Created with <model> in <harness>.` Include subagent
 models that wrote part of the change. Use the model name the harness reports.
 If model identity is unavailable, name the harness without guessing a model.
 When `git config --get sentinel.attribution` prints `off`, skip this line and
-each other line that names a model or a harness.
+each other line that names a model, a harness or a review tool.
 
 Before submission, check the title, description, quotes, and attachments for
 secrets and private details.

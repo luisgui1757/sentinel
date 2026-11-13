@@ -119,7 +119,8 @@ Then add this to `~/.gitconfig-work`:
 
 `hasconfig` needs git 2.36 or later. To match a folder, use `gitdir:~/work/`
 in place of `hasconfig:...`. A repository with no remote matches only
-`gitdir:`. On a machine for work only, set the value in `~/.gitconfig`.
+`gitdir:`. On a machine for work only, set the value in `~/.gitconfig`. Write
+each URL pattern in the form that `git remote -v` prints.
 
 Linked worktrees use the setting of their repository. Run
 `git config --get sentinel.attribution` in a repository to see the value. Each
@@ -229,6 +230,8 @@ repository and run the installer again.
 - Codex reads `AGENTS.override.md` instead of `AGENTS.md` when both exist. The
   installer gives a warning in that case.
 - `babysit-pr` waits with `pr-wait`, which needs Python 3 and the GitHub CLI.
+- `patrol` does not follow `sentinel.attribution`. Its issues, labels and
+  branches name the tool, and its log issue names the models.
 - T3 Code does not show Kiro skills in its `/` and `$` menus
   ([pingdotgg/t3code#31645](https://github.com/pingdotgg/t3code/issues/31645)).
   The Kiro session still lists them. A Kiro custom agent also gets the skills
