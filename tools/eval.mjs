@@ -174,12 +174,34 @@ async function sandbox(auth) {
   }
   // Apps reach the real accounts of the Codex login, such as GitHub.
   await fs.writeFile(path.join(home, '.codex', 'config.toml'), '[features]\napps = false\n');
+  const clis = {};
+  for (const cli of ['claude', 'codex', 'muse']) {
+    clis[cli] = spawnSync('sh', ['-c', `command -v ${cli}`], { encoding: 'utf8' }).stdout.trim();
+    if (clis[cli]) await fs.writeFile(path.join(bin, cli), launchLogger(cli, clis[cli], path.join(tmp, 'launches.jsonl')), { mode: 0o755 });
+  }
   const env = Object.fromEntries(Object.entries(process.env).filter(([key]) => !hostVars.includes(key)));
   Object.assign(env, { HOME: home, PATH: `${bin}${path.delimiter}${process.env.PATH}`, CODEX_HOME: path.join(home, '.codex'),
     CLAUDE_CONFIG_DIR: path.join(home, '.claude'), XDG_CONFIG_HOME: path.join(home, '.config'), CLAUDE_CODE_OAUTH_TOKEN: auth.claude,
     MISE_DATA_DIR: process.env.MISE_DATA_DIR ?? path.join(os.homedir(), '.local/share/mise'),
     MISE_CACHE_DIR: process.env.MISE_CACHE_DIR ?? path.join(os.homedir(), '.cache/mise'), PORT: String(await freePort()) });
-  return { tmp, home, bin, work, env };
+  return { tmp, home, bin, work, env, clis };
+}
+
+function launchLogger(cli, real, log) {
+  return `#!/usr/bin/env node
+const fs = require('node:fs');
+const { spawn } = require('node:child_process');
+const args = process.argv.slice(2);
+const child = spawn(${JSON.stringify(real)}, args, { stdio: ['inherit', 'pipe', 'inherit'] });
+let bytes = 0;
+process.stdout.on('error', () => {});
+for (const signal of ['SIGINT', 'SIGTERM', 'SIGHUP']) process.on(signal, () => child.kill(signal));
+child.stdout.on('data', chunk => { bytes += chunk.length; process.stdout.write(chunk); });
+child.on('close', code => {
+  fs.appendFileSync(${JSON.stringify(log)}, JSON.stringify({ cli: ${JSON.stringify(cli)}, args, code, bytes }) + '\\n');
+  process.exitCode = code ?? 1;
+});
+`;
 }
 
 const allProfiles = [...new Set(readFileSync(path.join(root, 'skills/profiles.txt'), 'utf8').split('\n').filter(line => line && !line.startsWith('#')).map(line => line.split(' ')[0]))].join(',');
@@ -207,13 +229,13 @@ async function prepare(testCase, target, arm, box, baseRules) {
   }
 }
 
-function agentCommand(target, prompt, work) {
+function agentCommand(target, prompt, box) {
   if (target.host === 'claude') {
-    return { cmd: 'claude', input: '', args: ['-p', prompt, '--model', target.model, '--effort', target.effort,
+    return { cmd: box.clis.claude, input: '', args: ['-p', prompt, '--model', target.model, '--effort', target.effort,
       '--output-format', 'stream-json', '--verbose', '--dangerously-skip-permissions'] };
   }
-  return { cmd: 'codex', input: prompt, args: ['exec', '--json', '--skip-git-repo-check', '-m', target.model,
-    '-c', `model_reasoning_effort=${target.effort}`, '--dangerously-bypass-approvals-and-sandbox', '-C', work, '-'] };
+  return { cmd: box.clis.codex, input: prompt, args: ['exec', '--json', '--skip-git-repo-check', '-m', target.model,
+    '-c', `model_reasoning_effort=${target.effort}`, '--dangerously-bypass-approvals-and-sandbox', '-C', box.work, '-'] };
 }
 
 function parse(text) {
@@ -293,7 +315,7 @@ ${runs ? `\nTool calls of the agent, with the start of each result:\n${runs}\n` 
 Answer with JSON: {"pass": true or false, "reason": "one sentence"}.`.replace(/\0/g, '');
     let result;
     if (judgeTarget.host === 'claude') {
-      result = await run('claude', ['-p', prompt, '--model', judgeTarget.model, '--effort', judgeTarget.effort, '--output-format', 'json',
+      result = await run(box.clis.claude, ['-p', prompt, '--model', judgeTarget.model, '--effort', judgeTarget.effort, '--output-format', 'json',
         '--json-schema', JSON.stringify(verdictSchema), '--tools', ''], { cwd: box.work, env: box.env, timeout: 600 });
       const outer = JSON.parse(result.out);
       if (outer.is_error) throw new Error([outer.result, ...(outer.errors ?? [])].filter(Boolean).join('; ') || 'judge error');
@@ -301,7 +323,7 @@ Answer with JSON: {"pass": true or false, "reason": "one sentence"}.`.replace(/\
     }
     const schema = path.join(box.tmp, 'schema.json'), answer = path.join(box.tmp, 'answer.json');
     await fs.writeFile(schema, JSON.stringify(verdictSchema));
-    result = await run('codex', ['exec', '--skip-git-repo-check', '--sandbox', 'read-only', '-m', judgeTarget.model, '-c',
+    result = await run(box.clis.codex, ['exec', '--skip-git-repo-check', '--sandbox', 'read-only', '-m', judgeTarget.model, '-c',
       `model_reasoning_effort=${judgeTarget.effort}`, '--output-schema', schema, '-o', answer, '-'], { cwd: box.work, env: box.env, input: prompt, timeout: 600 });
     return JSON.parse(await fs.readFile(answer, 'utf8'));
   } catch (error) {
@@ -367,7 +389,7 @@ async function trial(ctx, testCase, target, arm, index) {
   try {
     await prepare(testCase, target, arm, box, testCase.rule ? ctx.baseRulesFor(testCase) : null);
     const head = spawnSync('git', ['rev-parse', 'HEAD'], { cwd: box.work, encoding: 'utf8' }).stdout.trim();
-    const command = agentCommand(target, testCase.prompt, box.work);
+    const command = agentCommand(target, testCase.prompt, box);
     const traceFile = path.join(outDir, 'trace.jsonl');
     const agent = await run(command.cmd, command.args, { cwd: box.work, env: box.env, input: command.input, timeout: testCase.timeout ?? 900, stdout: traceFile });
     if (target.host === 'claude') agent.out += await backgroundOutput(agent.out, traceFile);

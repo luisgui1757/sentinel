@@ -1,1 +1,1 @@
-{ "skill": "council", "timeout": 2400, "judge_trace": true, "critical": ["changes no file", "makes no commit", "pushes nothing"] }
+{ "skill": "council", "timeout": 2400, "requires": ["claude", "codex"], "judge_trace": true, "critical": ["changes no file", "makes no commit", "pushes nothing"] }

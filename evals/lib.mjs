@@ -19,10 +19,6 @@ export function events(text = trace()) {
   return text.split('\n').filter(line => line.startsWith('{')).map(line => { try { return JSON.parse(line); } catch { return null; } }).filter(Boolean);
 }
 
-export function toolUses() {
-  return events().flatMap(event => (event.message?.content ?? []).filter(part => part.type === 'tool_use'));
-}
-
 export function commands() {
   const found = [];
   for (const event of events()) {
@@ -45,46 +41,6 @@ export function executions(text) {
     }
   }
   return runs;
-}
-
-export function gitLog() {
-  const file = path.join(tmp, 'git.log');
-  return fs.existsSync(file) ? fs.readFileSync(file, 'utf8').split('\n').filter(Boolean).map(line => {
-    const [cwd, ...args] = line.split('\t');
-    return { cwd, args };
-  }) : [];
-}
-
-export function gitCreatedDirs() {
-  const valued = new Set(['-b', '-B', '--branch', '--depth', '-o', '--origin', '-c', '--config', '--reference', '--separate-git-dir', '-u', '--upload-pack', '--template', '-j', '--jobs', '--filter', '--reason']);
-  const dirs = [];
-  for (const { cwd, args } of gitLog()) {
-    let base = cwd, rest = [...args];
-    while (rest[0] === '-C') { base = path.resolve(base, rest[1]); rest = rest.slice(2); }
-    const sub = rest[0] === 'clone' ? 'clone' : rest[0] === 'worktree' && rest[1] === 'add' ? 'worktree' : null;
-    if (!sub) continue;
-    const positional = [];
-    const tokens = rest.slice(sub === 'clone' ? 1 : 2);
-    for (let i = 0; i < tokens.length; i++) {
-      if (valued.has(tokens[i])) { i++; continue; }
-      if (!tokens[i].startsWith('-')) positional.push(tokens[i]);
-    }
-    const target = sub === 'clone' ? positional[1] ?? path.basename(positional[0] ?? '').replace(/\.git$/, '') : positional[0];
-    if (target) dirs.push(path.resolve(base, target));
-  }
-  return [...new Set(dirs)];
-}
-
-export function toolOutputs() {
-  const found = [];
-  for (const event of events()) {
-    if (event.type === 'item.completed' && event.item?.type === 'command_execution') found.push(String(event.item.aggregated_output ?? ''));
-    for (const part of event.message?.content ?? []) {
-      if (part.type !== 'tool_result') continue;
-      found.push(typeof part.content === 'string' ? part.content : (part.content ?? []).map(c => c.text ?? '').join('\n'));
-    }
-  }
-  return found;
 }
 
 export function createdDirs() {
@@ -192,18 +148,27 @@ export function codexSessions() {
   });
 }
 
-const launcher = String.raw`^((\w+=\S*|timeout\s+\S+|nohup|env|time|exec|command)\s+)*(\S*\/)?`;
+const councilModels = [...fs.readFileSync(new URL('../skills/council/SKILL.md', import.meta.url), 'utf8').matchAll(/\(`([\w.-]+)`\)/g)].map(match => match[1]);
+
+export function launches() {
+  const file = path.join(tmp, 'launches.jsonl');
+  return fs.existsSync(file) ? fs.readFileSync(file, 'utf8').split('\n').filter(Boolean).map(line => JSON.parse(line)) : [];
+}
+
+function model(args) {
+  const flag = args.findIndex(arg => arg === '--model' || arg === '-m');
+  return flag >= 0 ? args[flag + 1] : args.find(arg => arg.startsWith('--model='))?.slice(8);
+}
 
 export function councilSeats() {
-  const launches = commands().flatMap(shellParts).filter(part => !/--help|--version|\s-h\b/.test(part));
+  const replied = launches().filter(run => run.code === 0 && run.bytes > 0 && councilModels.includes(model(run.args))
+    && !run.args.some(arg => ['--help', '-h', 'help', '--version', '-V', '-v'].includes(arg)));
   const chair = events().find(e => e.type === 'thread.started')?.thread_id;
   return {
-    claude: launches.filter(part => new RegExp(`${launcher}claude\\b`).test(part) && /\s(-p|--print)\b/.test(part)).length
-      + toolUses().filter(t => ['Task', 'Agent'].includes(t.name)).length,
-    codex: launches.filter(part => new RegExp(`${launcher}codex\\s+exec\\b`).test(part) && !/\bresume\b/.test(part)).length
-      + codexSessions().filter(s => s.replied && s.parent && s.parent === chair).length,
-    muse: Math.max(0, launches.filter(part => new RegExp(`${launcher}muse\\s+exec\\b`).test(part)).length
-      - new Set(toolOutputs().flatMap(output => output.match(/agent loop failed:.*?(?:\[request_id=[^\]]*\]|$)/gm) ?? [])).size),
+    claude: replied.filter(run => run.cli === 'claude' && run.args.some(arg => arg === '-p' || arg === '--print')).length,
+    codex: replied.filter(run => run.cli === 'codex' && run.args.includes('exec') && !run.args.includes('resume')).length
+      + codexSessions().filter(s => s.replied && s.parent && s.parent === chair && councilModels.includes(s.model)).length,
+    muse: replied.filter(run => run.cli === 'muse' && run.args.includes('exec')).length,
   };
 }
 
