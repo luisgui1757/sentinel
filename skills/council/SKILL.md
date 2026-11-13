@@ -68,6 +68,8 @@ Rounds: 2
 If a delegate gives no score, write `no score`. Do not invent one.
 If the PR is open, edit the description. Do not post a comment for this.
 If there is no such PR, put the same results in the final reply only.
+When `git config --get sentinel.attribution` prints `off`, do not put this
+section in the PR. Put the results in the final reply only.
 
 If you agree with their recommendations, make the changes and request a fresh
 review after. Continue this process until all delegates are satisfied with the

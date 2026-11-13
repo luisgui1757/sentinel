@@ -28,14 +28,14 @@
       "source": "tstack",
       "path": "skills/council/SKILL.md",
       "sha256": "598fb2c7cdd48ddd9643cb22999e1b624c357aa6579aa0af0e7268ae16a8a164",
-      "local": "adf97c078ed877b2dbb6c1e21cc3852b68a879a9916c4906bb494b00816ffab4",
+      "local": "be5e51f08a2cf5fcf2d5bd87d70090e1fdcfff0e724e1b9d9cb218f846f4d613",
       "executable": false
     },
     "skills/file-pr/SKILL.md": {
       "source": "tstack",
       "path": "skills/file-pr/SKILL.md",
       "sha256": "174a7ae52e3b9d17f2bd0eaf0a11a89d744d1249164ecbdb0e642359eee75b1b",
-      "local": "c3c0269d4e543f7f3e5794c69e3ea48d44fc72b0c304649441ff66ee12e76ae4",
+      "local": "bc3673dc7430b58756209e3ff1795ab26c8d5f113212e9c4fb03c806aab0fc50",
       "executable": false
     },
     "skills/full-send/SKILL.md": {
@@ -68,7 +68,7 @@
       "source": "tstack",
       "path": "skills/leaving-pr-comments/SKILL.md",
       "sha256": "1d110343022d0514c101dd942286cce10d6b9f5bd5b899f5a0530620d34cd295",
-      "local": "1aef189051034ec3cc73900f6e6fca7b3172deb8d11e07c53b878d429ac69cc0",
+      "local": "c2a1625661c38184946794f0eb420165ea958156a921f230fc15680c1726206e",
       "executable": false
     },
     "skills/leaving-pr-comments/agents/openai.yaml": {
@@ -94,7 +94,7 @@
       "source": "tstack",
       "path": "skills/sol-loop/SKILL.md",
       "sha256": "1db1eb4c4a156ee666070e9a12623d520cd1bd9b19c3fc21003fe5a440ba0b10",
-      "local": "39ff4ac16929587de538184c09b86200b3ace5d7d9d31c8e7a18e85841c90834",
+      "local": "3f8f7de9c1f32ac79d44205f34112136084f4959d7bdaedde391bceed6156250",
       "executable": false
     },
     "skills/full-stop/full-send.md": {

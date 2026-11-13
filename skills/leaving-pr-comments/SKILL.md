@@ -33,7 +33,8 @@ Setext underline, heading, signature footer, or a second attribution.
 Apply this format to top-level PR comments, inline review comments, replies to
 bots or reviewers, and written explanations used before resolving or
 dismissing feedback. Do not add it to PR descriptions, commit messages, or text
-the user explicitly asked to post verbatim without attribution.
+the user explicitly asked to post verbatim without attribution. Do not add it
+when `git config --get sentinel.attribution` prints `off`.
 
 Write the comment itself in a direct style:
 

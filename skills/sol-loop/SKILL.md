@@ -119,7 +119,8 @@ blurb:
 
 `Reviewed with sol-loop: <N> rounds with <model>. Sol verdict: approved`.
 
-Add `on <effort>` only if verified.
+Add `on <effort>` only if verified. Skip this line when
+`git config --get sentinel.attribution` prints `off`.
 
 Report: rounds, model, what Sol changed, diff size before/after, fixed and
 declined findings with reasons, usage if exposed (else say not), pushed or not.

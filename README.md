@@ -86,6 +86,7 @@ file, the file keeps its mode. A project install writes the rules to `AGENTS.md`
 - Write all prose in ASD-STE100 Simplified Technical English. This does not
   limit the reasoning of the agent. Ask for plain prose to stop it in a
   session. To stop it in a repository, say so in its `AGENTS.md`.
+- Write no attribution in a repository where `sentinel.attribution` is `off`.
 
 `rules/output-style.md` is a Claude Code output style for short replies. It
 tells the agent to give each fact once and to add no claim that it did not
@@ -93,6 +94,37 @@ check. In the evals, it cut the replies of Opus and Haiku by half or more. The
 installer writes it, but Claude Code uses it only after you pick it: run
 `/output-style Sentinel`, or set `"outputStyle": "Sentinel"` in
 `~/.claude/settings.json`.
+
+### Attribution
+
+By default, the agent names the model and the harness in each pull request and
+PR comment. To stop this for a group of repositories, set
+`sentinel.attribution` to `off` in a git config file that only those
+repositories include. For example, add this to `~/.gitconfig` for each
+repository of the `acme` GitHub organization:
+
+```ini
+[includeIf "hasconfig:remote.*.url:git@github.com:acme/**"]
+	path = ~/.gitconfig-work
+[includeIf "hasconfig:remote.*.url:https://github.com/acme/**"]
+	path = ~/.gitconfig-work
+```
+
+Then add this to `~/.gitconfig-work`:
+
+```ini
+[sentinel]
+	attribution = off
+```
+
+`hasconfig` needs git 2.36 or later. To match a folder, use `gitdir:~/work/`
+in place of `hasconfig:...`. A repository with no remote matches only
+`gitdir:`. On a machine for work only, set the value in `~/.gitconfig`. Write
+each URL pattern in the form that `git config --get remote.origin.url` prints.
+
+Linked worktrees use the setting of their repository. Run
+`git config --get sentinel.attribution` in a repository to see the value. Each
+other repository keeps the full attribution.
 
 ## Skills
 
@@ -198,6 +230,8 @@ repository and run the installer again.
 - Codex reads `AGENTS.override.md` instead of `AGENTS.md` when both exist. The
   installer gives a warning in that case.
 - `babysit-pr` waits with `pr-wait`, which needs Python 3 and the GitHub CLI.
+- `patrol` does not follow `sentinel.attribution`. Its issues, labels and
+  branches name the tool, and its log issue names the models.
 - T3 Code does not show Kiro skills in its `/` and `$` menus
   ([pingdotgg/t3code#31645](https://github.com/pingdotgg/t3code/issues/31645)).
   The Kiro session still lists them. A Kiro custom agent also gets the skills
