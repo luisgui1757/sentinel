@@ -86,6 +86,34 @@ file, the file keeps its mode. A project install writes the rules to `AGENTS.md`
 - Write all prose in ASD-STE100 Simplified Technical English. This does not
   limit the reasoning of the agent. Ask for plain prose to stop it in a
   session. To stop it in a repository, say so in its `AGENTS.md`.
+- Write no attribution in a repository where `sentinel.attribution` is `off`.
+
+### Attribution
+
+By default, the agent names the model and the harness in each pull request and
+PR comment. To stop this for a group of repositories, set
+`sentinel.attribution` to `off` in a git config file that only those
+repositories include. For example, add this to `~/.gitconfig` for each
+repository of the `acme` GitHub organization:
+
+```ini
+[includeIf "hasconfig:remote.*.url:git@github.com:acme/**"]
+	path = ~/.gitconfig-work
+[includeIf "hasconfig:remote.*.url:https://github.com/acme/**"]
+	path = ~/.gitconfig-work
+```
+
+Then add this to `~/.gitconfig-work`:
+
+```ini
+[sentinel]
+	attribution = off
+```
+
+`hasconfig` needs git 2.36 or later. To match a folder, use `gitdir:~/work/`
+in place of `hasconfig:...`. Linked worktrees use the setting of their
+repository. Run `git config --get sentinel.attribution` in a repository to see
+the value. Each other repository keeps the full attribution.
 
 `rules/output-style.md` is a Claude Code output style for short replies. It
 tells the agent to give each fact once and to add no claim that it did not

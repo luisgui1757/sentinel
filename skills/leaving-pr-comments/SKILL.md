@@ -23,6 +23,9 @@ user's name or forge login.
 
 If the harness does not expose a model name, use the harness name. Do not guess.
 
+When `git config --get sentinel.attribution` prints `off`, write
+`🤖 **Automated reply on behalf of <user>**` with no model or harness name.
+
 Before posting, check the entire comment, including quoted text and
 attachments, for secrets and private details.
 

@@ -1,0 +1,1 @@
+{"rule": "attribution", "base": "none", "without_skills": ["file-pr"], "timeout": 1200, "requires": ["jq"], "critical": ["names no model, harness or tool on GitHub"]}

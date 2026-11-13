@@ -50,7 +50,8 @@ Count each full review pass as one round.
 A fresh review after fixes starts a new round.
 
 If the work ends in a pull request that the task lets you change, put the
-results in the PR description.
+results in the PR description. When `git config --get sentinel.attribution`
+prints `off`, put them in the final reply only.
 Put this section before the model and harness line at the end:
 
 ```markdown
