@@ -208,8 +208,9 @@ repository and run the installer again.
 
 ## Maintain
 
-- `make test` runs the installer and import tests. CI also runs them on macOS
-  and Windows.
+- `make test` runs the installer and import tests. It needs Node 24 or later.
+  CI also runs them on macOS and Windows. The run fails when a test leaves a
+  file or folder in the temporary directory.
 - `make lint` checks the shell script, home paths and the STE prose.
 - `make check` compares the imported files with `upstream/lock.json`.
 - `make eval` runs the eval cases that your changes touch, on Opus and Sol,
