@@ -2,4 +2,4 @@
 tags: [pr]
 ---
 
-File a PR for my branch.
+Commit my change and file a PR.

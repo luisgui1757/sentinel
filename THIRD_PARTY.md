@@ -38,6 +38,9 @@ with copies in the order of the user's list, and it checks the `PATH` for each
 CLI. It has a design mode. It puts its results in the description of a PR only
 when the task lets it change that PR.
 
+File-pr, council, sol-loop and leaving-pr-comments write no attribution when
+`git config --get sentinel.attribution` prints `off`.
+
 Sentinel wrote beast-ui, cleanup, doc-view, no-comments, tldr and untangle.
 The keep list of no-comments comes from the Comment Sicko agent of pstack.
 

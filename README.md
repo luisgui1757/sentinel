@@ -88,6 +88,13 @@ file, the file keeps its mode. A project install writes the rules to `AGENTS.md`
   session. To stop it in a repository, say so in its `AGENTS.md`.
 - Write no attribution in a repository where `sentinel.attribution` is `off`.
 
+`rules/output-style.md` is a Claude Code output style for short replies. It
+tells the agent to give each fact once and to add no claim that it did not
+check. In the evals, it cut the replies of Opus and Haiku by half or more. The
+installer writes it, but Claude Code uses it only after you pick it: run
+`/output-style Sentinel`, or set `"outputStyle": "Sentinel"` in
+`~/.claude/settings.json`.
+
 ### Attribution
 
 By default, the agent names the model and the harness in each pull request and
@@ -111,16 +118,12 @@ Then add this to `~/.gitconfig-work`:
 ```
 
 `hasconfig` needs git 2.36 or later. To match a folder, use `gitdir:~/work/`
-in place of `hasconfig:...`. Linked worktrees use the setting of their
-repository. Run `git config --get sentinel.attribution` in a repository to see
-the value. Each other repository keeps the full attribution.
+in place of `hasconfig:...`. A repository with no remote matches only
+`gitdir:`. On a machine for work only, set the value in `~/.gitconfig`.
 
-`rules/output-style.md` is a Claude Code output style for short replies. It
-tells the agent to give each fact once and to add no claim that it did not
-check. In the evals, it cut the replies of Opus and Haiku by half or more. The
-installer writes it, but Claude Code uses it only after you pick it: run
-`/output-style Sentinel`, or set `"outputStyle": "Sentinel"` in
-`~/.claude/settings.json`.
+Linked worktrees use the setting of their repository. Run
+`git config --get sentinel.attribution` in a repository to see the value. Each
+other repository keeps the full attribution.
 
 ## Skills
 
