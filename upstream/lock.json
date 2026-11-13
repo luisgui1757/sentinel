@@ -28,14 +28,14 @@
       "source": "tstack",
       "path": "skills/council/SKILL.md",
       "sha256": "598fb2c7cdd48ddd9643cb22999e1b624c357aa6579aa0af0e7268ae16a8a164",
-      "local": "1899aaadc8c706c268bb3cf7be778d616eba28c589131771058c1de652f593e1",
+      "local": "be5e51f08a2cf5fcf2d5bd87d70090e1fdcfff0e724e1b9d9cb218f846f4d613",
       "executable": false
     },
     "skills/file-pr/SKILL.md": {
       "source": "tstack",
       "path": "skills/file-pr/SKILL.md",
       "sha256": "174a7ae52e3b9d17f2bd0eaf0a11a89d744d1249164ecbdb0e642359eee75b1b",
-      "local": "10269d63f78fed04ab50754a296af185d2b61256449c06acece45a66a33d28f3",
+      "local": "bc3673dc7430b58756209e3ff1795ab26c8d5f113212e9c4fb03c806aab0fc50",
       "executable": false
     },
     "skills/full-send/SKILL.md": {
